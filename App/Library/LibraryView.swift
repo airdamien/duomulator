@@ -104,11 +104,16 @@ struct LibraryView: View {
         case system(GameSystem)
         /// ROMs whose console can't be told.
         case other
+        /// BIOS / system files.
+        case bios
     }
 
     /// Top level: one row per manufacturer.
     private var folderList: some View {
         List {
+            Section {
+                NavigationLink(value: Route.bios) { BIOSRow() }
+            }
             Section {
                 ForEach(library.makers, id: \.name) { maker in
                     NavigationLink(value: Route.maker(maker.name)) {
@@ -139,6 +144,8 @@ struct LibraryView: View {
                      title: system.displayName)
         case .other:
             gameList(library.unknownEntries, title: "Other")
+        case .bios:
+            BIOSView()
         }
     }
 
@@ -225,10 +232,12 @@ struct LibraryView: View {
     }
 
     /// Testing hook: `-openLibraryFolder snes` (a GameSystem raw value) opens that console's
-    /// game list at launch. Launch arguments live in UserDefaults' argument domain only.
+    /// game list at launch (`bios` opens BIOS Files). Launch arguments live in UserDefaults'
+    /// argument domain only.
     private func openFolderIfRequested() {
-        guard path.isEmpty, let raw = UserDefaults.standard.string(forKey: "openLibraryFolder"),
-              let system = GameSystem(rawValue: raw) else { return }
+        guard path.isEmpty, let raw = UserDefaults.standard.string(forKey: "openLibraryFolder") else { return }
+        if raw == "bios" { path = [.bios]; return }
+        guard let system = GameSystem(rawValue: raw) else { return }
         path = [.maker(system.manufacturer), .system(system)]
     }
 
@@ -447,5 +456,29 @@ private struct FallbackTile: View {
         case .n64: Color(red: 0.15, green: 0.45, blue: 0.30)
         case nil: .gray
         }
+    }
+}
+
+/// Home-screen entry for BIOS files: how many are installed, and whether a system that
+/// needs one is still missing it.
+private struct BIOSRow: View {
+    var body: some View {
+        let missing = BIOSCatalog.groups.filter { $0.required && !$0.isSatisfied }.map(\.system.displayName)
+        HStack(spacing: 14) {
+            Image(systemName: "cpu")
+                .font(.title2)
+                .foregroundStyle(.tint)
+                .frame(width: 44, height: 44)
+                .background(.tint.opacity(0.15), in: RoundedRectangle(cornerRadius: 10))
+            VStack(alignment: .leading, spacing: 3) {
+                Text("BIOS Files").font(.headline)
+                Text(missing.isEmpty
+                     ? "\(BIOSCatalog.installedCount) installed"
+                     : "\(BIOSCatalog.installedCount) installed · \(missing.joined(separator: ", ")) needs one")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 4)
     }
 }

@@ -62,6 +62,7 @@
 		0546C0F09D1827E1C52973C4 /* d_darkmist.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1315A0BB8B47F3264540A0 /* d_darkmist.cpp */; };
 		056A0585FB64C383D3E41CD4 /* hd6309.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2DC47C643FA927712084942E /* hd6309.cpp */; };
 		0578D90118931EA576E7D5FD /* d_stfight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C164CC4E608A18D193AD92D /* d_stfight.cpp */; };
+		058E7811B7D399719E66BE06 /* BIOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814F4C58344EF876C58C1DF6 /* BIOSTests.swift */; };
 		0599274504E919B2BDCCE9D8 /* d_arcadecl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE4B762B9AB6D17999B89E0B /* d_arcadecl.cpp */; };
 		05A9E2D237C7DBF7204A1C15 /* gSPNeon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9C063F755CB82A8560890C2B /* gSPNeon.cpp */; };
 		05B15F05AB72770A8B6EE2DE /* d_warpsped.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA57F6AFB388EFFB4D891748 /* d_warpsped.cpp */; };
@@ -290,6 +291,7 @@
 		1EDF22E036188C4C625276E7 /* mcs51.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56D93F96263E836614C69D17 /* mcs51.cpp */; };
 		1EFCA4BEE667206943E38D24 /* d_blktiger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5D3E180B75221732D2039CA /* d_blktiger.cpp */; };
 		1F25A65EAF8F819F6051F73A /* asic_vrc7.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = F9121A9DDA243E7204720826 /* asic_vrc7.h */; };
+		1F3BF8D197E9F55BE50E13DC /* BIOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA53899523CF0E90B5522CFF /* BIOS.swift */; };
 		1F3F46D9A1718869E2E8F61C /* powerpad.c in Sources */ = {isa = PBXBuildFile; fileRef = 0AE33FE59013AD4403A06974 /* powerpad.c */; };
 		1F4101867FCA6A9E323B20B2 /* F3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 856635F7A039AAFDAE08854E /* F3D.cpp */; };
 		1F4D24EC12412AC68F957377 /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = E95348A1D3A89ECF914D9122 /* ioapi.c */; };
@@ -374,6 +376,7 @@
 		27862934C392F39747BE1021 /* d_musclem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F4897496ADAD13EEFC8791BA /* d_musclem.cpp */; };
 		278ECC29AA8372164456FDBD /* decobac06.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C0BAE620CA86E1EAC69D9 /* decobac06.cpp */; };
 		27E348EDBA6DC18D8334A439 /* d_othunder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8508B7F394E0DF3AFCE12871 /* d_othunder.cpp */; };
+		280B4E68BDFB059CFC43B8F1 /* BIOSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85D1FCFFD374709DE9ABA95 /* BIOSView.swift */; };
 		28145FDD70D8BA9CBA20526F /* TouchControllerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C5D50EF9351E7A4D0F7913 /* TouchControllerView.swift */; };
 		2835060028D59CBE857F58B8 /* d_hcastle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B62A523A294171AE0A114C04 /* d_hcastle.cpp */; };
 		284626C29C9B42098FD293FE /* opengl_ColorBufferReaderWithBufferStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4E8C2A706530A2718FAF9B3 /* opengl_ColorBufferReaderWithBufferStorage.cpp */; };
@@ -3613,6 +3616,7 @@
 		81082D56CFA3ECC625ECA174 /* d_lemmings.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_lemmings.cpp; sourceTree = "<group>"; };
 		8128878D97E193645E335593 /* vlm5030.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vlm5030.cpp; sourceTree = "<group>"; };
 		814A40CD7B12E485BDD4C801 /* nsf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = nsf.c; sourceTree = "<group>"; };
+		814F4C58344EF876C58C1DF6 /* BIOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BIOSTests.swift; sourceTree = "<group>"; };
 		818C2C771B1269E8DFAEAE88 /* d_lordgun.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_lordgun.cpp; sourceTree = "<group>"; };
 		81926457B90EABD2BC26FD45 /* d_galspnbl.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_galspnbl.cpp; sourceTree = "<group>"; };
 		81A7636DD2C2A67CA21BE71B /* frontend.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = frontend.c; sourceTree = "<group>"; };
@@ -4118,6 +4122,7 @@
 		BA2C36234E7E1466135F0CAB /* d_taotaido.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_taotaido.cpp; sourceTree = "<group>"; };
 		BA2D34F3C4CB8916E992B3C4 /* d_itech32.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_itech32.cpp; sourceTree = "<group>"; };
 		BA385EA25BE434C70EB6DB5A /* d_dribling.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_dribling.cpp; sourceTree = "<group>"; };
+		BA53899523CF0E90B5522CFF /* BIOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BIOS.swift; sourceTree = "<group>"; };
 		BA95B9F19AB559547AFBF9DF /* d_ppmast93.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_ppmast93.cpp; sourceTree = "<group>"; };
 		BA98B1D9961B464297A426F0 /* 390.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 390.c; sourceTree = "<group>"; };
 		BAA2230A267D1D70FE116CCD /* d_junofrst.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_junofrst.cpp; sourceTree = "<group>"; };
@@ -4394,6 +4399,7 @@
 		D82898B91FFC79F73A61FB65 /* d_snowbro2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_snowbro2.cpp; sourceTree = "<group>"; };
 		D85887EE863836B43A6C20EE /* d_chanbara.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_chanbara.cpp; sourceTree = "<group>"; };
 		D85976EF9A2D549B243867D4 /* re2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = re2.c; sourceTree = "<group>"; };
+		D85D1FCFFD374709DE9ABA95 /* BIOSView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BIOSView.swift; sourceTree = "<group>"; };
 		D8768B997406F6AF799C51A2 /* onebus.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = onebus.c; sourceTree = "<group>"; };
 		D87A9A6685FB8ABA2B95626A /* alpha8201.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = alpha8201.cpp; sourceTree = "<group>"; };
 		D88EC62E2E7360C2DF37AE24 /* genesis_vid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = genesis_vid.cpp; sourceTree = "<group>"; };
@@ -5622,6 +5628,7 @@
 			children = (
 				12F6765FEEBDD35CC200DC01 /* ArcadeTests.swift */,
 				7AB72E706879E985E396B262 /* ArtworkTests.swift */,
+				814F4C58344EF876C58C1DF6 /* BIOSTests.swift */,
 				A1DEC6F42D67928D9EA4E3A4 /* CoreTests.swift */,
 				94A3B60EDEEF9898928E6545 /* DSCoreTests.swift */,
 				309AD75CFC8514FB575B9E38 /* DSLayoutTests.swift */,
@@ -7109,6 +7116,8 @@
 				C16C28C371E8A4F8AD892B89 /* ArcadeCatalog.tsv */,
 				288A504F1A01C9569A5545E8 /* Artwork.swift */,
 				BEE8F1C6DB6676D9DB0A3CCD /* Assets.xcassets */,
+				BA53899523CF0E90B5522CFF /* BIOS.swift */,
+				D85D1FCFFD374709DE9ABA95 /* BIOSView.swift */,
 				3DA533D91F49982B8A14B5AB /* ControllerMappingView.swift */,
 				0272EAF2546285AFC7F7A893 /* DuomulatorApp.swift */,
 				E89D80E1363355B83E5DA162 /* GameLauncher.swift */,
@@ -9811,6 +9820,7 @@
 			files = (
 				B8D8E456ED0DF2F597D3D9EF /* ArcadeTests.swift in Sources */,
 				563A11492F4605DC0F709DA8 /* ArtworkTests.swift in Sources */,
+				058E7811B7D399719E66BE06 /* BIOSTests.swift in Sources */,
 				B6D5260A0ACDAB38100C2811 /* CoreTests.swift in Sources */,
 				2D94C3853418FF56924A03F2 /* DSCoreTests.swift in Sources */,
 				555A20B73A0E781C5DC0A77B /* DSLayoutTests.swift in Sources */,
@@ -10186,6 +10196,8 @@
 				5A846AC639C8B4A1773ED8D3 /* ArcadeCatalog.swift in Sources */,
 				C11043E0A00719B943AE9A34 /* Artwork.swift in Sources */,
 				5CE5A6808354DE22DFFD78F2 /* AudioOutput.swift in Sources */,
+				1F3BF8D197E9F55BE50E13DC /* BIOS.swift in Sources */,
+				280B4E68BDFB059CFC43B8F1 /* BIOSView.swift in Sources */,
 				5F4746CF7F78BDB3FBBC1DD3 /* ControllerLayout.swift in Sources */,
 				864F6F63E6A58DE619FF6C6C /* ControllerMapping.swift in Sources */,
 				ADB0A451A1712AE357916DDF /* ControllerMappingView.swift in Sources */,
