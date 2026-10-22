@@ -28,6 +28,8 @@ final class N64Tests: XCTestCase {
                                             "stick crowds a button at \(size)")
             }
             XCTAssertLessThanOrEqual(l.startRect.maxY, stick.y - r, "Start above the stick")
+            XCTAssertEqual(l.startRect.minY - l.menuRect.maxY, 8, accuracy: 0.5, "Start just below the menu button")
+            XCTAssertEqual(l.startRect.midX, l.menuRect.midX, accuracy: 0.5)
             XCTAssertEqual(l.label(for: .cUp), "▲", "arrows only on the yellow buttons")
             XCTAssertFalse(l.zRect.isNull)
             XCTAssertFalse(l.zRect.intersects(l.lRect), "Z beside L")

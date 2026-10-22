@@ -219,7 +219,8 @@ struct ControllerLayout: Equatable, Sendable {
             stickRadius = n64StickR
             leftStickCenter = CGPoint(x: area.midX, y: y)
             rightStickCenter = .zero
-            ssY = max(area.minY + topReserved, y - n64StickR - max(16, n64StickR * 0.3) - ssH)
+            // Start just below the menu button.
+            ssY = menuRect.maxY + 8
         } else if wantsSticks {
             // Sticks as low as the area allows, with a thumb's clearance up to Select/Start.
             let y = area.maxY - stickR
