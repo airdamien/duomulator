@@ -1,0 +1,127 @@
+name: Duomulator
+options:
+  bundleIdPrefix: io.kurast
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    DEVELOPMENT_TEAM: XGZ5TDQE45
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+targets:
+  SNESCore:
+    type: library.static
+    platform: iOS
+    settings:
+      base:
+        GCC_PREPROCESSOR_DEFINITIONS: "__LIBRETRO__ RIGHTSHIFT_IS_SAR ALLOW_CPU_OVERCLOCK HAVE_STDINT_H HAVE_STRINGS_H IOS ARM NDEBUG"
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/snes9x $(SRCROOT)/Vendor/snes9x/libretro $(SRCROOT)/Vendor/snes9x/libretro/libretro-common/include $(SRCROOT)/Vendor/snes9x/apu $(SRCROOT)/Vendor/snes9x/apu/bapu"
+        CLANG_CXX_LANGUAGE_STANDARD: "c++17"
+        GCC_OPTIMIZATION_LEVEL: "3"
+        OTHER_CPLUSPLUSFLAGS: "-fno-rtti -Wno-everything"
+        OTHER_CFLAGS: "-Wno-everything"
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
+        SKIP_INSTALL: YES
+    sources:
+      - path: Vendor/snes9x/filter/snes_ntsc.c
+      - path: Vendor/snes9x/apu/apu.cpp
+      - path: Vendor/snes9x/apu/bapu/dsp/sdsp.cpp
+      - path: Vendor/snes9x/apu/bapu/smp/smp.cpp
+      - path: Vendor/snes9x/apu/bapu/smp/smp_state.cpp
+      - path: Vendor/snes9x/bsx.cpp
+      - path: Vendor/snes9x/c4.cpp
+      - path: Vendor/snes9x/c4emu.cpp
+      - path: Vendor/snes9x/cheats.cpp
+      - path: Vendor/snes9x/cheats2.cpp
+      - path: Vendor/snes9x/clip.cpp
+      - path: Vendor/snes9x/conffile.cpp
+      - path: Vendor/snes9x/controls.cpp
+      - path: Vendor/snes9x/cpu.cpp
+      - path: Vendor/snes9x/cpuexec.cpp
+      - path: Vendor/snes9x/cpuops.cpp
+      - path: Vendor/snes9x/crosshairs.cpp
+      - path: Vendor/snes9x/dma.cpp
+      - path: Vendor/snes9x/dsp.cpp
+      - path: Vendor/snes9x/dsp1.cpp
+      - path: Vendor/snes9x/dsp2.cpp
+      - path: Vendor/snes9x/dsp3.cpp
+      - path: Vendor/snes9x/dsp4.cpp
+      - path: Vendor/snes9x/fxinst.cpp
+      - path: Vendor/snes9x/fxemu.cpp
+      - path: Vendor/snes9x/gfx.cpp
+      - path: Vendor/snes9x/globals.cpp
+      - path: Vendor/snes9x/memmap.cpp
+      - path: Vendor/snes9x/obc1.cpp
+      - path: Vendor/snes9x/msu1.cpp
+      - path: Vendor/snes9x/ppu.cpp
+      - path: Vendor/snes9x/stream.cpp
+      - path: Vendor/snes9x/sa1.cpp
+      - path: Vendor/snes9x/sa1cpu.cpp
+      - path: Vendor/snes9x/screenshot.cpp
+      - path: Vendor/snes9x/sdd1.cpp
+      - path: Vendor/snes9x/sdd1emu.cpp
+      - path: Vendor/snes9x/seta.cpp
+      - path: Vendor/snes9x/seta010.cpp
+      - path: Vendor/snes9x/seta011.cpp
+      - path: Vendor/snes9x/seta018.cpp
+      - path: Vendor/snes9x/snapshot.cpp
+      - path: Vendor/snes9x/snes9x.cpp
+      - path: Vendor/snes9x/spc7110.cpp
+      - path: Vendor/snes9x/srtc.cpp
+      - path: Vendor/snes9x/tile.cpp
+      - path: Vendor/snes9x/tileimpl-n1x1.cpp
+      - path: Vendor/snes9x/tileimpl-n2x1.cpp
+      - path: Vendor/snes9x/tileimpl-h2x1.cpp
+      - path: Vendor/snes9x/sha256.cpp
+      - path: Vendor/snes9x/bml.cpp
+      - path: Vendor/snes9x/movie.cpp
+      - path: Vendor/snes9x/fscompat.cpp
+      - path: Vendor/snes9x/libretro/libretro.cpp
+  Duomulator:
+    type: application
+    platform: iOS
+    dependencies:
+      - target: SNESCore
+    sources:
+      - path: App
+      - path: Core
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.kurast.duomulator
+        SWIFT_OBJC_BRIDGING_HEADER: Core/Duomulator-Bridging-Header.h
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/snes9x/libretro"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Duomulator
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortraitUpsideDown"
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
+        INFOPLIST_KEY_UIBackgroundModes: audio
+        TARGETED_DEVICE_FAMILY: "1"
+        CLANG_CXX_LANGUAGE_STANDARD: "c++17"
+        SWIFT_STRICT_CONCURRENCY: minimal
+  DuomulatorTests:
+    type: bundle.unit-test
+    platform: iOS
+    dependencies:
+      - target: Duomulator
+    sources:
+      - path: Tests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/snes9x/libretro"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Duomulator.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Duomulator"
+schemes:
+  Duomulator:
+    build:
+      targets:
+        Duomulator: all
+        DuomulatorTests: [test]
+    test:
+      targets:
+        - DuomulatorTests

@@ -1,0 +1,7 @@
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.sfc
+*.smc
+!Tests/Fixtures/*.sfc
+!Tests/Fixtures/*.smc

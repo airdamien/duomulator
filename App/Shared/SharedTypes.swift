@@ -1,0 +1,245 @@
+import Foundation
+import Synchronization
+import CoreGraphics
+
+// MARK: - Buttons
+
+/// SNES pad state as a bitmask. Bit positions match libretro's RETRO_DEVICE_ID_JOYPAD_* ids,
+/// so the core host can answer input_state(port, JOYPAD, 0, id) with `(mask >> id) & 1`.
+struct SNESButtons: OptionSet, Hashable, Sendable {
+    let rawValue: UInt32
+
+    static let b      = SNESButtons(rawValue: 1 << 0)
+    static let y      = SNESButtons(rawValue: 1 << 1)
+    static let select = SNESButtons(rawValue: 1 << 2)
+    static let start  = SNESButtons(rawValue: 1 << 3)
+    static let up     = SNESButtons(rawValue: 1 << 4)
+    static let down   = SNESButtons(rawValue: 1 << 5)
+    static let left   = SNESButtons(rawValue: 1 << 6)
+    static let right  = SNESButtons(rawValue: 1 << 7)
+    static let a      = SNESButtons(rawValue: 1 << 8)
+    static let x      = SNESButtons(rawValue: 1 << 9)
+    static let l      = SNESButtons(rawValue: 1 << 10)
+    static let r      = SNESButtons(rawValue: 1 << 11)
+
+    static let dpad: SNESButtons = [.up, .down, .left, .right]
+}
+
+// MARK: - Input
+
+/// Where a button press came from. Each source owns its own slot so that releasing a key on
+/// one device never cancels a press held on another.
+enum InputSource: Int, CaseIterable, Sendable {
+    case touch, gamepad, keyboard
+}
+
+/// Thread-safe merge point for all input. Written from the main thread / GameController
+/// callbacks, read from the emulation thread once per input poll.
+final class InputHub: Sendable {
+    static let shared = InputHub()
+    static let maxPlayers = 2
+
+    private final class Slot: Sendable { let bits = Atomic<UInt32>(0) }
+    private let slots: [Slot]
+
+    init() {
+        slots = (0..<(Self.maxPlayers * InputSource.allCases.count)).map { _ in Slot() }
+    }
+
+    private func index(_ source: InputSource, _ player: Int) -> Int {
+        player * InputSource.allCases.count + source.rawValue
+    }
+
+    func set(_ buttons: SNESButtons, source: InputSource, player: Int = 0) {
+        guard player < Self.maxPlayers else { return }
+        slots[index(source, player)].bits.store(buttons.rawValue, ordering: .relaxed)
+    }
+
+    func press(_ buttons: SNESButtons, source: InputSource, player: Int = 0) {
+        guard player < Self.maxPlayers else { return }
+        slots[index(source, player)].bits.bitwiseOr(buttons.rawValue, ordering: .relaxed)
+    }
+
+    func release(_ buttons: SNESButtons, source: InputSource, player: Int = 0) {
+        guard player < Self.maxPlayers else { return }
+        slots[index(source, player)].bits.bitwiseAnd(~buttons.rawValue, ordering: .relaxed)
+    }
+
+    /// Union of all sources for a player. Opposing d-pad directions are masked out because
+    /// some games misbehave when left+right or up+down are held at once.
+    func buttons(player: Int) -> SNESButtons {
+        guard player < Self.maxPlayers else { return [] }
+        var raw: UInt32 = 0
+        for source in InputSource.allCases {
+            raw |= slots[index(source, player)].bits.load(ordering: .relaxed)
+        }
+        var result = SNESButtons(rawValue: raw)
+        if result.contains([.left, .right]) { result.remove([.left, .right]) }
+        if result.contains([.up, .down]) { result.remove([.up, .down]) }
+        return result
+    }
+
+    func clearAll() {
+        for slot in slots { slot.bits.store(0, ordering: .relaxed) }
+    }
+}
+
+// MARK: - Video
+
+/// Latest-frame mailbox between the emulation thread (producer) and the renderer (consumer).
+/// Pixels are RGB565, tightly packed (`width * 2` bytes per row) after `submit`.
+final class FrameBuffer: @unchecked Sendable {
+    static let maxWidth = 512
+    static let maxHeight = 480
+
+    struct Frame {
+        var width: Int
+        var height: Int
+        /// Monotonic counter; renderers skip work when it hasn't changed.
+        var sequence: UInt64
+    }
+
+    private let lock = Mutex<Void>(())
+    private var pixels = [UInt16](repeating: 0, count: maxWidth * maxHeight)
+    private var width = 256
+    private var height = 224
+    private var sequence: UInt64 = 0
+
+    /// Copies a frame from the core. `pitch` is in bytes and may exceed `width * 2`.
+    func submit(_ data: UnsafeRawPointer, width: Int, height: Int, pitch: Int) {
+        let w = min(width, Self.maxWidth), h = min(height, Self.maxHeight)
+        lock.withLock { _ in
+            pixels.withUnsafeMutableBytes { dst in
+                for row in 0..<h {
+                    (dst.baseAddress! + row * w * 2)
+                        .copyMemory(from: data + row * pitch, byteCount: w * 2)
+                }
+            }
+            self.width = w
+            self.height = h
+            sequence &+= 1
+        }
+    }
+
+    /// Calls `body` with the current frame while holding the lock; keep the work short
+    /// (e.g. a texture upload).
+    func withLatestFrame<R>(_ body: (Frame, UnsafeRawPointer) throws -> R) rethrows -> R {
+        try lock.withLock { _ in
+            try pixels.withUnsafeBytes { buf in
+                try body(Frame(width: width, height: height, sequence: sequence), buf.baseAddress!)
+            }
+        }
+    }
+
+    var latestSequence: UInt64 { lock.withLock { _ in sequence } }
+}
+
+// MARK: - Audio
+
+/// Single-producer / single-consumer ring of interleaved stereo Int16 samples.
+/// Producer: emulation thread. Consumer: the audio render callback (must never block).
+final class AudioRingBuffer: @unchecked Sendable {
+    /// Capacity in stereo frames.
+    let capacity: Int
+    private let storage: UnsafeMutablePointer<Int16>
+    private let writeIndex = Atomic<Int>(0)   // total frames ever written
+    private let readIndex = Atomic<Int>(0)    // total frames ever read
+
+    init(capacityFrames: Int = 8192) {
+        capacity = capacityFrames
+        storage = .allocate(capacity: capacityFrames * 2)
+        storage.initialize(repeating: 0, count: capacityFrames * 2)
+    }
+
+    deinit { storage.deallocate() }
+
+    /// Frames currently buffered.
+    var availableFrames: Int {
+        writeIndex.load(ordering: .acquiring) - readIndex.load(ordering: .acquiring)
+    }
+
+    /// Writes up to `frames` stereo frames; drops what doesn't fit. Returns frames written.
+    @discardableResult
+    func write(_ samples: UnsafePointer<Int16>, frames: Int) -> Int {
+        let w = writeIndex.load(ordering: .relaxed)
+        let r = readIndex.load(ordering: .acquiring)
+        let n = min(frames, capacity - (w - r))
+        guard n > 0 else { return 0 }
+        for i in 0..<n {
+            let slot = ((w + i) % capacity) * 2
+            storage[slot] = samples[i * 2]
+            storage[slot + 1] = samples[i * 2 + 1]
+        }
+        writeIndex.store(w + n, ordering: .releasing)
+        return n
+    }
+
+    /// Reads up to `frames` stereo frames into `out`. Returns frames read; the caller should
+    /// fill any remainder with silence.
+    @discardableResult
+    func read(into out: UnsafeMutablePointer<Int16>, frames: Int) -> Int {
+        let r = readIndex.load(ordering: .relaxed)
+        let w = writeIndex.load(ordering: .acquiring)
+        let n = min(frames, w - r)
+        guard n > 0 else { return 0 }
+        for i in 0..<n {
+            let slot = ((r + i) % capacity) * 2
+            out[i * 2] = storage[slot]
+            out[i * 2 + 1] = storage[slot + 1]
+        }
+        readIndex.store(r + n, ordering: .releasing)
+        return n
+    }
+
+    /// Discards everything buffered. Only call from the consumer side or while both are idle.
+    func reset() {
+        readIndex.store(writeIndex.load(ordering: .acquiring), ordering: .releasing)
+    }
+}
+
+// MARK: - Duo posture
+
+/// How the device is physically being held, derived from UIHinge on iPhone Duo and treated
+/// as `.flat` (or `.closed`-equivalent phone layout) everywhere else.
+enum Posture: Equatable, Sendable {
+    /// Closed: only the 5.4" outer display is in use. Lay out like a regular phone.
+    case closed
+    /// Partially open like a laptop / Nintendo DS. Game goes above the fold, controls below.
+    /// `division` is the fold's frame in the game view controller's view coordinates.
+    case tent(division: CGRect)
+    /// Fully open 7.6" inner display, or any non-foldable device.
+    case flat
+}
+
+// MARK: - File locations
+
+/// On-disk layout. Everything lives under Documents so it shows up in the Files app
+/// (UIFileSharingEnabled) and is included in device backups.
+enum GamePaths {
+    static var documents: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
+    static var roms: URL { documents.appending(path: "ROMs", directoryHint: .isDirectory) }
+    static var saves: URL { documents.appending(path: "Saves", directoryHint: .isDirectory) }
+    static var states: URL { documents.appending(path: "States", directoryHint: .isDirectory) }
+    /// libretro "system" directory (BIOS-like files; snes9x needs none for normal games).
+    static var system: URL { documents.appending(path: "System", directoryHint: .isDirectory) }
+
+    /// Battery save (SRAM) for a ROM, keyed by the ROM's file name without extension.
+    static func sram(for rom: URL) -> URL {
+        saves.appending(path: rom.deletingPathExtension().lastPathComponent + ".srm")
+    }
+
+    /// Save-state slot file. Slot 0 is the auto-save written on suspend.
+    static func state(for rom: URL, slot: Int) -> URL {
+        states.appending(path: rom.deletingPathExtension().lastPathComponent + ".s\(slot)")
+    }
+
+    static func ensureDirectories() {
+        for dir in [roms, saves, states, system] {
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        }
+    }
+
+    static let romExtensions: Set<String> = ["sfc", "smc", "swc", "fig", "bs", "st", "zip"]
+}
