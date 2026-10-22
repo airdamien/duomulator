@@ -280,8 +280,7 @@ private final class ControllerSkin: CALayer {
         let labelColor = panel ? UIColor(white: 0.72, alpha: 1) : UIColor(white: 1, alpha: 0.70)
         let labelPressed = UIColor(white: 1, alpha: 0.95)
 
-        // D-pad: base cross, then one highlight arm per direction drawn on top. (The N64
-        // pad has none on screen; its analog stick sits there.)
+        // D-pad: base cross, then one highlight arm per direction drawn on top.
         if layout.dpadRadius > 0 {
             let c = layout.dpadCenter, r = layout.dpadRadius * 0.94, w = layout.dpadRadius * 0.68
             let cross = Self.crossPath(center: c, radius: r, armWidth: w)
@@ -326,7 +325,8 @@ private final class ControllerSkin: CALayer {
                                    stroke: color.withAlphaComponent(panel ? 0.75 : 0.55))
             shape.lineWidth = 2
             addSublayer(shape)
-            let label = Self.text(layout.label(for: button), in: rect, size: fontSize,
+            let label = Self.text(layout.label(for: button), in: rect,
+                                  size: layout.pad == .n64 && radius < layout.faceRadius * 0.7 ? fontSize * 0.7 : fontSize,
                                   color: Self.lighten(color), scale: scale)
             addSublayer(label)
             parts.append(Part(shape: shape, label: label, buttons: button, fill: fill.cgColor,

@@ -12,12 +12,23 @@ final class N64Tests: XCTestCase {
         XCTAssertEqual(BoxArtDownloader.folder(for: .n64), "Nintendo - Nintendo 64")
     }
 
-    func testPadHasStickButtonsAndNoTouchDpad() {
+    func testPadHasDpadStickAndButtons() {
         for size in [CGSize(width: 669, height: 401), CGSize(width: 466, height: 330)] {
             let l = ControllerLayout(bounds: CGRect(origin: .zero, size: size), style: .panel, system: .n64)
-            XCTAssertEqual(l.dpadRadius, 0, "the analog stick replaces the d-pad")
+            XCTAssertGreaterThan(l.dpadRadius, 30, "the N64 pad has a d-pad (left prong)")
+            XCTAssertEqual(l.control(at: l.dpadCenter), .dpad)
             XCTAssertEqual(l.stickCount, 1)
+            XCTAssertEqual(l.leftStickCenter.x, size.width / 2, accuracy: 1, "stick in the middle prong")
             XCTAssertEqual(l.control(at: l.leftStickCenter), .stick(0))
+            let stick = l.leftStickCenter, r = l.stickRadius
+            XCTAssertGreaterThanOrEqual(hypot(stick.x - l.dpadCenter.x, stick.y - l.dpadCenter.y) - r - l.dpadRadius, 12,
+                                        "stick crowds the d-pad at \(size)")
+            for (button, center) in l.faceButtons {
+                XCTAssertGreaterThanOrEqual(hypot(stick.x - center.x, stick.y - center.y) - r - l.radius(for: button), 12,
+                                            "stick crowds a button at \(size)")
+            }
+            XCTAssertLessThanOrEqual(l.startRect.maxY, stick.y - r, "Start above the stick")
+            XCTAssertEqual(l.label(for: .cUp), "▲", "arrows only on the yellow buttons")
             XCTAssertFalse(l.zRect.isNull)
             XCTAssertFalse(l.zRect.intersects(l.lRect), "Z beside L")
             XCTAssertTrue(l.selectRect.isNull)

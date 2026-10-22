@@ -164,6 +164,11 @@ struct ControllerLayout: Equatable, Sendable {
         if wantsSticks {
             size = max(60, min(size, (area.width - 4 * stickR - stickGap - 2 * clusterGap) / 2))
         }
+        // N64: d-pad left, analog stick in the middle (the pad's centre prong), buttons right.
+        let n64StickR: CGFloat = pad == .n64 ? Self.clamp(area.width * 0.11, 36, 70) : 0
+        if pad == .n64 {
+            size = max(60, min(size, (area.width - 2 * n64StickR - 2 * clusterGap) / 2))
+        }
 
         // Vertical placement: overlay hugs the bottom edge; the panel centers the clusters in
         // the space below the shoulder bar.
@@ -176,8 +181,7 @@ struct ControllerLayout: Equatable, Sendable {
         }
 
         dpadCenter = CGPoint(x: area.minX + size / 2, y: clusterY)
-        // N64: the analog stick takes the d-pad's place (the d-pad stays on physical pads).
-        dpadRadius = pad == .n64 ? 0 : size / 2
+        dpadRadius = pad == .n64 ? size * 0.42 : size / 2
         faceCenter = CGPoint(x: area.maxX - size / 2, y: clusterY)
         faceSpacing = size * Self.faceSpacingScale(pad)
         faceRadius = size * Self.faceRadiusScale(pad)
@@ -210,10 +214,12 @@ struct ControllerLayout: Equatable, Sendable {
         }
 
         if pad == .n64 {
-            // One analog stick, where the d-pad would be.
-            stickRadius = size * 0.42
-            leftStickCenter = dpadCenter
+            // One analog stick in the middle, low, with Start above it.
+            let y = min(clusterY + size / 2 - n64StickR, area.maxY - n64StickR)
+            stickRadius = n64StickR
+            leftStickCenter = CGPoint(x: area.midX, y: y)
             rightStickCenter = .zero
+            ssY = max(area.minY + topReserved, y - n64StickR - max(16, n64StickR * 0.3) - ssH)
         } else if wantsSticks {
             // Sticks as low as the area allows, with a thumb's clearance up to Select/Start.
             let y = area.maxY - stickR
@@ -328,7 +334,17 @@ struct ControllerLayout: Equatable, Sendable {
 
     /// Text printed on a face button, as on that console's pad.
     func label(for button: SNESButtons) -> String {
-        ButtonLabels.label(button, pad: pad, system: system)
+        // The N64's yellow buttons just show their arrow (the mapping screen says "C▲").
+        if pad == .n64 {
+            switch button {
+            case .cUp: return "▲"
+            case .cDown: return "▼"
+            case .cLeft: return "◀"
+            case .cRight: return "▶"
+            default: break
+            }
+        }
+        return ButtonLabels.label(button, pad: pad, system: system)
     }
 
     // MARK: Hit-testing
