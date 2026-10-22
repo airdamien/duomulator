@@ -211,6 +211,81 @@ enum Posture: Equatable, Sendable {
     case flat
 }
 
+// MARK: - Systems
+
+/// A console the app can emulate. Each maps to one statically linked libretro core.
+enum GameSystem: String, CaseIterable, Sendable {
+    case snes, nes
+
+    var displayName: String {
+        switch self {
+        case .snes: "SNES"
+        case .nes: "NES"
+        }
+    }
+
+    /// ROM file extensions (lowercase, without the dot). `.zip` is handled separately.
+    var romExtensions: Set<String> {
+        switch self {
+        case .snes: ["sfc", "smc", "swc", "fig", "bs", "st"]
+        case .nes: ["nes", "unf", "unif"]
+        }
+    }
+
+    /// Folder under Saves/ and States/. SNES predates multi-system support and keeps the
+    /// top level so existing saves stay where they are; others get their own folder so
+    /// "Tetris.nes" and "Tetris.sfc" never share a save.
+    var saveSubfolder: String? {
+        switch self {
+        case .snes: nil
+        case .nes: "NES"
+        }
+    }
+
+    init?(romExtension ext: String) {
+        guard let match = Self.allCases.first(where: { $0.romExtensions.contains(ext.lowercased()) })
+        else { return nil }
+        self = match
+    }
+
+    /// System of a ROM file. For `.zip` archives this reads only the file's tail, where the
+    /// zip's central directory lists entry names, and matches the first ROM-looking name.
+    static func of(rom: URL) -> GameSystem? {
+        let ext = rom.pathExtension.lowercased()
+        if ext != "zip" { return GameSystem(romExtension: ext) }
+        guard let handle = try? FileHandle(forReadingFrom: rom) else { return nil }
+        defer { try? handle.close() }
+        guard let size = try? handle.seekToEnd() else { return nil }
+        let tailLength = min(size, 256 * 1024)
+        try? handle.seek(toOffset: size - tailLength)
+        guard let tail = try? handle.read(upToCount: Int(tailLength)) else { return nil }
+        return zipEntryNames(inTail: [UInt8](tail)).lazy.compactMap { name -> GameSystem? in
+            let file = name.split(separator: "/").last.map(String.init) ?? name
+            guard !name.hasPrefix("__MACOSX/"), !file.hasPrefix("._") else { return nil }
+            return GameSystem(romExtension: (file as NSString).pathExtension)
+        }.first
+    }
+
+    /// Names from zip central-directory headers (signature PK\1\2) found in `bytes`.
+    private static func zipEntryNames(inTail bytes: [UInt8]) -> [String] {
+        var names: [String] = []
+        var i = 0
+        while i + 46 <= bytes.count {
+            if bytes[i] == 0x50, bytes[i + 1] == 0x4B, bytes[i + 2] == 0x01, bytes[i + 3] == 0x02 {
+                let nameLength = Int(bytes[i + 28]) | Int(bytes[i + 29]) << 8
+                if i + 46 + nameLength <= bytes.count,
+                   let name = String(bytes: bytes[(i + 46)..<(i + 46 + nameLength)], encoding: .utf8) {
+                    names.append(name)
+                }
+                i += 46 + nameLength
+            } else {
+                i += 1
+            }
+        }
+        return names
+    }
+}
+
 // MARK: - File locations
 
 /// On-disk layout. Everything lives under Documents so it shows up in the Files app
@@ -226,20 +301,32 @@ enum GamePaths {
     static var system: URL { documents.appending(path: "System", directoryHint: .isDirectory) }
 
     /// Battery save (SRAM) for a ROM, keyed by the ROM's file name without extension.
-    static func sram(for rom: URL) -> URL {
-        saves.appending(path: rom.deletingPathExtension().lastPathComponent + ".srm")
+    /// `system` defaults to detecting it from the ROM; pass it when already known.
+    static func sram(for rom: URL, system: GameSystem? = nil) -> URL {
+        folder(saves, for: system ?? GameSystem.of(rom: rom))
+            .appending(path: rom.deletingPathExtension().lastPathComponent + ".srm")
     }
 
     /// Save-state slot file. Slot 0 is the auto-save written on suspend.
-    static func state(for rom: URL, slot: Int) -> URL {
-        states.appending(path: rom.deletingPathExtension().lastPathComponent + ".s\(slot)")
+    static func state(for rom: URL, slot: Int, system: GameSystem? = nil) -> URL {
+        folder(states, for: system ?? GameSystem.of(rom: rom))
+            .appending(path: rom.deletingPathExtension().lastPathComponent + ".s\(slot)")
+    }
+
+    private static func folder(_ base: URL, for system: GameSystem?) -> URL {
+        guard let sub = system?.saveSubfolder else { return base }
+        return base.appending(path: sub, directoryHint: .isDirectory)
     }
 
     static func ensureDirectories() {
-        for dir in [roms, saves, states, system] {
+        let perSystem = GameSystem.allCases.compactMap(\.saveSubfolder)
+            .flatMap { [saves.appending(path: $0), states.appending(path: $0)] }
+        for dir in [roms, saves, states, system] + perSystem {
             try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         }
     }
 
-    static let romExtensions: Set<String> = ["sfc", "smc", "swc", "fig", "bs", "st", "zip"]
+    /// Every importable extension: all systems' ROMs plus `.zip`.
+    static let romExtensions: Set<String> = GameSystem.allCases
+        .reduce(into: ["zip"]) { $0.formUnion($1.romExtensions) }
 }

@@ -1,0 +1,28 @@
+// Generated from libretro.h: renames the libretro entry points of the snes9x core so several
+// cores can link into one app. Force-included into every snes9x source file (see project.yml).
+#pragma once
+#define retro_api_version snes9x_retro_api_version
+#define retro_cheat_reset snes9x_retro_cheat_reset
+#define retro_cheat_set snes9x_retro_cheat_set
+#define retro_deinit snes9x_retro_deinit
+#define retro_get_memory_data snes9x_retro_get_memory_data
+#define retro_get_memory_size snes9x_retro_get_memory_size
+#define retro_get_region snes9x_retro_get_region
+#define retro_get_system_av_info snes9x_retro_get_system_av_info
+#define retro_get_system_info snes9x_retro_get_system_info
+#define retro_init snes9x_retro_init
+#define retro_load_game snes9x_retro_load_game
+#define retro_load_game_special snes9x_retro_load_game_special
+#define retro_reset snes9x_retro_reset
+#define retro_run snes9x_retro_run
+#define retro_serialize snes9x_retro_serialize
+#define retro_serialize_size snes9x_retro_serialize_size
+#define retro_set_audio_sample snes9x_retro_set_audio_sample
+#define retro_set_audio_sample_batch snes9x_retro_set_audio_sample_batch
+#define retro_set_controller_port_device snes9x_retro_set_controller_port_device
+#define retro_set_environment snes9x_retro_set_environment
+#define retro_set_input_poll snes9x_retro_set_input_poll
+#define retro_set_input_state snes9x_retro_set_input_state
+#define retro_set_video_refresh snes9x_retro_set_video_refresh
+#define retro_unload_game snes9x_retro_unload_game
+#define retro_unserialize snes9x_retro_unserialize

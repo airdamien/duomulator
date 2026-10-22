@@ -20,10 +20,14 @@ targets:
         HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/snes9x $(SRCROOT)/Vendor/snes9x/libretro $(SRCROOT)/Vendor/snes9x/libretro/libretro-common/include $(SRCROOT)/Vendor/snes9x/apu $(SRCROOT)/Vendor/snes9x/apu/bapu"
         CLANG_CXX_LANGUAGE_STANDARD: "c++17"
         GCC_OPTIMIZATION_LEVEL: "3"
-        OTHER_CPLUSPLUSFLAGS: "-fno-rtti -Wno-everything"
-        OTHER_CFLAGS: "-Wno-everything"
+        OTHER_CPLUSPLUSFLAGS: "-fno-rtti -Wno-everything -include $(SRCROOT)/CoreBuild/snes9x-prefix.h"
+        OTHER_CFLAGS: "-Wno-everything -include $(SRCROOT)/CoreBuild/snes9x-prefix.h"
         GCC_WARN_INHIBIT_ALL_WARNINGS: YES
         SKIP_INSTALL: YES
+        # Pre-link into one object that exports only the renamed retro_* entry points; every
+        # other symbol (bundled libretro-common etc.) becomes local, so cores can't collide.
+        GENERATE_MASTER_OBJECT_FILE: YES
+        PRELINK_FLAGS: "-exported_symbols_list $(SRCROOT)/CoreBuild/snes9x.exp"
     sources:
       - path: Vendor/snes9x/filter/snes_ntsc.c
       - path: Vendor/snes9x/apu/apu.cpp
@@ -79,11 +83,68 @@ targets:
       - path: Vendor/snes9x/movie.cpp
       - path: Vendor/snes9x/fscompat.cpp
       - path: Vendor/snes9x/libretro/libretro.cpp
+  NESCore:
+    type: library.static
+    platform: iOS
+    settings:
+      base:
+        GCC_PREPROCESSOR_DEFINITIONS: "__LIBRETRO__ PATH_MAX=1024 FCEU_VERSION_NUMERIC=9900 FRONTEND_SUPPORTS_RGB565 IOS NDEBUG"
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/fceumm/src $(SRCROOT)/Vendor/fceumm/src/drivers/libretro $(SRCROOT)/Vendor/fceumm/src/drivers/libretro/libretro-common/include $(SRCROOT)/Vendor/fceumm/src/input $(SRCROOT)/Vendor/fceumm/src/boards"
+        GCC_OPTIMIZATION_LEVEL: "3"
+        OTHER_CFLAGS: "-Wno-everything -include $(SRCROOT)/CoreBuild/fceumm-prefix.h"
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
+        SKIP_INSTALL: YES
+        GENERATE_MASTER_OBJECT_FILE: YES
+        PRELINK_FLAGS: "-exported_symbols_list $(SRCROOT)/CoreBuild/fceumm.exp"
+    sources:
+      - path: Vendor/fceumm/src/boards
+        excludes: ["*.inc"]
+      - path: Vendor/fceumm/src/input
+      - path: Vendor/fceumm/src/drivers/libretro/libretro.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro_dipswitch.c
+      - path: Vendor/fceumm/src/cart.c
+      - path: Vendor/fceumm/src/cheat.c
+      - path: Vendor/fceumm/src/crc32.c
+      - path: Vendor/fceumm/src/fceu-endian.c
+      - path: Vendor/fceumm/src/fceu-memory.c
+      - path: Vendor/fceumm/src/fceu.c
+      - path: Vendor/fceumm/src/fds.c
+      - path: Vendor/fceumm/src/fds_apu.c
+      - path: Vendor/fceumm/src/file.c
+      - path: Vendor/fceumm/src/filter.c
+      - path: Vendor/fceumm/src/general.c
+      - path: Vendor/fceumm/src/input.c
+      - path: Vendor/fceumm/src/md5.c
+      - path: Vendor/fceumm/src/nsf.c
+      - path: Vendor/fceumm/src/palette.c
+      - path: Vendor/fceumm/src/ppu.c
+      - path: Vendor/fceumm/src/sound.c
+      - path: Vendor/fceumm/src/state.c
+      - path: Vendor/fceumm/src/video.c
+      - path: Vendor/fceumm/src/vsuni.c
+      - path: Vendor/fceumm/src/ines.c
+      - path: Vendor/fceumm/src/unif.c
+      - path: Vendor/fceumm/src/x6502.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/streams/memory_stream.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/compat/compat_posix_string.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/compat/compat_snprintf.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/compat/compat_strcasestr.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/compat/compat_strl.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/compat/fopen_utf8.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/encodings/encoding_utf.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/file/file_path.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/file/file_path_io.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/streams/file_stream.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/streams/file_stream_transforms.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/string/stdstring.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/time/rtime.c
+      - path: Vendor/fceumm/src/drivers/libretro/libretro-common/vfs/vfs_implementation.c
   Duomulator:
     type: application
     platform: iOS
     dependencies:
       - target: SNESCore
+      - target: NESCore
     sources:
       - path: App
       - path: Core

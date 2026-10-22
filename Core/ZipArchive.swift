@@ -17,18 +17,18 @@ enum ZipArchive {
         var isDirectory: Bool { name.hasSuffix("/") }
     }
 
-    /// Larger than any SNES cartridge (the biggest are 6–8 MB); guards against zip bombs.
+    /// Larger than any SNES or NES cartridge (the biggest are 6–8 MB); guards against zip bombs.
     static let maxEntrySize = 32 * 1024 * 1024
 
-    /// Extensions we treat as SNES ROMs inside an archive.
+    /// Extensions we treat as ROMs (any system) inside an archive.
     static let romExtensions: Set<String> = GamePaths.romExtensions.subtracting(["zip"])
 
-    /// Returns the bytes of the first SNES ROM in the archive. Entries are tried in central
+    /// Returns the name and bytes of the first ROM in the archive. Entries are tried in central
     /// directory order; macOS resource-fork junk (`__MACOSX/`, `._*`) is skipped.
     static func extractFirstROM(from archive: [UInt8]) throws -> (name: String, data: Data) {
         let entries = try readEntries(archive)
         guard let entry = entries.first(where: isROMEntry) else {
-            throw EmulatorError.unsupportedArchive("The zip doesn't contain a SNES ROM (.sfc/.smc).")
+            throw EmulatorError.unsupportedArchive("The zip doesn't contain a SNES or NES ROM.")
         }
         return (entry.name, try extract(entry, from: archive))
     }

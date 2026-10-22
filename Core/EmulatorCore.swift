@@ -22,15 +22,27 @@ private let log = Logger(subsystem: "io.kurast.duomulator", category: "core")
 
 // MARK: - Process-wide libretro state
 
-/// snes9x is a static library full of globals, so there is exactly one emulated console per
-/// process. Every retro_* call happens with `coreLock` held; the core's callbacks only fire
+/// Each core is a static library full of globals, so there is exactly one emulated console
+/// per process; `api` points at the core of the loaded game. Every retro_* call happens with `coreLock` held; the core's callbacks only fire
 /// from inside those calls, so they see `activeHost` (the EmulatorCore that owns the loaded
 /// game) and the environment tables consistently. Public API calls are serialized by
 /// `apiLock` (recursive, because `load` unloads whatever was loaded before).
 private let coreLock = NSLock()
 private let apiLock = NSRecursiveLock()
 nonisolated(unsafe) private var activeHost: EmulatorCore?
-nonisolated(unsafe) private var coreInitialized = false
+nonisolated(unsafe) private var api = GameSystem.snes.coreAPI
+/// Cores that have had retro_set_environment / retro_init called (once per process each).
+nonisolated(unsafe) private var initializedCores: Set<GameSystem> = []
+
+extension GameSystem {
+    /// The statically linked libretro core for this system (see Core/CoreAPI.h).
+    var coreAPI: DuoCoreAPI {
+        switch self {
+        case .snes: duo_core_snes9x
+        case .nes: duo_core_fceumm
+        }
+    }
+}
 
 /// C strings handed to the core. libretro requires them to outlive the call that returned
 /// them, so they are allocated once and kept for the life of the process.
@@ -95,6 +107,9 @@ private func environmentCallback(_ cmd: UInt32, _ data: UnsafeMutableRawPointer?
     case UInt32(RETRO_ENVIRONMENT_GET_CAN_DUPE):
         data?.assumingMemoryBound(to: Bool.self).pointee = true
         return data != nil
+
+    case UInt32(DUO_ENVIRONMENT_GET_GAME_INFO_EXT):
+        return duo_get_game_info_ext(data)
 
     case UInt32(RETRO_ENVIRONMENT_GET_LOG_INTERFACE):
         guard let data else { return false }
@@ -202,6 +217,8 @@ final class EmulatorCore: @unchecked Sendable {
     /// Valid after `load`. snes9x reports 32040 Hz.
     private(set) var sampleRate: Double = 32040
     private(set) var loadedROM: URL?
+    /// System of the loaded game (valid after `load`).
+    private(set) var system: GameSystem = .snes
     private(set) var isRunning = false
     /// Runs the core as fast as possible (audio is dropped while true).
     var fastForward: Bool {
@@ -239,19 +256,23 @@ final class EmulatorCore: @unchecked Sendable {
         if loadedROM != nil { unload() }
         if let other = coreLock.withLock({ activeHost }), other !== self { other.unload() }
 
-        let bytes = try Self.readROM(at: rom)
+        let content = try Self.readROM(at: rom)
         GamePaths.ensureDirectories()
 
         try coreLock.withLock {
-            Self.initializeCoreIfNeeded()
+            api = content.system.coreAPI
+            Self.initializeCoreIfNeeded(content.system)
             activeHost = self
-            let loaded = rom.path.withCString { path in
-                bytes.withUnsafeBytes { buffer -> Bool in
-                    // snes9x reports need_fullpath = false and copies the bytes (stripping
-                    // any 512-byte copier header itself), so the buffer can go away after.
+            let loaded = content.path.withCString { path in
+                content.data.withUnsafeBytes { buffer -> Bool in
+                    duo_set_game_info_ext(path, content.archivePath, content.archiveFile,
+                                          buffer.baseAddress, buffer.count)
+                    defer { duo_clear_game_info_ext() }
+                    // Both cores report need_fullpath = false and copy the bytes (snes9x also
+                    // strips any 512-byte copier header itself), so the buffer can go away after.
                     var info = retro_game_info(path: path, data: buffer.baseAddress,
                                                size: buffer.count, meta: nil)
-                    return retro_load_game(&info)
+                    return api.load_game(&info)
                 }
             }
             guard loaded else {
@@ -259,16 +280,17 @@ final class EmulatorCore: @unchecked Sendable {
                 throw EmulatorError.coreRejectedROM
             }
             for port in 0..<UInt32(InputHub.maxPlayers) {
-                retro_set_controller_port_device(port, UInt32(RETRO_DEVICE_JOYPAD))
+                api.set_controller_port_device(port, UInt32(RETRO_DEVICE_JOYPAD))
             }
 
             var av = retro_system_av_info()
-            retro_get_system_av_info(&av)
+            api.get_system_av_info(&av)
             frameRate = av.timing.fps > 1 ? av.timing.fps : 60.0988
             sampleRate = av.timing.sample_rate > 1 ? av.timing.sample_rate : 32040
 
             polledButtons = [0, 0]
             framesSinceLoad = 0
+            system = content.system
             loadSRAMLocked(for: rom)
         }
 
@@ -278,8 +300,21 @@ final class EmulatorCore: @unchecked Sendable {
         log.info("Loaded \(rom.lastPathComponent, privacy: .public) at \(self.frameRate) fps")
     }
 
-    /// Reads a ROM file, unwrapping `.zip` archives. Copier headers are left for snes9x.
-    private static func readROM(at url: URL) throws -> Data {
+    /// A ROM ready to hand to a core.
+    private struct Content {
+        var data: Data
+        var system: GameSystem
+        /// What the core is told the game is called. Cores such as FCEUmm pick the format
+        /// from its extension, so for a zip this names the ROM inside, next to the archive.
+        var path: String
+        /// Set when the ROM came out of an archive (for GET_GAME_INFO_EXT).
+        var archivePath: String?
+        var archiveFile: String?
+    }
+
+    /// Reads a ROM file, unwrapping `.zip` archives, and works out which system it's for.
+    /// Copier headers are left for snes9x.
+    private static func readROM(at url: URL) throws -> Content {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
 
@@ -289,32 +324,47 @@ final class EmulatorCore: @unchecked Sendable {
         }
         let isZip = url.pathExtension.lowercased() == "zip"
             || data.prefix(4).elementsEqual([0x50, 0x4B, 0x03, 0x04])
-        guard isZip else { return data }
-        return try ZipArchive.extractFirstROM(from: [UInt8](data)).data
+        guard isZip else {
+            guard let system = GameSystem(romExtension: url.pathExtension) else {
+                throw EmulatorError.romUnreadable(url)
+            }
+            return Content(data: data, system: system, path: url.path)
+        }
+        let entry = try ZipArchive.extractFirstROM(from: [UInt8](data))
+        let innerName = entry.name.split(separator: "/").last.map(String.init) ?? entry.name
+        guard let system = GameSystem(romExtension: (innerName as NSString).pathExtension) else {
+            throw EmulatorError.romUnreadable(url)
+        }
+        return Content(data: entry.data, system: system,
+                       path: url.deletingLastPathComponent().appending(path: innerName).path,
+                       archivePath: url.path, archiveFile: entry.name)
     }
 
-    /// retro_set_environment / retro_init run once per process; snes9x supports loading game
-    /// after game without retro_deinit. Caller holds `coreLock`.
-    private static func initializeCoreIfNeeded() {
-        guard !coreInitialized else { return }
+    /// retro_set_environment / retro_init run once per process per core; both cores support
+    /// loading game after game without retro_deinit. Caller holds `coreLock` and has pointed
+    /// `api` at `system`'s core.
+    private static func initializeCoreIfNeeded(_ system: GameSystem) {
+        guard !initializedCores.contains(system) else { return }
         GamePaths.ensureDirectories()
-        CoreEnvironment.systemDirectory = strdup(GamePaths.system.path)
-        CoreEnvironment.saveDirectory = strdup(GamePaths.saves.path)
-
-        var info = retro_system_info()
-        retro_get_system_info(&info)
-        if info.need_fullpath {
-            log.error("Core unexpectedly requires need_fullpath; in-memory loading may fail")
+        if CoreEnvironment.systemDirectory == nil {
+            CoreEnvironment.systemDirectory = strdup(GamePaths.system.path)
+            CoreEnvironment.saveDirectory = strdup(GamePaths.saves.path)
         }
 
-        retro_set_environment(environmentCallback)
-        retro_set_video_refresh(videoRefreshCallback)
-        retro_set_audio_sample(audioSampleCallback)
-        retro_set_audio_sample_batch(audioBatchCallback)
-        retro_set_input_poll(inputPollCallback)
-        retro_set_input_state(inputStateCallback)
-        retro_init()
-        coreInitialized = true
+        var info = retro_system_info()
+        api.get_system_info(&info)
+        if info.need_fullpath {
+            log.error("\(system.displayName) core unexpectedly requires need_fullpath; in-memory loading may fail")
+        }
+
+        api.set_environment(environmentCallback)
+        api.set_video_refresh(videoRefreshCallback)
+        api.set_audio_sample(audioSampleCallback)
+        api.set_audio_sample_batch(audioBatchCallback)
+        api.set_input_poll(inputPollCallback)
+        api.set_input_state(inputStateCallback)
+        api.`init`()
+        initializedCores.insert(system)
     }
 
     // MARK: Run control
@@ -352,12 +402,12 @@ final class EmulatorCore: @unchecked Sendable {
             flushSRAMLocked()
             if framesSinceLoad > 0 {
                 do {
-                    try Self.writeAtomically(try serializeLocked(), to: GamePaths.state(for: rom, slot: 0))
+                    try Self.writeAtomically(try serializeLocked(), to: GamePaths.state(for: rom, slot: 0, system: system))
                 } catch {
                     log.error("Auto-save failed: \(error.localizedDescription, privacy: .public)")
                 }
             }
-            retro_unload_game()
+            api.unload_game()
             if activeHost === self { activeHost = nil }
             lastSavedSRAM = nil
         }
@@ -369,7 +419,7 @@ final class EmulatorCore: @unchecked Sendable {
     func reset() {
         apiLock.lock(); defer { apiLock.unlock() }
         guard loadedROM != nil else { return }
-        coreLock.withLock { retro_reset() }
+        coreLock.withLock { api.reset() }
     }
 
     // MARK: Save states
@@ -378,18 +428,18 @@ final class EmulatorCore: @unchecked Sendable {
         apiLock.lock(); defer { apiLock.unlock() }
         guard let rom = loadedROM else { throw EmulatorError.noGameLoaded }
         let data = try coreLock.withLock { try serializeLocked() }
-        try Self.writeAtomically(data, to: GamePaths.state(for: rom, slot: slot))
+        try Self.writeAtomically(data, to: GamePaths.state(for: rom, slot: slot, system: system))
     }
 
     func loadState(slot: Int) throws {
         apiLock.lock(); defer { apiLock.unlock() }
         guard let rom = loadedROM else { throw EmulatorError.noGameLoaded }
-        let url = GamePaths.state(for: rom, slot: slot)
+        let url = GamePaths.state(for: rom, slot: slot, system: system)
         guard let data = try? Data(contentsOf: url), !data.isEmpty else {
             throw EmulatorError.stateFailed("slot \(slot) is empty")
         }
         try coreLock.withLock {
-            let ok = data.withUnsafeBytes { retro_unserialize($0.baseAddress, $0.count) }
+            let ok = data.withUnsafeBytes { api.unserialize($0.baseAddress, $0.count) }
             guard ok else { throw EmulatorError.stateFailed("slot \(slot) doesn't match this game") }
             framesSinceLoad = 1
         }
@@ -398,15 +448,15 @@ final class EmulatorCore: @unchecked Sendable {
     func hasState(slot: Int) -> Bool {
         apiLock.lock(); defer { apiLock.unlock() }
         guard let rom = loadedROM else { return false }
-        return FileManager.default.fileExists(atPath: GamePaths.state(for: rom, slot: slot).path)
+        return FileManager.default.fileExists(atPath: GamePaths.state(for: rom, slot: slot, system: system).path)
     }
 
     /// Caller holds `coreLock`.
     private func serializeLocked() throws -> Data {
-        let size = retro_serialize_size()
+        let size = api.serialize_size()
         guard size > 0 else { throw EmulatorError.stateFailed("the core has no state to save") }
         var data = Data(count: size)
-        let ok = data.withUnsafeMutableBytes { retro_serialize($0.baseAddress, size) }
+        let ok = data.withUnsafeMutableBytes { api.serialize($0.baseAddress, size) }
         guard ok else { throw EmulatorError.stateFailed("the core couldn't serialize") }
         return data
     }
@@ -430,15 +480,15 @@ final class EmulatorCore: @unchecked Sendable {
 
     /// The core's battery RAM, or nil when the cartridge has none. Caller holds `coreLock`.
     private func sramRegionLocked() -> UnsafeMutableRawBufferPointer? {
-        let size = retro_get_memory_size(UInt32(RETRO_MEMORY_SAVE_RAM))
-        guard size > 0, let base = retro_get_memory_data(UInt32(RETRO_MEMORY_SAVE_RAM)) else { return nil }
+        let size = api.get_memory_size(UInt32(RETRO_MEMORY_SAVE_RAM))
+        guard size > 0, let base = api.get_memory_data(UInt32(RETRO_MEMORY_SAVE_RAM)) else { return nil }
         return UnsafeMutableRawBufferPointer(start: base, count: size)
     }
 
     /// Copies a saved .srm into the core (call after retro_load_game, which clears SRAM).
     private func loadSRAMLocked(for rom: URL) {
         guard let region = sramRegionLocked() else { lastSavedSRAM = nil; return }
-        if let saved = try? Data(contentsOf: GamePaths.sram(for: rom)), !saved.isEmpty {
+        if let saved = try? Data(contentsOf: GamePaths.sram(for: rom, system: system)), !saved.isEmpty {
             let n = min(saved.count, region.count)
             saved.withUnsafeBytes { region.baseAddress!.copyMemory(from: $0.baseAddress!, byteCount: n) }
             if saved.count != region.count {
@@ -455,7 +505,7 @@ final class EmulatorCore: @unchecked Sendable {
         guard current != lastSavedSRAM else { return }
         do {
             try FileManager.default.createDirectory(at: GamePaths.saves, withIntermediateDirectories: true)
-            try current.write(to: GamePaths.sram(for: rom), options: .atomic)
+            try current.write(to: GamePaths.sram(for: rom, system: system), options: .atomic)
             lastSavedSRAM = current
         } catch {
             log.error("SRAM write failed: \(error.localizedDescription, privacy: .public)")
@@ -523,7 +573,7 @@ final class EmulatorCore: @unchecked Sendable {
             runCondition.unlock()
             if go {
                 audioEnabledThisFrame = !turbo
-                retro_run()
+                api.run()
                 framesSinceLoad += 1
                 let now = mach_absolute_time()
                 if now &- lastSRAMCheck >= sramInterval {
@@ -581,7 +631,7 @@ final class EmulatorCore: @unchecked Sendable {
         guard loadedROM != nil else { return }
         coreLock.withLock {
             audioEnabledThisFrame = true
-            for _ in 0..<n { retro_run() }
+            for _ in 0..<n { api.run() }
             framesSinceLoad += n
         }
     }

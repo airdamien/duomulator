@@ -15,6 +15,17 @@ cputest-deflate.zip, cputest-stored.zip
 The SRAM test patches a copy of the ROM header at runtime (cartridge type 0x02, 8 KB RAM)
 so the core allocates battery RAM; no patched ROM is stored here.
 
+240pee.nes
+  "240p Test Suite" (NES) by Damian Yerrick, release v0.23
+  Source:  https://github.com/pinobatch/240p-test-mini/releases/download/v0.23/240pee.nes
+           (source code: https://github.com/pinobatch/240p-test-mini)
+  License: GPL-2.0 (see the LICENSE file in that repository). Redistributed unmodified
+           for testing; source is available at the URL above.
+  SHA-256: 04f01d7372f66ea2befe325b9bd655a9fcc395a31fa46d9466286bb8f9d2e62e
+
+240pee.zip
+  The same NES ROM zipped with `zip -9`, to exercise system detection inside archives.
+
 --- LICENSE (gilyon/snes-tests) ---
 MIT License
 

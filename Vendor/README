@@ -1,1 +1,2 @@
 snes9x vendored from https://github.com/snes9xgit/snes9x @ 1bcc369e89f08243e0a462882fb1f3e42e51de3a (2026-09-24). License: Vendor/snes9x/LICENSE (non-commercial).
+fceumm vendored from https://github.com/libretro/libretro-fceumm @ ac0d00a7fc01166f84c7bac01d1084ebfd2b865e (2026-10-11). License: GPL-2.0 (Vendor/fceumm/Copying).
