@@ -1,5 +1,6 @@
 import UIKit
 import Metal
+import Accelerate
 import QuartzCore
 
 /// Draws the latest `FrameBuffer` frame with Metal, letterboxed inside its bounds.
@@ -246,17 +247,16 @@ final class GameRenderView: UIView {
             let texture = gpu.textures[slot]
             // Lock held only for the copy into the texture.
             let uploaded = frameBuffer.withLatestFrame { frame, pixels -> (Int, Int, UInt64) in
-                let count = frame.width * frame.height
-                let src = pixels.assumingMemoryBound(to: UInt16.self)
-                let dst = gpu.staging
-                for i in 0..<count {
-                    let p = UInt32(src[i])
-                    let r = (p >> 11) & 0x1F, g = (p >> 5) & 0x3F, b = p & 0x1F
-                    dst[i] = 0xFF00_0000
-                        | ((r << 3 | r >> 2) << 16) | ((g << 2 | g >> 4) << 8) | (b << 3 | b >> 2)
-                }
+                // vImage's SIMD converter: a per-pixel loop costs whole milliseconds per frame
+                // on 640x480 PlayStation frames (and all of the main thread in Debug builds).
+                var src = vImage_Buffer(data: UnsafeMutableRawPointer(mutating: pixels),
+                                        height: vImagePixelCount(frame.height),
+                                        width: vImagePixelCount(frame.width), rowBytes: frame.width * 2)
+                var dst = vImage_Buffer(data: gpu.staging, height: vImagePixelCount(frame.height),
+                                        width: vImagePixelCount(frame.width), rowBytes: frame.width * 4)
+                vImageConvert_RGB565toBGRA8888(255, &src, &dst, vImage_Flags(kvImageNoFlags))
                 texture.replace(region: MTLRegionMake2D(0, 0, frame.width, frame.height),
-                                mipmapLevel: 0, withBytes: dst, bytesPerRow: frame.width * 4)
+                                mipmapLevel: 0, withBytes: gpu.staging, bytesPerRow: frame.width * 4)
                 return (frame.width, frame.height, frame.sequence)
             }
             currentSlot = slot

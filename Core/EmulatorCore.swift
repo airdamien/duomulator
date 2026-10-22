@@ -395,7 +395,8 @@ final class EmulatorCore: @unchecked Sendable {
         loadedROM = rom
         isRunning = false
         startThread()
-        log.info("Loaded \(rom.lastPathComponent, privacy: .public) at \(self.frameRate) fps")
+        let discs = discCount
+        log.notice("Loaded \(rom.lastPathComponent, privacy: .public) (\(self.system.rawValue, privacy: .public)) at \(self.frameRate) fps\(discs > 1 ? ", \(discs) discs" : "", privacy: .public)")
     }
 
     /// A ROM ready to hand to a core.
