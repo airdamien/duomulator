@@ -5,3 +5,4 @@ DerivedData/
 *.smc
 !Tests/Fixtures/*.sfc
 !Tests/Fixtures/*.smc
+.claude/worktrees/
