@@ -21,6 +21,11 @@ struct SNESButtons: OptionSet, Hashable, Sendable {
     static let x      = SNESButtons(rawValue: 1 << 9)
     static let l      = SNESButtons(rawValue: 1 << 10)
     static let r      = SNESButtons(rawValue: 1 << 11)
+    /// PlayStation L2/R2 and stick presses L3/R3 (libretro ids 12-15).
+    static let l2     = SNESButtons(rawValue: 1 << 12)
+    static let r2     = SNESButtons(rawValue: 1 << 13)
+    static let l3     = SNESButtons(rawValue: 1 << 14)
+    static let r3     = SNESButtons(rawValue: 1 << 15)
 
     static let dpad: SNESButtons = [.up, .down, .left, .right]
 }

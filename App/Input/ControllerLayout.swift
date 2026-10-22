@@ -249,33 +249,7 @@ struct ControllerLayout: Equatable, Sendable {
 
     /// Text printed on a face button, as on that console's pad.
     func label(for button: SNESButtons) -> String {
-        if pad.isGenesis {
-            switch button {
-            case .y: return "A"
-            case .b: return "B"
-            case .a: return "C"
-            case .l: return "X"
-            case .x: return "Y"
-            case .r: return "Z"
-            default: return ""
-            }
-        }
-        if pad == .playstation {
-            switch button {
-            case .x: return "△"
-            case .a: return "○"
-            case .b: return "✕"
-            case .y: return "□"
-            default: return ""
-            }
-        }
-        switch button {
-        case .a: return "A"
-        case .b: return "B"
-        case .x: return "X"
-        case .y: return "Y"
-        default: return ""
-        }
+        ButtonLabels.label(button, pad: pad, system: system)
     }
 
     // MARK: Hit-testing

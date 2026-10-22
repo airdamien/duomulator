@@ -79,12 +79,13 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    NavigationLink("Controller Mapping") { ControllerMappingList() }
                     ControlRow(key: "Face buttons", action: "Nintendo positions")
                     ControlRow(key: "Options + Menu", action: "Menu")
                 } header: {
                     Text("Game Controller")
                 } footer: {
-                    Text("Buttons map by position, not label: the right face button is A and the bottom is B, as on a SNES pad (and the NES pad's A and B). Touch controls hide while a controller is connected, except below the fold in DS mode. On DS games, tap the lower screen to use the touch screen.")
+                    Text("By default buttons map by position, not label: the right face button is A and the bottom is B, as on a SNES pad. Change it per system in Controller Mapping. Touch controls hide while a controller is connected, except below the fold in DS mode. On DS games, tap the lower screen to use the touch screen.")
                 }
 
                 Section {

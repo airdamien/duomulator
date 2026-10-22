@@ -166,3 +166,62 @@ final class InputTests: XCTestCase {
         XCTAssertFalse(InputSettings.hapticsEnabled)
     }
 }
+
+/// Per-system controller remapping.
+final class ControllerMappingTests: XCTestCase {
+    private func snapshot(_ configure: (inout GamepadSnapshot) -> Void) -> GamepadSnapshot {
+        var s = GamepadSnapshot()
+        configure(&s)
+        return s
+    }
+
+    func testDefaultsKeepThePositionalLayout() {
+        let snes = ControllerMapping.defaults(for: .snes)
+        XCTAssertEqual(snes.buttons(for: snapshot { $0.south = true }), .b)
+        XCTAssertEqual(snes.buttons(for: snapshot { $0.east = true; $0.leftTrigger = true }), [.a, .l])
+        XCTAssertEqual(snes.buttons(for: snapshot { $0.up = true; $0.menu = true }), [.up, .start])
+        // The old fixed mapping and the SNES default agree.
+        let s = snapshot { $0.west = true; $0.rightShoulder = true; $0.options = true }
+        XCTAssertEqual(s.buttons, snes.buttons(for: s))
+    }
+
+    func testSystemSpecificDefaults() {
+        let psx = ControllerMapping.defaults(for: .psx)
+        XCTAssertEqual(psx.buttons(for: snapshot { $0.leftTrigger = true; $0.rightTrigger = true }), [.l2, .r2])
+        XCTAssertEqual(psx.buttons(for: snapshot { $0.leftStick = true }), .l3)
+        let nes = ControllerMapping.defaults(for: .nes)
+        XCTAssertEqual(nes.buttons(for: snapshot { $0.west = true }), .b)
+        XCTAssertEqual(nes.buttons(for: snapshot { $0.leftShoulder = true }), [])
+    }
+
+    func testRemapSaveLoadAndReset() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "duotest-\(UUID().uuidString)"))
+        var genesis = ControllerMapping.load(for: .genesis, defaults: defaults)
+        genesis.bindings[.south] = .y          // bottom button -> Genesis A
+        genesis.bindings[.east] = []           // unbound
+        genesis.save(defaults: defaults)
+
+        let reloaded = ControllerMapping.load(for: .genesis, defaults: defaults)
+        XCTAssertEqual(reloaded.buttons(for: snapshot { $0.south = true }), .y)
+        XCTAssertEqual(reloaded.buttons(for: snapshot { $0.east = true }), [])
+        XCTAssertEqual(reloaded.bindings[.west], ControllerMapping.defaults(for: .genesis).bindings[.west],
+                       "untouched buttons keep the default")
+        // Other systems are unaffected.
+        XCTAssertEqual(ControllerMapping.load(for: .snes, defaults: defaults), .defaults(for: .snes))
+
+        ControllerMapping.reset(for: .genesis, defaults: defaults)
+        XCTAssertEqual(ControllerMapping.load(for: .genesis, defaults: defaults), .defaults(for: .genesis))
+    }
+
+    func testTargetsAndLabelsUseEachSystemsNames() {
+        XCTAssertEqual(ControllerMapping.targets(for: .genesis).map { ButtonLabels.label($0, pad: .genesis6) },
+                       ["A", "B", "C", "X", "Y", "Z", "Start", "Mode"])
+        XCTAssertTrue(ControllerMapping.targets(for: .psx).contains(.l2))
+        XCTAssertFalse(ControllerMapping.targets(for: .snes).contains(.l2))
+        XCTAssertEqual(ButtonLabels.label(.select, pad: .snes, system: .neoGeo), "Coin")
+        XCTAssertEqual(ButtonLabels.label([], pad: .snes), "None")
+        for name in ["a", "b", "x", "y", "l", "r", "l2", "r2", "l3", "r3", "start", "select", "none"] {
+            XCTAssertEqual(SNESButtons(name: name)?.name, name)
+        }
+    }
+}

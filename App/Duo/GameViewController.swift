@@ -168,6 +168,7 @@ final class GameViewController: UIViewController {
         let output = AudioOutput(ring: core.audio, sampleRate: core.sampleRate)
         output.isMuted = GameSettings.muted
         audio = output
+        GameControllerManager.shared.mapping = ControllerMapping.load(for: system)
         GameControllerManager.shared.start()
         controllerConnectionDidChange(GameControllerManager.shared.isControllerConnected, announce: false)
         savedIdleTimerDisabled = UIApplication.shared.isIdleTimerDisabled

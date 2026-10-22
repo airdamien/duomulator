@@ -16,6 +16,11 @@ final class GameControllerManager {
     var onConnectionChange: ((Bool) -> Void)?
     /// Called on the controller's menu/home button.
     var onMenu: (() -> Void)?
+    /// Which emulated button each physical button presses; set per game from its system's
+    /// saved mapping (Settings > Controller Mapping).
+    var mapping = ControllerMapping.defaults(for: .snes) {
+        didSet { for pad in pads { if let g = pad.controller.extendedGamepad { gamepadChanged(g) } } }
+    }
 
     private var hub: InputHub = .shared
     private var observers: [NSObjectProtocol] = []
@@ -129,7 +134,7 @@ final class GameControllerManager {
         else { return }
         let pad = pads[player]
         let snapshot = GamepadSnapshot(gamepad)
-        var mask = snapshot.buttons
+        var mask = mapping.buttons(for: snapshot)
 
         // Options+Menu chord (Select+Start) opens the in-game menu once per press.
         if snapshot.menu && snapshot.options && !pad.chordLatched {
@@ -138,7 +143,11 @@ final class GameControllerManager {
         }
         if pad.chordLatched {
             if !snapshot.menu && !snapshot.options { pad.chordLatched = false }
-            mask.remove([.start, .select])
+            // The chord isn't a game input: drop whatever Menu and View are bound to.
+            var released = snapshot
+            released.menu = false
+            released.options = false
+            mask = mapping.buttons(for: released)
         }
         // Home is often reserved by the system (Game Center overlay); honor it when delivered.
         if snapshot.home && !pad.homeDown { onMenu?() }
@@ -198,6 +207,7 @@ struct GamepadSnapshot: Equatable {
     var south = false, east = false, west = false, north = false
     var leftShoulder = false, leftTrigger = false, rightShoulder = false, rightTrigger = false
     var menu = false, options = false, home = false
+    var leftStick = false, rightStick = false
 
     /// Stick deflection needed to count as a d-pad direction.
     static let stickThreshold: Float = 0.5
@@ -215,26 +225,24 @@ struct GamepadSnapshot: Equatable {
         menu = g.buttonMenu.isPressed
         options = g.buttonOptions?.isPressed ?? false
         home = g.buttonHome?.isPressed ?? false
+        leftStick = g.leftThumbstickButton?.isPressed ?? false
+        rightStick = g.rightThumbstickButton?.isPressed ?? false
     }
 
-    /// Nintendo-style positional mapping: the button where SNES B sits (south) is SNES B, etc.
-    var buttons: SNESButtons {
+    /// Directions from the d-pad and left stick (never remapped).
+    var directions: SNESButtons {
         var m: SNESButtons = []
         let t = Self.stickThreshold
         if up || stickY >= t { m.insert(.up) }
         if down || stickY <= -t { m.insert(.down) }
         if left || stickX <= -t { m.insert(.left) }
         if right || stickX >= t { m.insert(.right) }
-        if south { m.insert(.b) }
-        if east { m.insert(.a) }
-        if west { m.insert(.y) }
-        if north { m.insert(.x) }
-        if leftShoulder || leftTrigger { m.insert(.l) }
-        if rightShoulder || rightTrigger { m.insert(.r) }
-        if menu { m.insert(.start) }
-        if options { m.insert(.select) }
         return m
     }
+
+    /// The default (SNES) mapping: Nintendo-style positional, the button where SNES B sits
+    /// (south) is SNES B, etc. Games use their system's `ControllerMapping`.
+    var buttons: SNESButtons { ControllerMapping.defaults(for: .snes).buttons(for: self) }
 }
 
 /// Hardware keyboard layout: arrows, Z/X/A/S face buttons, Q/W shoulders, Return/Right Shift

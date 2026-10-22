@@ -270,7 +270,7 @@ private func inputStateCallback(_ port: UInt32, _ device: UInt32, _ index: UInt3
           port < UInt32(InputHub.maxPlayers) else { return 0 }
     let mask = host.polledButtons[Int(port)]
     if id == UInt32(RETRO_DEVICE_ID_JOYPAD_MASK) {
-        return Int16(truncatingIfNeeded: mask & 0xFFF)
+        return Int16(truncatingIfNeeded: mask & 0xFFFF)
     }
     guard id < 16 else { return 0 }
     return Int16((mask >> id) & 1)
