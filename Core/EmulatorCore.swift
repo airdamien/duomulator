@@ -6,11 +6,16 @@ enum EmulatorError: Error, LocalizedError {
     case romUnreadable(URL), coreRejectedROM, noGameLoaded, stateFailed(String)
     /// A `.zip` that can't be used: no ROM inside, unsupported method, or damaged.
     case unsupportedArchive(String)
+    /// The system needs a BIOS dumped from the user's console (Sega CD).
+    case missingBIOS(GameSystem)
 
     var errorDescription: String? {
         switch self {
         case .romUnreadable(let url): "Couldn't read \(url.lastPathComponent)."
-        case .coreRejectedROM: "This file isn't a SNES ROM that snes9x can run."
+        case .coreRejectedROM: "The emulator couldn't start this game. The file may be damaged or not a supported ROM."
+        case .missingBIOS(let system):
+            "\(system.displayName) games need the console's BIOS. Copy one of these files from your own console into Duomulator's System folder (Files app ▸ On My iPhone ▸ Duomulator ▸ System): "
+            + system.requiredBIOS.prefix(4).joined(separator: ", ") + " (or the EU/JP equivalents)."
         case .noGameLoaded: "No game is loaded."
         case .stateFailed(let detail): "Save state failed: \(detail)"
         case .unsupportedArchive(let detail): detail
@@ -32,7 +37,7 @@ private let apiLock = NSRecursiveLock()
 nonisolated(unsafe) private var activeHost: EmulatorCore?
 nonisolated(unsafe) private var api = GameSystem.snes.coreAPI
 /// Cores that have had retro_set_environment / retro_init called (once per process each).
-nonisolated(unsafe) private var initializedCores: Set<GameSystem> = []
+nonisolated(unsafe) private var initializedCores: Set<String> = []   // GameSystem.coreName
 
 extension GameSystem {
     /// The statically linked libretro core for this system (see Core/CoreAPI.h).
@@ -41,6 +46,7 @@ extension GameSystem {
         case .snes: duo_core_snes9x
         case .nes: duo_core_fceumm
         case .nds: duo_core_melonds
+        case .genesis, .sega32x, .segaCD: duo_core_picodrive
         }
     }
 }
@@ -50,7 +56,7 @@ nonisolated(unsafe) private var apiSystem = GameSystem.snes
 /// Pixel format each core asked for (RGB565 or XRGB8888); FrameBuffer is RGB565, so XRGB8888
 /// frames are converted on the way in. Kept per core because a core may only announce its
 /// format once per process, and cores alternate as games are switched.
-nonisolated(unsafe) private var corePixelFormats: [GameSystem: retro_pixel_format] = [:]
+nonisolated(unsafe) private var corePixelFormats: [String: retro_pixel_format] = [:]   // by coreName
 
 /// C strings handed to the core. libretro requires them to outlive the call that returned
 /// them, so they are allocated once and kept for the life of the process.
@@ -87,7 +93,7 @@ private func environmentCallback(_ cmd: UInt32, _ data: UnsafeMutableRawPointer?
         guard let data else { return false }
         let format = data.load(as: retro_pixel_format.self)
         guard format == RETRO_PIXEL_FORMAT_RGB565 || format == RETRO_PIXEL_FORMAT_XRGB8888 else { return false }
-        corePixelFormats[apiSystem] = format
+        corePixelFormats[apiSystem.coreName] = format
         return true
 
     case UInt32(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY):
@@ -188,7 +194,7 @@ private func registerVariables(_ list: UnsafeMutablePointer<retro_variable>) {
 private func videoRefreshCallback(_ data: UnsafeRawPointer?, _ width: UInt32, _ height: UInt32, _ pitch: Int) {
     // data == NULL is a dupe frame (we advertise GET_CAN_DUPE): keep showing the last one.
     guard let data, width > 0, height > 0, let host = activeHost else { return }
-    guard corePixelFormats[apiSystem] == RETRO_PIXEL_FORMAT_XRGB8888 else {
+    guard corePixelFormats[apiSystem.coreName] == RETRO_PIXEL_FORMAT_XRGB8888 else {
         host.frameBuffer.submit(data, width: Int(width), height: Int(height), pitch: pitch)
         return
     }
@@ -320,13 +326,14 @@ final class EmulatorCore: @unchecked Sendable {
             activeHost = self
             let loaded = content.path.withCString { path in
                 content.data.withUnsafeBytes { buffer -> Bool in
+                    // Empty data (disc images): the core opens `path` itself.
+                    let bytes = buffer.isEmpty ? nil : buffer.baseAddress
                     duo_set_game_info_ext(path, content.archivePath, content.archiveFile,
-                                          buffer.baseAddress, buffer.count)
+                                          bytes, buffer.count)
                     defer { duo_clear_game_info_ext() }
                     // Both cores report need_fullpath = false and copy the bytes (snes9x also
                     // strips any 512-byte copier header itself), so the buffer can go away after.
-                    var info = retro_game_info(path: path, data: buffer.baseAddress,
-                                               size: buffer.count, meta: nil)
+                    var info = retro_game_info(path: path, data: bytes, size: buffer.count, meta: nil)
                     return api.load_game(&info)
                 }
             }
@@ -373,6 +380,19 @@ final class EmulatorCore: @unchecked Sendable {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
 
+        if let system = GameSystem(romExtension: url.pathExtension), system.loadsFromPath {
+            guard FileManager.default.isReadableFile(atPath: url.path) else {
+                throw EmulatorError.romUnreadable(url)
+            }
+            let bios = system.requiredBIOS
+            if !bios.isEmpty, !bios.contains(where: {
+                FileManager.default.fileExists(atPath: GamePaths.system.appending(path: $0).path)
+            }) {
+                throw EmulatorError.missingBIOS(system)
+            }
+            return Content(data: Data(), system: system, path: url.path)
+        }
+
         guard let data = try? Data(contentsOf: url, options: .mappedIfSafe), !data.isEmpty,
               data.count <= ZipArchive.maxEntrySize else {
             throw EmulatorError.romUnreadable(url)
@@ -399,7 +419,7 @@ final class EmulatorCore: @unchecked Sendable {
     /// loading game after game without retro_deinit. Caller holds `coreLock` and has pointed
     /// `api` at `system`'s core.
     private static func initializeCoreIfNeeded(_ system: GameSystem) {
-        guard !initializedCores.contains(system) else { return }
+        guard !initializedCores.contains(system.coreName) else { return }
         GamePaths.ensureDirectories()
         if CoreEnvironment.systemDirectory == nil {
             CoreEnvironment.systemDirectory = strdup(GamePaths.system.path)
@@ -423,7 +443,7 @@ final class EmulatorCore: @unchecked Sendable {
         api.set_input_poll(inputPollCallback)
         api.set_input_state(inputStateCallback)
         api.`init`()
-        initializedCores.insert(system)
+        initializedCores.insert(system.coreName)
     }
 
     // MARK: Run control

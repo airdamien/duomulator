@@ -67,6 +67,7 @@ final class GameViewController: UIViewController {
 
         renderView = GameRenderView(frameBuffer: core.frameBuffer)
         renderView.scaling = GameSettings.scaling
+        renderView.fixedAspect = system.displayAspect
         renderView.filter = GameSettings.filter
         view.addSubview(renderView)
 

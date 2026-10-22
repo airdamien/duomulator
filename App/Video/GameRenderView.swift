@@ -28,6 +28,10 @@ final class GameRenderView: UIView {
     var squarePixels = false {
         didSet { if squarePixels != oldValue { updateContentRect(); needsRedraw = true } }
     }
+    /// Show every frame at this aspect whatever its width (Sega: 256 and 320 wide are both 4:3).
+    var fixedAspect: CGFloat? {
+        didSet { if fixedAspect != oldValue { updateContentRect(); needsRedraw = true } }
+    }
 
     /// Where the game image is drawn, in this view's coordinates. Black letterbox elsewhere.
     private(set) var contentRect: CGRect = .zero
@@ -165,7 +169,7 @@ final class GameRenderView: UIView {
         let visible = visibleFrameSize
         let pixelRect = Self.displayRect(frameWidth: visible.width, frameHeight: visible.height,
                                          drawableSize: metalLayer.drawableSize, scaling: scaling,
-                                         squarePixels: squarePixels)
+                                         squarePixels: squarePixels, fixedAspect: fixedAspect)
         let rect = CGRect(x: pixelRect.minX / scale, y: pixelRect.minY / scale,
                           width: pixelRect.width / scale, height: pixelRect.height / scale)
         if rect != contentRect {
@@ -179,11 +183,16 @@ final class GameRenderView: UIView {
     /// - integer: largest whole multiple of the (de-interlaced) line count that fits, keeping
     ///   the same aspect; falls back to aspectFit when not even 1x fits.
     static func displayRect(frameWidth: Int, frameHeight: Int, drawableSize: CGSize,
-                            scaling: Scaling, squarePixels: Bool = false) -> CGRect {
+                            scaling: Scaling, squarePixels: Bool = false,
+                            fixedAspect: CGFloat? = nil) -> CGRect {
         let W = drawableSize.width.rounded(.down), H = drawableSize.height.rounded(.down)
         guard W > 0, H > 0, frameWidth > 0, frameHeight > 0 else { return .zero }
         let baseW: CGFloat, baseH: CGFloat, aspect: CGFloat
-        if squarePixels {
+        if let fixedAspect {
+            baseH = CGFloat(frameHeight > 240 ? frameHeight / 2 : frameHeight)
+            aspect = fixedAspect
+            baseW = baseH * aspect
+        } else if squarePixels {
             baseW = CGFloat(frameWidth)
             baseH = CGFloat(frameHeight)
             aspect = baseW / baseH
@@ -274,7 +283,7 @@ final class GameRenderView: UIView {
             let visible = visibleFrameSize
             let rect = Self.displayRect(frameWidth: visible.width, frameHeight: visible.height,
                                         drawableSize: drawableSize, scaling: scaling,
-                                        squarePixels: squarePixels)
+                                        squarePixels: squarePixels, fixedAspect: fixedAspect)
             if rect.width > 0, rect.height > 0 {
                 encoder.setViewport(MTLViewport(originX: Double(rect.minX), originY: Double(rect.minY),
                                                 width: Double(rect.width), height: Double(rect.height),

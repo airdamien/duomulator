@@ -18,7 +18,8 @@ enum TouchControl: Equatable, Sendable {
 // MARK: - Geometry
 
 /// Pure geometry for the on-screen controller: where every control sits for a given size and
-/// style, and which buttons a point presses. NES layouts drop L/R and use two face buttons. No UIKit state, so it is unit-testable and
+/// style, and which buttons a point presses. NES and Genesis layouts drop L/R and use two or
+/// three face buttons. No UIKit state, so it is unit-testable and
 /// shared by drawing and hit-testing (what you see is exactly what you can press).
 struct ControllerLayout: Equatable, Sendable {
     enum Style: Equatable, Sendable { case overlay, panel }
@@ -111,13 +112,14 @@ struct ControllerLayout: Equatable, Sendable {
             dpadRadius = cluster / 2
             faceCenter = CGPoint(x: right.midX, y: clusterY)
             faceSpacing = cluster * 0.32
-            faceRadius = cluster * (system == .nes ? 0.21 : 0.18)
+            faceRadius = cluster * Self.faceRadiusScale(system)
             lRect = system.hasShoulderButtons
                 ? CGRect(x: left.minX, y: area.minY, width: left.width, height: shoulderH) : .null
             rRect = system.hasShoulderButtons
                 ? CGRect(x: right.minX, y: area.minY, width: right.width, height: shoulderH) : .null
             let w = min(ssW, gutter)
-            selectRect = CGRect(x: left.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
+            selectRect = system.padStyle == .genesis
+                ? .null : CGRect(x: left.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
             startRect = CGRect(x: right.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
             menuRect = .null
             return
@@ -149,7 +151,7 @@ struct ControllerLayout: Equatable, Sendable {
         faceCenter = CGPoint(x: area.maxX - size / 2, y: clusterY)
         faceSpacing = size * 0.32
         // NES: two buttons, so each can be bigger.
-        faceRadius = size * (system == .nes ? 0.21 : 0.18)
+        faceRadius = size * Self.faceRadiusScale(system)
 
         if system.hasShoulderButtons {
             lRect = CGRect(x: area.minX, y: area.minY, width: shoulderW, height: shoulderH)
@@ -169,8 +171,14 @@ struct ControllerLayout: Equatable, Sendable {
         } else {
             ssY = area.maxY - ssH
         }
-        selectRect = CGRect(x: area.midX - ssGap / 2 - ssW, y: ssY, width: ssW, height: ssH)
-        startRect = CGRect(x: area.midX + ssGap / 2, y: ssY, width: ssW, height: ssH)
+        if system.padStyle == .genesis {
+            // Start only, centered.
+            selectRect = .null
+            startRect = CGRect(x: area.midX - ssW / 2, y: ssY, width: ssW, height: ssH)
+        } else {
+            selectRect = CGRect(x: area.midX - ssGap / 2 - ssW, y: ssY, width: ssW, height: ssH)
+            startRect = CGRect(x: area.midX + ssGap / 2, y: ssY, width: ssW, height: ssH)
+        }
     }
 
     /// Face buttons. SNES: the diamond, X top, A right, B bottom, Y left. NES: B lower-left
@@ -178,7 +186,16 @@ struct ControllerLayout: Equatable, Sendable {
     /// both hit radii, so a thumb there presses B+A (run + jump).
     var faceButtons: [(button: SNESButtons, center: CGPoint)] {
         let c = faceCenter, d = faceSpacing
-        if system == .nes {
+        if system.padStyle == .genesis {
+            // A B C left to right, rising slightly like the 3-button pad. PicoDrive reads the
+            // Genesis A/B/C from libretro's Y/B/A.
+            return [
+                (.y, CGPoint(x: c.x - d, y: c.y + d * 0.3)),
+                (.b, CGPoint(x: c.x, y: c.y)),
+                (.a, CGPoint(x: c.x + d, y: c.y - d * 0.3)),
+            ]
+        }
+        if system.padStyle == .nes {
             return [
                 (.b, CGPoint(x: c.x - d * 0.75, y: c.y + d * 0.3)),
                 (.a, CGPoint(x: c.x + d * 0.75, y: c.y - d * 0.3)),
@@ -190,6 +207,34 @@ struct ControllerLayout: Equatable, Sendable {
             (.b, CGPoint(x: c.x, y: c.y + d)),
             (.y, CGPoint(x: c.x - d, y: c.y)),
         ]
+    }
+
+    /// Face-button radius as a fraction of the cluster size: fewer buttons can be bigger.
+    private static func faceRadiusScale(_ system: GameSystem) -> CGFloat {
+        switch system.padStyle {
+        case .snes: 0.18
+        case .nes: 0.21
+        case .genesis: 0.17
+        }
+    }
+
+    /// Text printed on a face button, as on that console's pad.
+    func label(for button: SNESButtons) -> String {
+        if system.padStyle == .genesis {
+            switch button {
+            case .y: return "A"
+            case .b: return "B"
+            case .a: return "C"
+            default: return ""
+            }
+        }
+        switch button {
+        case .a: return "A"
+        case .b: return "B"
+        case .x: return "X"
+        case .y: return "Y"
+        default: return ""
+        }
     }
 
     // MARK: Hit-testing

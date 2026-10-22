@@ -69,7 +69,7 @@ struct SettingsView: View {
                 } header: {
                     Text("About")
                 } footer: {
-                    Text("Duomulator uses the snes9x emulation core (SNES), used under its non-commercial license, FCEUmm (NES), under the GPL-2.0, and melonDS (DS), under the GPL-3.0. DS games run with melonDS's built-in replacement BIOS, so no BIOS files are needed. Duomulator includes no games: only play ROMs dumped from cartridges you own.")
+                    Text("Duomulator uses the snes9x emulation core (SNES), used under its non-commercial license, FCEUmm (NES), under the GPL-2.0, melonDS (DS), under the GPL-3.0, and PicoDrive (Genesis, 32X, Sega CD), under its non-commercial license. DS games run with melonDS's built-in replacement BIOS, so no BIOS files are needed. Duomulator includes no games: only play ROMs dumped from cartridges you own.")
                 }
             }
             .navigationTitle("Settings")

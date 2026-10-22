@@ -231,6 +231,146 @@ targets:
       - path: Vendor/melonds/src/teakra/src/timer.cpp
       - path: Vendor/melonds/src/libretro/libretro-common/rthreads/rthreads.c
       - path: Vendor/melonds/src/libretro/libretro-common/rthreads/rsemaphore.c
+  SegaCore:
+    type: library.static
+    platform: iOS
+    settings:
+      base:
+        GCC_PREPROCESSOR_DEFINITIONS: "__LIBRETRO__ IOS NDEBUG EMU_F68K _USE_CZ80 HAVE_ZLIB USE_LIBCHDR USE_LIBRETRO_VFS USE_TREMOR Z7_ST REVISION=\\\"-1890c29\\\""
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/picodrive $(SRCROOT)/Vendor/picodrive/platform/libretro/libretro-common/include $(SRCROOT)/Vendor/picodrive/platform/libretro/libretro-common/include/streams $(SRCROOT)/Vendor/picodrive/pico/cd/libchdr/deps/lzma-24.05/include $(SRCROOT)/Vendor/picodrive/pico/cd/libchdr/deps/zstd-1.5.6/lib $(SRCROOT)/Vendor/picodrive/pico/cd/libchdr/include $(SRCROOT)/Vendor/picodrive/zlib $(SRCROOT)/CoreBuild/picodrive-include"
+        GCC_OPTIMIZATION_LEVEL: "3"
+        OTHER_CFLAGS: "-Wno-everything -include $(SRCROOT)/CoreBuild/picodrive-prefix.h"
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
+        SKIP_INSTALL: YES
+        GENERATE_MASTER_OBJECT_FILE: YES
+        PRELINK_FLAGS: "-exported_symbols_list $(SRCROOT)/CoreBuild/picodrive.exp"
+        # zstd re-includes zstd.h with ZSTD_STATIC_LINKING_ONLY set; Clang modules break that.
+        CLANG_ENABLE_MODULES: NO
+        USE_HEADERMAP: NO
+    sources:
+      - path: Vendor/picodrive/cpu/cz80/cz80.c
+      - path: Vendor/picodrive/cpu/drc/cmn.c
+      - path: Vendor/picodrive/cpu/fame/famec.c
+      - path: Vendor/picodrive/cpu/sh2/mame/sh2pico.c
+      - path: Vendor/picodrive/cpu/sh2/sh2.c
+      - path: Vendor/picodrive/pico/32x/32x.c
+      - path: Vendor/picodrive/pico/32x/draw.c
+      - path: Vendor/picodrive/pico/32x/memory.c
+      - path: Vendor/picodrive/pico/32x/pwm.c
+      - path: Vendor/picodrive/pico/32x/sh2soc.c
+      - path: Vendor/picodrive/pico/cart.c
+      - path: Vendor/picodrive/pico/carthw/carthw.c
+      - path: Vendor/picodrive/pico/carthw/eeprom_spi.c
+      - path: Vendor/picodrive/pico/carthw/svp/memory.c
+      - path: Vendor/picodrive/pico/carthw/svp/ssp16.c
+      - path: Vendor/picodrive/pico/carthw/svp/svp.c
+      - path: Vendor/picodrive/pico/cd/cd_image.c
+      - path: Vendor/picodrive/pico/cd/cd_parse.c
+      - path: Vendor/picodrive/pico/cd/cdc.c
+      - path: Vendor/picodrive/pico/cd/cdd.c
+      - path: Vendor/picodrive/pico/cd/gfx.c
+      - path: Vendor/picodrive/pico/cd/gfx_dma.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/lzma-24.05/src/Alloc.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/lzma-24.05/src/CpuArch.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/lzma-24.05/src/Delta.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/lzma-24.05/src/LzFind.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/lzma-24.05/src/LzmaDec.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/lzma-24.05/src/LzmaEnc.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/lzma-24.05/src/Sort.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/zstd-1.5.6/lib/common/entropy_common.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/zstd-1.5.6/lib/common/error_private.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/zstd-1.5.6/lib/common/fse_decompress.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/zstd-1.5.6/lib/common/xxhash.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/zstd-1.5.6/lib/common/zstd_common.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/zstd-1.5.6/lib/decompress/huf_decompress.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/zstd-1.5.6/lib/decompress/zstd_ddict.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/zstd-1.5.6/lib/decompress/zstd_decompress.c
+      - path: Vendor/picodrive/pico/cd/libchdr/deps/zstd-1.5.6/lib/decompress/zstd_decompress_block.c
+      - path: Vendor/picodrive/pico/cd/libchdr/src/libchdr_bitstream.c
+      - path: Vendor/picodrive/pico/cd/libchdr/src/libchdr_cdrom.c
+      - path: Vendor/picodrive/pico/cd/libchdr/src/libchdr_chd.c
+      - path: Vendor/picodrive/pico/cd/libchdr/src/libchdr_flac.c
+      - path: Vendor/picodrive/pico/cd/libchdr/src/libchdr_huffman.c
+      - path: Vendor/picodrive/pico/cd/mcd.c
+      - path: Vendor/picodrive/pico/cd/megasd.c
+      - path: Vendor/picodrive/pico/cd/memory.c
+      - path: Vendor/picodrive/pico/cd/misc.c
+      - path: Vendor/picodrive/pico/cd/pcm.c
+      - path: Vendor/picodrive/pico/cd/sek.c
+      - path: Vendor/picodrive/pico/debug.c
+      - path: Vendor/picodrive/pico/draw.c
+      - path: Vendor/picodrive/pico/draw2.c
+      - path: Vendor/picodrive/pico/eeprom.c
+      - path: Vendor/picodrive/pico/media.c
+      - path: Vendor/picodrive/pico/memory.c
+      - path: Vendor/picodrive/pico/misc.c
+      - path: Vendor/picodrive/pico/mode4.c
+      - path: Vendor/picodrive/pico/patch.c
+      - path: Vendor/picodrive/pico/pico.c
+      - path: Vendor/picodrive/pico/pico/memory.c
+      - path: Vendor/picodrive/pico/pico/pico.c
+      - path: Vendor/picodrive/pico/pico/xpcm.c
+      - path: Vendor/picodrive/pico/sek.c
+      - path: Vendor/picodrive/pico/sms.c
+      - path: Vendor/picodrive/pico/sound/mix.c
+      - path: Vendor/picodrive/pico/sound/resampler.c
+      - path: Vendor/picodrive/pico/sound/sn76496.c
+      - path: Vendor/picodrive/pico/sound/sound.c
+      - path: Vendor/picodrive/pico/sound/vgm.c
+      - path: Vendor/picodrive/pico/sound/ym2413.c
+      - path: Vendor/picodrive/pico/sound/ym2612.c
+      - path: Vendor/picodrive/pico/state.c
+      - path: Vendor/picodrive/pico/videoport.c
+      - path: Vendor/picodrive/pico/z80if.c
+      - path: Vendor/picodrive/platform/common/mp3.c
+      - path: Vendor/picodrive/platform/common/mp3_drmp3.c
+      - path: Vendor/picodrive/platform/common/mp3_sync.c
+      - path: Vendor/picodrive/platform/common/ogg.c
+      - path: Vendor/picodrive/platform/common/tremor/bitwise.c
+      - path: Vendor/picodrive/platform/common/tremor/block.c
+      - path: Vendor/picodrive/platform/common/tremor/codebook.c
+      - path: Vendor/picodrive/platform/common/tremor/floor0.c
+      - path: Vendor/picodrive/platform/common/tremor/floor1.c
+      - path: Vendor/picodrive/platform/common/tremor/framing.c
+      - path: Vendor/picodrive/platform/common/tremor/info.c
+      - path: Vendor/picodrive/platform/common/tremor/mapping0.c
+      - path: Vendor/picodrive/platform/common/tremor/mdct.c
+      - path: Vendor/picodrive/platform/common/tremor/registry.c
+      - path: Vendor/picodrive/platform/common/tremor/res012.c
+      - path: Vendor/picodrive/platform/common/tremor/sharedbook.c
+      - path: Vendor/picodrive/platform/common/tremor/synthesis.c
+      - path: Vendor/picodrive/platform/common/tremor/vorbisfile.c
+      - path: Vendor/picodrive/platform/common/tremor/window.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/compat/compat_posix_string.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/compat/compat_strcasestr.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/compat/compat_strl.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/compat/fopen_utf8.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/encodings/encoding_utf.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/file/file_path.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/file/file_path_io.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/formats/png/rpng.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/memmap/memmap.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/streams/file_stream.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/streams/file_stream_transforms.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/streams/trans_stream.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/streams/trans_stream_pipe.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/streams/trans_stream_zlib.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/string/stdstring.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/time/rtime.c
+      - path: Vendor/picodrive/platform/libretro/libretro-common/vfs/vfs_implementation.c
+      - path: Vendor/picodrive/platform/libretro/libretro.c
+      - path: Vendor/picodrive/unzip/unzip.c
+      - path: Vendor/picodrive/zlib/adler32.c
+      - path: Vendor/picodrive/zlib/compress.c
+      - path: Vendor/picodrive/zlib/crc32.c
+      - path: Vendor/picodrive/zlib/deflate.c
+      - path: Vendor/picodrive/zlib/gzio.c
+      - path: Vendor/picodrive/zlib/inffast.c
+      - path: Vendor/picodrive/zlib/inflate.c
+      - path: Vendor/picodrive/zlib/inftrees.c
+      - path: Vendor/picodrive/zlib/trees.c
+      - path: Vendor/picodrive/zlib/uncompr.c
+      - path: Vendor/picodrive/zlib/zutil.c
   Duomulator:
     type: application
     platform: iOS
@@ -238,6 +378,7 @@ targets:
       - target: SNESCore
       - target: NESCore
       - target: DSCore
+      - target: SegaCore
     sources:
       - path: App
       - path: Core

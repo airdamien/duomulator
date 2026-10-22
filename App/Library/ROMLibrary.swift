@@ -42,12 +42,14 @@ final class ROMLibrary: ObservableObject {
         var duplicates: [String] = []
         var unsupported: [String] = []
         var failed: [String] = []
+        /// Cue sheets whose track files weren't imported alongside them.
+        var missingTracks: [String] = []
 
         /// Human-readable summary, or nil when everything imported cleanly.
         var problemSummary: String? {
             var lines: [String] = []
             if !unsupported.isEmpty {
-                lines.append("Not SNES, NES or DS ROMs (\(GamePaths.romExtensions.sorted().joined(separator: ", ")) only): "
+                lines.append("Not supported ROMs (\(GamePaths.romExtensions.sorted().joined(separator: ", ")) only): "
                              + unsupported.joined(separator: ", "))
             }
             if !duplicates.isEmpty {
@@ -55,6 +57,10 @@ final class ROMLibrary: ObservableObject {
             }
             if !failed.isEmpty {
                 lines.append("Couldn't copy: " + failed.joined(separator: ", "))
+            }
+            if !missingTracks.isEmpty {
+                lines.append("Missing CD tracks (select the .cue together with its .bin files): "
+                             + missingTracks.joined(separator: "; "))
             }
             return lines.isEmpty ? nil : lines.joined(separator: "\n\n")
         }
@@ -74,7 +80,7 @@ final class ROMLibrary: ObservableObject {
 
     @Published private(set) var entries: [ROMEntry] = []
 
-    /// Entries grouped by console, folders in alphabetical order (DS, NES, SNES) and games
+    /// Entries grouped by console, folders in alphabetical order (DS, Genesis, NES, …) and games
     /// alphabetical within each; ROMs whose system can't be told come last. Empty groups are
     /// omitted.
     var sections: [(title: String, entries: [ROMEntry])] {
@@ -105,8 +111,11 @@ final class ROMLibrary: ObservableObject {
         let keys: [URLResourceKey] = [.fileSizeKey, .isRegularFileKey]
         let urls = (try? fm.contentsOfDirectory(at: GamePaths.roms, includingPropertiesForKeys: keys,
                                                 options: [.skipsHiddenFiles])) ?? []
+        // .bin files a cue sheet points at are CD tracks, not Genesis cartridges.
+        let tracks = Set(urls.filter { $0.pathExtension.lowercased() == "cue" }
+            .flatMap { CueSheet.trackFiles(of: $0) }.map { $0.lowercased() })
         let found = urls.compactMap { url -> ROMEntry? in
-            guard ROMLibrary.isROM(url) else { return nil }
+            guard ROMLibrary.isROM(url), !tracks.contains(url.lastPathComponent.lowercased()) else { return nil }
             let values = try? url.resourceValues(forKeys: Set(keys))
             guard values?.isRegularFile ?? true else { return nil }
             // Detected once here: for zips this reads the archive's directory.
@@ -194,6 +203,14 @@ final class ROMLibrary: ObservableObject {
             case .failure: report.failed.append(name)
             }
         }
+        for cue in report.imported where cue.pathExtension.lowercased() == "cue" {
+            let missing = CueSheet.trackFiles(of: cue).filter {
+                !FileManager.default.fileExists(atPath: cue.deletingLastPathComponent().appending(path: $0).path)
+            }
+            if !missing.isEmpty {
+                report.missingTracks.append("\(cue.lastPathComponent) needs \(missing.joined(separator: ", "))")
+            }
+        }
         refresh()
         return report
     }
@@ -266,8 +283,10 @@ final class ROMLibrary: ObservableObject {
         // Collect saves before the ROM disappears, then remove the ROM first: if that fails,
         // the saves are left untouched.
         let saves = includingSaves ? ROMLibrary.saveFiles(for: entry.url) : []
+        let tracks = CueSheet.trackFiles(of: entry.url)
+            .map { entry.url.deletingLastPathComponent().appending(path: $0) }
         try fm.removeItem(at: entry.url)
-        for file in saves { try? fm.removeItem(at: file) }
+        for file in saves + tracks { try? fm.removeItem(at: file) }
         refresh()
     }
 
@@ -302,5 +321,25 @@ final class ROMLibrary: ObservableObject {
             try? fm.moveItem(at: file, to: dest)
         }
         refresh()
+    }
+}
+
+/// Minimal cue sheet reader: the track files a `.cue` names (`FILE "Game (Track 1).bin" BINARY`).
+enum CueSheet {
+    static func trackFiles(of cue: URL) -> [String] {
+        guard cue.pathExtension.lowercased() == "cue",
+              let data = try? Data(contentsOf: cue), data.count < 1_000_000 else { return [] }
+        let text = String(data: data, encoding: .utf8) ?? String(decoding: data, as: UTF8.self)
+        return text.split(whereSeparator: \.isNewline).compactMap { raw in
+            let line = raw.trimmingCharacters(in: .whitespaces)
+            guard line.uppercased().hasPrefix("FILE ") else { return nil }
+            let rest = line.dropFirst(5).trimmingCharacters(in: .whitespaces)
+            if rest.hasPrefix("\""), let end = rest.dropFirst().firstIndex(of: "\"") {
+                return String(rest[rest.index(after: rest.startIndex)..<end])
+            }
+            return rest.split(separator: " ").first.map(String.init)
+        }
+        // Only plain names: a cue pointing elsewhere (../, absolute) isn't ours to manage.
+        .filter { !$0.contains("/") && !$0.isEmpty }
     }
 }

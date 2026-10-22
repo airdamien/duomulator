@@ -236,21 +236,70 @@ enum Posture: Equatable, Sendable {
 
 /// A console the app can emulate. Each maps to one statically linked libretro core.
 enum GameSystem: String, CaseIterable, Sendable {
-    case snes, nes, nds
+    case snes, nes, nds, genesis, sega32x, segaCD
 
     var displayName: String {
         switch self {
         case .snes: "SNES"
         case .nes: "NES"
         case .nds: "DS"
+        case .genesis: "Genesis"
+        case .sega32x: "32X"
+        case .segaCD: "Sega CD"
         }
+    }
+
+    /// The libretro core that runs this system. Several systems can share one core
+    /// (PicoDrive runs Genesis, 32X and Sega CD), so per-core state is keyed by this.
+    var coreName: String {
+        switch self {
+        case .snes: "snes9x"
+        case .nes: "fceumm"
+        case .nds: "melonds"
+        case .genesis, .sega32x, .segaCD: "picodrive"
+        }
+    }
+
+    /// Disc images: the core opens the file itself (a .cue names its .bin tracks), so the
+    /// app passes the path instead of reading hundreds of MB into memory.
+    var loadsFromPath: Bool { self == .segaCD }
+
+    /// Sega's consoles output 256- or 320-pixel-wide frames that a TV showed at 4:3 either
+    /// way; nil means derive the shape from the frame (SNES/NES 8:7 pixels, DS square).
+    var displayAspect: CGFloat? {
+        switch self {
+        case .genesis, .sega32x, .segaCD: 4.0 / 3.0
+        default: nil
+        }
+    }
+
+    /// BIOS file names the core looks for in GamePaths.system (any one is enough), or
+    /// empty when none is needed.
+    var requiredBIOS: [String] {
+        guard self == .segaCD else { return [] }
+        // PicoDrive's find_bios() names (platform/libretro/libretro.c), US/EU/JP.
+        return ["us_scd2_9306", "SegaCDBIOS9303", "us_scd1_9210", "bios_CD_U",
+                "eu_mcd2_9306", "eu_mcd2_9303", "eu_mcd1_9210", "bios_CD_E",
+                "jp_mcd2_921222", "jp_mcd1_9112", "jp_mcd1_9111", "bios_CD_J"].map { $0 + ".bin" }
     }
 
     /// Two screens stacked in one frame (top screen above the touch screen).
     var isDualScreen: Bool { self == .nds }
 
-    /// Whether the pad has L/R shoulder buttons (and X/Y); the NES pad has only A/B.
-    var hasShoulderButtons: Bool { self != .nes }
+    /// Shape of the on-screen pad: SNES-style (SNES, DS: d-pad, A/B/X/Y, L/R, Select/Start),
+    /// NES (A/B, Select/Start) or Genesis 3-button (A/B/C, Start).
+    enum PadStyle { case snes, nes, genesis }
+
+    var padStyle: PadStyle {
+        switch self {
+        case .snes, .nds: .snes
+        case .nes: .nes
+        case .genesis, .sega32x, .segaCD: .genesis
+        }
+    }
+
+    /// Whether the pad has L/R shoulder buttons (and X/Y).
+    var hasShoulderButtons: Bool { padStyle == .snes }
 
     /// ROM file extensions (lowercase, without the dot). `.zip` is handled separately.
     var romExtensions: Set<String> {
@@ -258,6 +307,10 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .snes: ["sfc", "smc", "swc", "fig", "bs", "st"]
         case .nes: ["nes", "unf", "unif"]
         case .nds: ["nds"]
+        // .bin is also used for CD tracks; the library hides .bin files a .cue refers to.
+        case .genesis: ["md", "gen", "smd", "sgd", "bin"]
+        case .sega32x: ["32x"]
+        case .segaCD: ["cue", "chd"]
         }
     }
 
@@ -269,6 +322,9 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .snes: nil
         case .nes: "NES"
         case .nds: "DS"
+        case .genesis: "Genesis"
+        case .sega32x: "32X"
+        case .segaCD: "SegaCD"
         }
     }
 

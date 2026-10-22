@@ -1,0 +1,28 @@
+// Generated from libretro.h: renames the libretro entry points of the picodrive core so several
+// cores can link into one app. Force-included into every picodrive source file (see project.yml).
+#pragma once
+#define retro_api_version picodrive_retro_api_version
+#define retro_cheat_reset picodrive_retro_cheat_reset
+#define retro_cheat_set picodrive_retro_cheat_set
+#define retro_deinit picodrive_retro_deinit
+#define retro_get_memory_data picodrive_retro_get_memory_data
+#define retro_get_memory_size picodrive_retro_get_memory_size
+#define retro_get_region picodrive_retro_get_region
+#define retro_get_system_av_info picodrive_retro_get_system_av_info
+#define retro_get_system_info picodrive_retro_get_system_info
+#define retro_init picodrive_retro_init
+#define retro_load_game picodrive_retro_load_game
+#define retro_load_game_special picodrive_retro_load_game_special
+#define retro_reset picodrive_retro_reset
+#define retro_run picodrive_retro_run
+#define retro_serialize picodrive_retro_serialize
+#define retro_serialize_size picodrive_retro_serialize_size
+#define retro_set_audio_sample picodrive_retro_set_audio_sample
+#define retro_set_audio_sample_batch picodrive_retro_set_audio_sample_batch
+#define retro_set_controller_port_device picodrive_retro_set_controller_port_device
+#define retro_set_environment picodrive_retro_set_environment
+#define retro_set_input_poll picodrive_retro_set_input_poll
+#define retro_set_input_state picodrive_retro_set_input_state
+#define retro_set_video_refresh picodrive_retro_set_video_refresh
+#define retro_unload_game picodrive_retro_unload_game
+#define retro_unserialize picodrive_retro_unserialize

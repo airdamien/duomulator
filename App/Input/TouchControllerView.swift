@@ -210,12 +210,10 @@ private final class ControllerSkin: CALayer {
         SNESButtons.x.rawValue: UIColor(red: 0.28, green: 0.47, blue: 0.92, alpha: 1),
         SNESButtons.y.rawValue: UIColor(red: 0.22, green: 0.70, blue: 0.40, alpha: 1),
     ]
-    /// The NES pad's A and B are both red.
+    /// The NES pad's A and B are both red; the Genesis pad's A/B/C are black (drawn as a
+    /// light neutral so they read on the dark panel).
     private static let nesFaceColor = UIColor(red: 0.82, green: 0.16, blue: 0.16, alpha: 1)
-    private static let faceLabels: [UInt32: String] = [
-        SNESButtons.a.rawValue: "A", SNESButtons.b.rawValue: "B",
-        SNESButtons.x.rawValue: "X", SNESButtons.y.rawValue: "Y",
-    ]
+    private static let genesisFaceColor = UIColor(white: 0.62, alpha: 1)
 
     var skinStyle: ControllerLayout.Style = .overlay
     var needsRebuild = true
@@ -276,7 +274,11 @@ private final class ControllerSkin: CALayer {
         // Face buttons: tinted fill, colored ring, label in a lighter shade of the button color.
         let fontSize = max(13, layout.faceRadius * 0.85)
         for (button, center) in layout.faceButtons {
-            let color = layout.system == .nes ? Self.nesFaceColor : Self.faceColors[button.rawValue] ?? .white
+            let color: UIColor = switch layout.system.padStyle {
+            case .nes: Self.nesFaceColor
+            case .genesis: Self.genesisFaceColor
+            case .snes: Self.faceColors[button.rawValue] ?? .white
+            }
             let rect = CGRect(x: center.x - layout.faceRadius, y: center.y - layout.faceRadius,
                               width: layout.faceRadius * 2, height: layout.faceRadius * 2)
             let fill = color.withAlphaComponent(panel ? 0.22 : 0.20)
@@ -285,7 +287,7 @@ private final class ControllerSkin: CALayer {
                                    stroke: color.withAlphaComponent(panel ? 0.75 : 0.55))
             shape.lineWidth = 2
             addSublayer(shape)
-            let label = Self.text(Self.faceLabels[button.rawValue] ?? "", in: rect, size: fontSize,
+            let label = Self.text(layout.label(for: button), in: rect, size: fontSize,
                                   color: Self.lighten(color), scale: scale)
             addSublayer(label)
             parts.append(Part(shape: shape, label: label, buttons: button, fill: fill.cgColor,

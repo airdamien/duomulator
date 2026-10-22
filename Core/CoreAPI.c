@@ -79,6 +79,32 @@ unsigned melonds_retro_get_region(void);
 void * melonds_retro_get_memory_data(unsigned id);
 size_t melonds_retro_get_memory_size(unsigned id);
 
+void picodrive_retro_set_environment(retro_environment_t);
+void picodrive_retro_set_video_refresh(retro_video_refresh_t);
+void picodrive_retro_set_audio_sample(retro_audio_sample_t);
+void picodrive_retro_set_audio_sample_batch(retro_audio_sample_batch_t);
+void picodrive_retro_set_input_poll(retro_input_poll_t);
+void picodrive_retro_set_input_state(retro_input_state_t);
+void picodrive_retro_init(void);
+void picodrive_retro_deinit(void);
+unsigned picodrive_retro_api_version(void);
+void picodrive_retro_get_system_info(struct retro_system_info *info);
+void picodrive_retro_get_system_av_info(struct retro_system_av_info *info);
+void picodrive_retro_set_controller_port_device(unsigned port, unsigned device);
+void picodrive_retro_reset(void);
+void picodrive_retro_run(void);
+size_t picodrive_retro_serialize_size(void);
+bool picodrive_retro_serialize(void *data, size_t size);
+bool picodrive_retro_unserialize(const void *data, size_t size);
+void picodrive_retro_cheat_reset(void);
+void picodrive_retro_cheat_set(unsigned index, bool enabled, const char *code);
+bool picodrive_retro_load_game(const struct retro_game_info *game);
+bool picodrive_retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info);
+void picodrive_retro_unload_game(void);
+unsigned picodrive_retro_get_region(void);
+void * picodrive_retro_get_memory_data(unsigned id);
+size_t picodrive_retro_get_memory_size(unsigned id);
+
 const DuoCoreAPI duo_core_snes9x = {
     .set_environment = snes9x_retro_set_environment,
     .set_video_refresh = snes9x_retro_set_video_refresh,
@@ -161,4 +187,32 @@ const DuoCoreAPI duo_core_melonds = {
     .get_region = melonds_retro_get_region,
     .get_memory_data = melonds_retro_get_memory_data,
     .get_memory_size = melonds_retro_get_memory_size,
+};
+
+const DuoCoreAPI duo_core_picodrive = {
+    .set_environment = picodrive_retro_set_environment,
+    .set_video_refresh = picodrive_retro_set_video_refresh,
+    .set_audio_sample = picodrive_retro_set_audio_sample,
+    .set_audio_sample_batch = picodrive_retro_set_audio_sample_batch,
+    .set_input_poll = picodrive_retro_set_input_poll,
+    .set_input_state = picodrive_retro_set_input_state,
+    .init = picodrive_retro_init,
+    .deinit = picodrive_retro_deinit,
+    .api_version = picodrive_retro_api_version,
+    .get_system_info = picodrive_retro_get_system_info,
+    .get_system_av_info = picodrive_retro_get_system_av_info,
+    .set_controller_port_device = picodrive_retro_set_controller_port_device,
+    .reset = picodrive_retro_reset,
+    .run = picodrive_retro_run,
+    .serialize_size = picodrive_retro_serialize_size,
+    .serialize = picodrive_retro_serialize,
+    .unserialize = picodrive_retro_unserialize,
+    .cheat_reset = picodrive_retro_cheat_reset,
+    .cheat_set = picodrive_retro_cheat_set,
+    .load_game = picodrive_retro_load_game,
+    .load_game_special = picodrive_retro_load_game_special,
+    .unload_game = picodrive_retro_unload_game,
+    .get_region = picodrive_retro_get_region,
+    .get_memory_data = picodrive_retro_get_memory_data,
+    .get_memory_size = picodrive_retro_get_memory_size,
 };
