@@ -114,6 +114,7 @@
 		23D187037F2E50F74EB8DEDF /* 452.c in Sources */ = {isa = PBXBuildFile; fileRef = 57DFD460F00AE63797E5D170 /* 452.c */; };
 		23D713216BCF0E05B415826E /* processor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0EB5E4836BD16F3BDAAB771D /* processor.cpp */; };
 		2411F05020780E7B21D678DD /* make-genesis-test-rom.py in Resources */ = {isa = PBXBuildFile; fileRef = D6B24AC53CA06C841AD72498 /* make-genesis-test-rom.py */; };
+		247593DA2010A13F56989E67 /* LibraryGroupingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B0C84C83E20DD935339C472 /* LibraryGroupingTests.swift */; };
 		2479E3CDEB0E616159844469 /* msm6585.c in Sources */ = {isa = PBXBuildFile; fileRef = B931CB5BCEE53FA98692A900 /* msm6585.c */; };
 		2496E947C0CBC0DB3E4BDA5B /* input.c in Sources */ = {isa = PBXBuildFile; fileRef = EE03AC888DDFC4570B730E6D /* input.c */; };
 		2497044FAB7B7ED280C62A52 /* msm6585.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D134FA6A8040528E591399D4 /* msm6585.h */; };
@@ -284,6 +285,7 @@
 		5554516296B2F9BB59A68E22 /* 564.c in Sources */ = {isa = PBXBuildFile; fileRef = 055626EF80F227FDA9A0D663 /* 564.c */; };
 		555A20B73A0E781C5DC0A77B /* DSLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309AD75CFC8514FB575B9E38 /* DSLayoutTests.swift */; };
 		5595446D06C5574607779865 /* 536.c in Sources */ = {isa = PBXBuildFile; fileRef = E01E4A4DA764CC6EC94E2199 /* 536.c */; };
+		563A11492F4605DC0F709DA8 /* ArtworkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AB72E706879E985E396B262 /* ArtworkTests.swift */; };
 		563ECB59B782637D3960EDDA /* 389.c in Sources */ = {isa = PBXBuildFile; fileRef = ABA15536C9BC846B65A83609 /* 389.c */; };
 		56BB204B2F6CD48570C8C198 /* fscompat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA17380BA9312F3C47D3AEC5 /* fscompat.cpp */; };
 		5765E594E7E9F473B0E367E9 /* zstd_common.c in Sources */ = {isa = PBXBuildFile; fileRef = 88EE603E882EAC638D5D0536 /* zstd_common.c */; };
@@ -612,6 +614,7 @@
 		C021CC4CEEB8B74C056AC5EA /* bsx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9DD8B6C69F6B05FD853C8081 /* bsx.cpp */; };
 		C0A060B01AB5F142FCDAFC73 /* vfs_implementation.c in Sources */ = {isa = PBXBuildFile; fileRef = E3C3F4C5F992277908CBF2B8 /* vfs_implementation.c */; };
 		C0B1E2CC6403EBB33164E090 /* tileimpl-n1x1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52C4257094FD9B305ADA921E /* tileimpl-n1x1.cpp */; };
+		C11043E0A00719B943AE9A34 /* Artwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288A504F1A01C9569A5545E8 /* Artwork.swift */; };
 		C116D14C6E6DA404BC1CC512 /* 460.c in Sources */ = {isa = PBXBuildFile; fileRef = 1BD74F262CA79F655D1FB990 /* 460.c */; };
 		C12F4E4088C0DFA39146CDE2 /* Util_ROM.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6BF82C5AAD1629A18B0FF76B /* Util_ROM.cpp */; };
 		C14BD0851ECA6C3D19D0D4B0 /* mmc2and4.c in Sources */ = {isa = PBXBuildFile; fileRef = 9522B480ED379108A21A20C0 /* mmc2and4.c */; };
@@ -1040,6 +1043,7 @@
 		281D0697AEC865A55171A53C /* general.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = general.c; sourceTree = "<group>"; };
 		28288664021AA9251123BD0A /* 556.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 556.c; sourceTree = "<group>"; };
 		2862FB3FA0565803FE3EEAC2 /* 81.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 81.c; sourceTree = "<group>"; };
+		288A504F1A01C9569A5545E8 /* Artwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Artwork.swift; sourceTree = "<group>"; };
 		28F12510B9E3F04A903A90CB /* vorbisfile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vorbisfile.c; sourceTree = "<group>"; };
 		29674C970B44FA745DEC138E /* bml.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bml.cpp; sourceTree = "<group>"; };
 		2993E832A7AD5AC98496998C /* 505.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 505.c; sourceTree = "<group>"; };
@@ -1260,6 +1264,7 @@
 		6AA780D28DD58505859DA860 /* NDSCart.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = NDSCart.cpp; sourceTree = "<group>"; };
 		6AB377CDBB4F1656A59FDF18 /* movie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = movie.cpp; sourceTree = "<group>"; };
 		6AD6948FC0E36C8245A01258 /* 206_486.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 206_486.c; sourceTree = "<group>"; };
+		6B0C84C83E20DD935339C472 /* LibraryGroupingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryGroupingTests.swift; sourceTree = "<group>"; };
 		6B1EE267783C6177FFEC7AFF /* asic_vrc7.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = asic_vrc7.c; sourceTree = "<group>"; };
 		6B250136AC8537DD29C86EBA /* 590.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 590.c; sourceTree = "<group>"; };
 		6B7E186354A093E4F9E2DB80 /* 569.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 569.c; sourceTree = "<group>"; };
@@ -1302,6 +1307,7 @@
 		790AFD5ACFC206A450153EC3 /* CoreAPI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreAPI.h; sourceTree = "<group>"; };
 		7958BC7693462BD0E5EFEB85 /* 537.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 537.c; sourceTree = "<group>"; };
 		7A5AE7E5FDC78DC13B898E5C /* asic_mmc3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asic_mmc3.h; sourceTree = "<group>"; };
+		7AB72E706879E985E396B262 /* ArtworkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkTests.swift; sourceTree = "<group>"; };
 		7CA39C3BD92BDD2A30D61B16 /* snes9x.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = snes9x.cpp; sourceTree = "<group>"; };
 		7D1D92D9E58CAE3AC3A2C063 /* 554.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 554.c; sourceTree = "<group>"; };
 		7D6AE6927F7DFE95B56844D8 /* sa1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sa1.cpp; sourceTree = "<group>"; };
@@ -2394,10 +2400,12 @@
 		1988197F0E55FD4894B8793A /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				7AB72E706879E985E396B262 /* ArtworkTests.swift */,
 				A1DEC6F42D67928D9EA4E3A4 /* CoreTests.swift */,
 				94A3B60EDEEF9898928E6545 /* DSCoreTests.swift */,
 				309AD75CFC8514FB575B9E38 /* DSLayoutTests.swift */,
 				F0916E4BFAEA5E1423D6E1D5 /* InputTests.swift */,
+				6B0C84C83E20DD935339C472 /* LibraryGroupingTests.swift */,
 				CD4C58AB1C6E55F7A4477A38 /* NESCoreTests.swift */,
 				C45DC49D966A5C094609BEC2 /* NESInputTests.swift */,
 				BC17833DB7FAD63C16580EB1 /* SegaTests.swift */,
@@ -2742,6 +2750,7 @@
 			isa = PBXGroup;
 			children = (
 				2394688CA40094A86C55004C /* AppSettings.swift */,
+				288A504F1A01C9569A5545E8 /* Artwork.swift */,
 				BEE8F1C6DB6676D9DB0A3CCD /* Assets.xcassets */,
 				0272EAF2546285AFC7F7A893 /* DuomulatorApp.swift */,
 				E89D80E1363355B83E5DA162 /* GameLauncher.swift */,
@@ -3513,10 +3522,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				563A11492F4605DC0F709DA8 /* ArtworkTests.swift in Sources */,
 				B6D5260A0ACDAB38100C2811 /* CoreTests.swift in Sources */,
 				2D94C3853418FF56924A03F2 /* DSCoreTests.swift in Sources */,
 				555A20B73A0E781C5DC0A77B /* DSLayoutTests.swift in Sources */,
 				6EF68BC0D306076B2DD50E91 /* InputTests.swift in Sources */,
+				247593DA2010A13F56989E67 /* LibraryGroupingTests.swift in Sources */,
 				F5D641430DC261BF06385D8D /* NESCoreTests.swift in Sources */,
 				D55F46CD40008120C994A05B /* NESInputTests.swift in Sources */,
 				83E3F9F69FD56F315B1BF03A /* SegaTests.swift in Sources */,
@@ -3611,6 +3622,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				10B0FDC3D2173C569BBB42AD /* AppSettings.swift in Sources */,
+				C11043E0A00719B943AE9A34 /* Artwork.swift in Sources */,
 				5CE5A6808354DE22DFFD78F2 /* AudioOutput.swift in Sources */,
 				5F4746CF7F78BDB3FBBC1DD3 /* ControllerLayout.swift in Sources */,
 				66FA23C698CB1C97062011CB /* CoreAPI.c in Sources */,
