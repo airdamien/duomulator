@@ -1,7 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Home screen: the ROM list with import, delete, rename and launch.
+/// Home screen: one folder per console (NES, SNES); each opens that console's games with
+/// import, delete, rename and launch.
 struct LibraryView: View {
     @EnvironmentObject private var library: ROMLibrary
     @Environment(\.scenePhase) private var scenePhase
@@ -35,10 +36,11 @@ struct LibraryView: View {
                 if library.entries.isEmpty {
                     emptyState
                 } else {
-                    romList
+                    folderList
                 }
             }
             .navigationTitle("Duomulator")
+            .navigationDestination(for: String.self) { folder in gameList(in: folder) }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { showingSettings = true } label: {
@@ -93,43 +95,58 @@ struct LibraryView: View {
 
     // MARK: Subviews
 
-    private var romList: some View {
-        let sections = library.sections
-        return List {
-            ForEach(sections, id: \.title) { section in
-                Section {
-                    ForEach(section.entries) { entry in
-                        Button { play(entry) } label: { ROMRow(entry: entry) }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) { pendingDelete = entry } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                                Button { beginRename(entry) } label: {
-                                    Label("Rename", systemImage: "pencil")
-                                }
-                                .tint(.indigo)
-                            }
-                            .contextMenu {
-                                Button { play(entry) } label: {
-                                    Label(entry.hasSuspendState ? "Resume" : "Play", systemImage: "play.fill")
-                                }
-                                Button { beginRename(entry) } label: { Label("Rename", systemImage: "pencil") }
-                                Button(role: .destructive) { pendingDelete = entry } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                    }
-                } header: {
-                    Text("\(section.title) · \(section.entries.count)")
-                } footer: {
-                    if section.title == sections.last?.title {
-                        Text("\(library.entries.count) game\(library.entries.count == 1 ? "" : "s") · Add more with +, the Files app, or Finder over USB.")
+    /// Top level: one row per console folder.
+    private var folderList: some View {
+        List {
+            Section {
+                ForEach(library.sections, id: \.title) { section in
+                    NavigationLink(value: section.title) {
+                        FolderRow(title: section.title, entries: section.entries)
                     }
                 }
+            } footer: {
+                Text("\(library.entries.count) game\(library.entries.count == 1 ? "" : "s") · Add more with +, the Files app, or Finder over USB.")
             }
         }
         .listStyle(.insetGrouped)
         .refreshable { library.refresh() }
+    }
+
+    /// One console's games, alphabetical.
+    private func gameList(in folder: String) -> some View {
+        let entries = library.sections.first { $0.title == folder }?.entries ?? []
+        return List {
+            ForEach(entries) { entry in
+                Button { play(entry) } label: { ROMRow(entry: entry) }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) { pendingDelete = entry } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                        Button { beginRename(entry) } label: {
+                            Label("Rename", systemImage: "pencil")
+                        }
+                        .tint(.indigo)
+                    }
+                    .contextMenu {
+                        Button { play(entry) } label: {
+                            Label(entry.hasSuspendState ? "Resume" : "Play", systemImage: "play.fill")
+                        }
+                        Button { beginRename(entry) } label: { Label("Rename", systemImage: "pencil") }
+                        Button(role: .destructive) { pendingDelete = entry } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .refreshable { library.refresh() }
+        .overlay {
+            if entries.isEmpty {
+                ContentUnavailableView("No \(folder) Games", systemImage: "folder",
+                                       description: Text("Add ROMs with +."))
+            }
+        }
+        .navigationTitle(folder)
     }
 
     private var emptyState: some View {
@@ -254,5 +271,31 @@ private struct ROMRow: View {
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityHint(entry.hasSuspendState ? "Resumes where you left off" : "Starts the game")
+    }
+}
+
+/// A console folder on the home screen: name, game count, and how many have a resume point.
+private struct FolderRow: View {
+    let title: String
+    let entries: [ROMEntry]
+
+    var body: some View {
+        let resumable = entries.filter(\.hasSuspendState).count
+        HStack(spacing: 14) {
+            Image(systemName: "folder.fill")
+                .font(.title2)
+                .foregroundStyle(.tint)
+                .frame(width: 44, height: 44)
+                .background(.tint.opacity(0.15), in: RoundedRectangle(cornerRadius: 10))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.headline)
+                Text("\(entries.count) game\(entries.count == 1 ? "" : "s")"
+                     + (resumable > 0 ? " · \(resumable) to resume" : ""))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
