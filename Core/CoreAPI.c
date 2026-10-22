@@ -53,6 +53,32 @@ unsigned fceumm_retro_get_region(void);
 void * fceumm_retro_get_memory_data(unsigned id);
 size_t fceumm_retro_get_memory_size(unsigned id);
 
+void melonds_retro_set_environment(retro_environment_t);
+void melonds_retro_set_video_refresh(retro_video_refresh_t);
+void melonds_retro_set_audio_sample(retro_audio_sample_t);
+void melonds_retro_set_audio_sample_batch(retro_audio_sample_batch_t);
+void melonds_retro_set_input_poll(retro_input_poll_t);
+void melonds_retro_set_input_state(retro_input_state_t);
+void melonds_retro_init(void);
+void melonds_retro_deinit(void);
+unsigned melonds_retro_api_version(void);
+void melonds_retro_get_system_info(struct retro_system_info *info);
+void melonds_retro_get_system_av_info(struct retro_system_av_info *info);
+void melonds_retro_set_controller_port_device(unsigned port, unsigned device);
+void melonds_retro_reset(void);
+void melonds_retro_run(void);
+size_t melonds_retro_serialize_size(void);
+bool melonds_retro_serialize(void *data, size_t size);
+bool melonds_retro_unserialize(const void *data, size_t size);
+void melonds_retro_cheat_reset(void);
+void melonds_retro_cheat_set(unsigned index, bool enabled, const char *code);
+bool melonds_retro_load_game(const struct retro_game_info *game);
+bool melonds_retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info);
+void melonds_retro_unload_game(void);
+unsigned melonds_retro_get_region(void);
+void * melonds_retro_get_memory_data(unsigned id);
+size_t melonds_retro_get_memory_size(unsigned id);
+
 const DuoCoreAPI duo_core_snes9x = {
     .set_environment = snes9x_retro_set_environment,
     .set_video_refresh = snes9x_retro_set_video_refresh,
@@ -107,4 +133,32 @@ const DuoCoreAPI duo_core_fceumm = {
     .get_region = fceumm_retro_get_region,
     .get_memory_data = fceumm_retro_get_memory_data,
     .get_memory_size = fceumm_retro_get_memory_size,
+};
+
+const DuoCoreAPI duo_core_melonds = {
+    .set_environment = melonds_retro_set_environment,
+    .set_video_refresh = melonds_retro_set_video_refresh,
+    .set_audio_sample = melonds_retro_set_audio_sample,
+    .set_audio_sample_batch = melonds_retro_set_audio_sample_batch,
+    .set_input_poll = melonds_retro_set_input_poll,
+    .set_input_state = melonds_retro_set_input_state,
+    .init = melonds_retro_init,
+    .deinit = melonds_retro_deinit,
+    .api_version = melonds_retro_api_version,
+    .get_system_info = melonds_retro_get_system_info,
+    .get_system_av_info = melonds_retro_get_system_av_info,
+    .set_controller_port_device = melonds_retro_set_controller_port_device,
+    .reset = melonds_retro_reset,
+    .run = melonds_retro_run,
+    .serialize_size = melonds_retro_serialize_size,
+    .serialize = melonds_retro_serialize,
+    .unserialize = melonds_retro_unserialize,
+    .cheat_reset = melonds_retro_cheat_reset,
+    .cheat_set = melonds_retro_cheat_set,
+    .load_game = melonds_retro_load_game,
+    .load_game_special = melonds_retro_load_game_special,
+    .unload_game = melonds_retro_unload_game,
+    .get_region = melonds_retro_get_region,
+    .get_memory_data = melonds_retro_get_memory_data,
+    .get_memory_size = melonds_retro_get_memory_size,
 };

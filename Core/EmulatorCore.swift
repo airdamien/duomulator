@@ -40,20 +40,40 @@ extension GameSystem {
         switch self {
         case .snes: duo_core_snes9x
         case .nes: duo_core_fceumm
+        case .nds: duo_core_melonds
         }
     }
 }
+
+/// System whose core `api` points at; environment answers that differ per core use it.
+nonisolated(unsafe) private var apiSystem = GameSystem.snes
+/// Pixel format each core asked for (RGB565 or XRGB8888); FrameBuffer is RGB565, so XRGB8888
+/// frames are converted on the way in. Kept per core because a core may only announce its
+/// format once per process, and cores alternate as games are switched.
+nonisolated(unsafe) private var corePixelFormats: [GameSystem: retro_pixel_format] = [:]
 
 /// C strings handed to the core. libretro requires them to outlive the call that returned
 /// them, so they are allocated once and kept for the life of the process.
 private enum CoreEnvironment {
     nonisolated(unsafe) static var systemDirectory: UnsafeMutablePointer<CChar>?
-    nonisolated(unsafe) static var saveDirectory: UnsafeMutablePointer<CChar>?
+    /// Per system, matching GamePaths' save folders (melonDS writes its .sav files there).
+    nonisolated(unsafe) static var saveDirectories: [GameSystem: UnsafeMutablePointer<CChar>] = [:]
     /// Core option key -> value, filled from the defaults the core declares via the legacy
     /// SET_VARIABLES call (we answer GET_CORE_OPTIONS_VERSION with false).
     /// The defaults are what we want: overscan cropped to 224 lines, no NTSC filter, no
-    /// opposing d-pad directions, no memory randomization.
+    /// opposing d-pad directions, no memory randomization. Keys are prefixed per core, so one
+    /// table serves all of them; `overrides` replaces the few defaults we don't want.
     nonisolated(unsafe) static var variables: [String: UnsafeMutablePointer<CChar>] = [:]
+
+    static let overrides: [String: String] = [
+        // The DS touch screen is driven by RETRO_DEVICE_POINTER (absolute touches), not a mouse.
+        "melonds_touch_mode": "Touch",
+        // 3D rendering on a second core; the CPU interpreter is the bottleneck without a JIT.
+        "melonds_threaded_renderer": "enabled",
+        // One frame with the top screen above the touch screen; the UI splits it at the fold.
+        "melonds_screen_layout": "Top/Bottom",
+        "melonds_screen_gap": "0",
+    ]
 }
 
 /// RETRO_ENVIRONMENT_EXPERIMENTAL is OR'd into a few command ids.
@@ -62,9 +82,13 @@ private let envExperimental: UInt32 = 0x10000
 private func environmentCallback(_ cmd: UInt32, _ data: UnsafeMutableRawPointer?) -> Bool {
     switch cmd {
     case UInt32(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT):
-        // FrameBuffer stores RGB565, which is also what snes9x renders natively.
+        // FrameBuffer stores RGB565, which snes9x and FCEUmm render natively. melonDS only
+        // renders XRGB8888, which videoRefreshCallback converts.
         guard let data else { return false }
-        return data.load(as: retro_pixel_format.self) == RETRO_PIXEL_FORMAT_RGB565
+        let format = data.load(as: retro_pixel_format.self)
+        guard format == RETRO_PIXEL_FORMAT_RGB565 || format == RETRO_PIXEL_FORMAT_XRGB8888 else { return false }
+        corePixelFormats[apiSystem] = format
+        return true
 
     case UInt32(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY):
         guard let data else { return false }
@@ -74,9 +98,9 @@ private func environmentCallback(_ cmd: UInt32, _ data: UnsafeMutableRawPointer?
 
     case UInt32(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY):
         guard let data else { return false }
-        data.assumingMemoryBound(to: UnsafePointer<CChar>?.self).pointee =
-            UnsafePointer(CoreEnvironment.saveDirectory)
-        return CoreEnvironment.saveDirectory != nil
+        let dir = CoreEnvironment.saveDirectories[apiSystem]
+        data.assumingMemoryBound(to: UnsafePointer<CChar>?.self).pointee = UnsafePointer(dir)
+        return dir != nil
 
     case UInt32(RETRO_ENVIRONMENT_SET_VARIABLES):
         guard let data else { return false }
@@ -153,7 +177,7 @@ private func registerVariables(_ list: UnsafeMutablePointer<retro_variable>) {
                 value = spec[semicolon.upperBound...].split(separator: "|").first.map(String.init)
             }
         }
-        if let value {
+        if let value = CoreEnvironment.overrides[name] ?? value {
             if let old = CoreEnvironment.variables[name] { free(old) }
             CoreEnvironment.variables[name] = strdup(value)
         }
@@ -164,7 +188,21 @@ private func registerVariables(_ list: UnsafeMutablePointer<retro_variable>) {
 private func videoRefreshCallback(_ data: UnsafeRawPointer?, _ width: UInt32, _ height: UInt32, _ pitch: Int) {
     // data == NULL is a dupe frame (we advertise GET_CAN_DUPE): keep showing the last one.
     guard let data, width > 0, height > 0, let host = activeHost else { return }
-    host.frameBuffer.submit(data, width: Int(width), height: Int(height), pitch: pitch)
+    guard corePixelFormats[apiSystem] == RETRO_PIXEL_FORMAT_XRGB8888 else {
+        host.frameBuffer.submit(data, width: Int(width), height: Int(height), pitch: pitch)
+        return
+    }
+    // XRGB8888 -> RGB565 into a scratch frame (DS: 256x384, ~100K pixels).
+    let w = min(Int(width), FrameBuffer.maxWidth), h = min(Int(height), FrameBuffer.maxHeight)
+    let out = host.conversionBuffer
+    for y in 0..<h {
+        let row = (data + y * pitch).assumingMemoryBound(to: UInt32.self)
+        for x in 0..<w {
+            let p = row[x]
+            out[y * w + x] = UInt16(truncatingIfNeeded: (p >> 8) & 0xF800 | (p >> 5) & 0x07E0 | (p >> 3) & 0x001F)
+        }
+    }
+    host.frameBuffer.submit(out, width: w, height: h, pitch: w * 2)
 }
 
 private func audioSampleCallback(_ left: Int16, _ right: Int16) {
@@ -187,6 +225,16 @@ private func inputPollCallback() {
 }
 
 private func inputStateCallback(_ port: UInt32, _ device: UInt32, _ index: UInt32, _ id: UInt32) -> Int16 {
+    if device & 0xFF == UInt32(RETRO_DEVICE_POINTER) {
+        guard port == 0, index == 0 else { return 0 }
+        let pointer = InputHub.shared.pointer
+        switch id {
+        case UInt32(RETRO_DEVICE_ID_POINTER_X): return pointer.x
+        case UInt32(RETRO_DEVICE_ID_POINTER_Y): return pointer.y
+        case UInt32(RETRO_DEVICE_ID_POINTER_PRESSED): return pointer.pressed ? 1 : 0
+        default: return 0
+        }
+    }
     guard let host = activeHost,
           device & 0xFF == UInt32(RETRO_DEVICE_JOYPAD), // RETRO_DEVICE_MASK: base type, ignoring subclass
           port < UInt32(InputHub.maxPlayers) else { return 0 }
@@ -200,7 +248,8 @@ private func inputStateCallback(_ port: UInt32, _ device: UInt32, _ index: UInt3
 
 // MARK: - EmulatorCore
 
-/// Hosts the snes9x libretro core on a dedicated emulation thread.
+/// Hosts the libretro core for the loaded game (snes9x, FCEUmm or melonDS) on a dedicated
+/// emulation thread.
 ///
 /// Threading: every public method may be called from the main thread (or any thread); they
 /// are serialized among themselves, and anything that touches the core waits for the
@@ -209,6 +258,11 @@ final class EmulatorCore: @unchecked Sendable {
     static let shared = EmulatorCore()
 
     let frameBuffer = FrameBuffer()
+    /// Scratch frame for converting XRGB8888 cores' output to RGB565 (emulation thread only).
+    fileprivate let conversionBuffer = UnsafeMutablePointer<UInt16>.allocate(
+        capacity: FrameBuffer.maxWidth * FrameBuffer.maxHeight)
+
+    deinit { conversionBuffer.deallocate() }
     let audio = AudioRingBuffer()
     let input = InputHub.shared
 
@@ -261,6 +315,7 @@ final class EmulatorCore: @unchecked Sendable {
 
         try coreLock.withLock {
             api = content.system.coreAPI
+            apiSystem = content.system
             Self.initializeCoreIfNeeded(content.system)
             activeHost = self
             let loaded = content.path.withCString { path in
@@ -348,7 +403,11 @@ final class EmulatorCore: @unchecked Sendable {
         GamePaths.ensureDirectories()
         if CoreEnvironment.systemDirectory == nil {
             CoreEnvironment.systemDirectory = strdup(GamePaths.system.path)
-            CoreEnvironment.saveDirectory = strdup(GamePaths.saves.path)
+        }
+        if CoreEnvironment.saveDirectories[system] == nil {
+            // GamePaths.sram's folder for this system (Saves/ or Saves/<system>/).
+            let folder = GamePaths.sram(for: URL(filePath: "/x"), system: system).deletingLastPathComponent()
+            CoreEnvironment.saveDirectories[system] = strdup(folder.path)
         }
 
         var info = retro_system_info()

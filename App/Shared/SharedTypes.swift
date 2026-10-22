@@ -81,6 +81,27 @@ final class InputHub: Sendable {
 
     func clearAll() {
         for slot in slots { slot.bits.store(0, ordering: .relaxed) }
+        setPointer(x: 0, y: 0, pressed: false)
+    }
+
+    // MARK: Touch screen (DS)
+
+    /// The DS touch screen as a libretro pointer: x/y in -0x7FFF...0x7FFF across the core's
+    /// whole frame, plus whether a finger is down. Packed into one atomic so the emulation
+    /// thread never sees x from one touch and y from another.
+    private let pointerBits = Atomic<UInt64>(0)
+
+    func setPointer(x: Int16, y: Int16, pressed: Bool) {
+        let packed = UInt64(UInt16(bitPattern: x)) | UInt64(UInt16(bitPattern: y)) << 16
+            | (pressed ? 1 << 32 : 0)
+        pointerBits.store(packed, ordering: .relaxed)
+    }
+
+    var pointer: (x: Int16, y: Int16, pressed: Bool) {
+        let packed = pointerBits.load(ordering: .relaxed)
+        return (Int16(bitPattern: UInt16(truncatingIfNeeded: packed)),
+                Int16(bitPattern: UInt16(truncatingIfNeeded: packed >> 16)),
+                packed & (1 << 32) != 0)
     }
 }
 
@@ -215,23 +236,28 @@ enum Posture: Equatable, Sendable {
 
 /// A console the app can emulate. Each maps to one statically linked libretro core.
 enum GameSystem: String, CaseIterable, Sendable {
-    case snes, nes
+    case snes, nes, nds
 
     var displayName: String {
         switch self {
         case .snes: "SNES"
         case .nes: "NES"
+        case .nds: "DS"
         }
     }
 
+    /// Two screens stacked in one frame (top screen above the touch screen).
+    var isDualScreen: Bool { self == .nds }
+
     /// Whether the pad has L/R shoulder buttons (and X/Y); the NES pad has only A/B.
-    var hasShoulderButtons: Bool { self == .snes }
+    var hasShoulderButtons: Bool { self != .nes }
 
     /// ROM file extensions (lowercase, without the dot). `.zip` is handled separately.
     var romExtensions: Set<String> {
         switch self {
         case .snes: ["sfc", "smc", "swc", "fig", "bs", "st"]
         case .nes: ["nes", "unf", "unif"]
+        case .nds: ["nds"]
         }
     }
 
@@ -242,8 +268,13 @@ enum GameSystem: String, CaseIterable, Sendable {
         switch self {
         case .snes: nil
         case .nes: "NES"
+        case .nds: "DS"
         }
     }
+
+    /// Battery-save file extension. melonDS writes its own `<game>.sav` (DS saves live in
+    /// cartridge EEPROM/flash, which it flushes itself); the other cores expose SRAM to us.
+    var saveExtension: String { self == .nds ? "sav" : "srm" }
 
     init?(romExtension ext: String) {
         guard let match = Self.allCases.first(where: { $0.romExtensions.contains(ext.lowercased()) })
@@ -306,8 +337,10 @@ enum GamePaths {
     /// Battery save (SRAM) for a ROM, keyed by the ROM's file name without extension.
     /// `system` defaults to detecting it from the ROM; pass it when already known.
     static func sram(for rom: URL, system: GameSystem? = nil) -> URL {
-        folder(saves, for: system ?? GameSystem.of(rom: rom))
-            .appending(path: rom.deletingPathExtension().lastPathComponent + ".srm")
+        let system = system ?? GameSystem.of(rom: rom)
+        return folder(saves, for: system)
+            .appending(path: rom.deletingPathExtension().lastPathComponent
+                       + "." + (system ?? .snes).saveExtension)
     }
 
     /// Save-state slot file. Slot 0 is the auto-save written on suspend.

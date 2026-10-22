@@ -139,12 +139,105 @@ targets:
       - path: Vendor/fceumm/src/drivers/libretro/libretro-common/string/stdstring.c
       - path: Vendor/fceumm/src/drivers/libretro/libretro-common/time/rtime.c
       - path: Vendor/fceumm/src/drivers/libretro/libretro-common/vfs/vfs_implementation.c
+  DSCore:
+    type: library.static
+    platform: iOS
+    settings:
+      base:
+        GCC_PREPROCESSOR_DEFINITIONS: "__LIBRETRO__ IOS HAVE_THREADS MELONDS_VERSION=\\\"0.9.3\\\" NDEBUG"
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/melonds/src/libretro/libretro-common/include $(SRCROOT)/Vendor/melonds/src/libretro $(SRCROOT)/Vendor/melonds/src $(SRCROOT)/Vendor/melonds/src/teakra/include $(SRCROOT)/Vendor/melonds/src/teakra/src"
+        CLANG_CXX_LANGUAGE_STANDARD: "c++17"
+        GCC_OPTIMIZATION_LEVEL: "3"
+        OTHER_CFLAGS: "-Wno-everything -include $(SRCROOT)/CoreBuild/melonds-prefix.h"
+        OTHER_CPLUSPLUSFLAGS: "-Wno-everything -include $(SRCROOT)/CoreBuild/melonds-prefix.h"
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
+        SKIP_INSTALL: YES
+        GENERATE_MASTER_OBJECT_FILE: YES
+        PRELINK_FLAGS: "-exported_symbols_list $(SRCROOT)/CoreBuild/melonds.exp"
+    sources:
+      - path: Vendor/melonds/src/xxhash/xxhash.c
+      - path: Vendor/melonds/src/tiny-AES-c/aes.c
+      - path: Vendor/melonds/src/fatfs/diskio.c
+      - path: Vendor/melonds/src/fatfs/ff.c
+      - path: Vendor/melonds/src/fatfs/ffsystem.c
+      - path: Vendor/melonds/src/fatfs/ffunicode.c
+      - path: Vendor/melonds/src/sha1/sha1.c
+      - path: Vendor/melonds/src/libretro/libretro-common/streams/memory_stream.c
+      - path: Vendor/melonds/src/libretro/libretro-common/compat/compat_strl.c
+      - path: Vendor/melonds/src/libretro/libretro-common/compat/fopen_utf8.c
+      - path: Vendor/melonds/src/libretro/libretro-common/compat/compat_posix_string.c
+      - path: Vendor/melonds/src/libretro/libretro-common/compat/compat_strcasestr.c
+      - path: Vendor/melonds/src/libretro/libretro-common/encodings/encoding_utf.c
+      - path: Vendor/melonds/src/libretro/libretro-common/file/file_path.c
+      - path: Vendor/melonds/src/libretro/libretro-common/streams/file_stream.c
+      - path: Vendor/melonds/src/libretro/libretro-common/streams/file_stream_transforms.c
+      - path: Vendor/melonds/src/libretro/libretro-common/string/stdstring.c
+      - path: Vendor/melonds/src/libretro/libretro-common/vfs/vfs_implementation.c
+      - path: Vendor/melonds/src/NDS.cpp
+      - path: Vendor/melonds/src/AREngine.cpp
+      - path: Vendor/melonds/src/ARCodeFile.cpp
+      - path: Vendor/melonds/src/ARM.cpp
+      - path: Vendor/melonds/src/ARMInterpreter.cpp
+      - path: Vendor/melonds/src/ARMInterpreter_ALU.cpp
+      - path: Vendor/melonds/src/ARMInterpreter_Branch.cpp
+      - path: Vendor/melonds/src/ARMInterpreter_LoadStore.cpp
+      - path: Vendor/melonds/src/CP15.cpp
+      - path: Vendor/melonds/src/CRC32.cpp
+      - path: Vendor/melonds/src/DMA.cpp
+      - path: Vendor/melonds/src/DSi.cpp
+      - path: Vendor/melonds/src/DSi_AES.cpp
+      - path: Vendor/melonds/src/DSi_Camera.cpp
+      - path: Vendor/melonds/src/DSi_DSP.cpp
+      - path: Vendor/melonds/src/DSi_I2C.cpp
+      - path: Vendor/melonds/src/DSi_NAND.cpp
+      - path: Vendor/melonds/src/DSi_NDMA.cpp
+      - path: Vendor/melonds/src/DSi_NWifi.cpp
+      - path: Vendor/melonds/src/DSi_SD.cpp
+      - path: Vendor/melonds/src/DSi_SPI_TSC.cpp
+      - path: Vendor/melonds/src/DSiCrypto.cpp
+      - path: Vendor/melonds/src/GBACart.cpp
+      - path: Vendor/melonds/src/GPU.cpp
+      - path: Vendor/melonds/src/GPU2D.cpp
+      - path: Vendor/melonds/src/GPU2D_Soft.cpp
+      - path: Vendor/melonds/src/GPU3D.cpp
+      - path: Vendor/melonds/src/GPU3D_Soft.cpp
+      - path: Vendor/melonds/src/NDSCart.cpp
+      - path: Vendor/melonds/src/NDSCart_SRAMManager.cpp
+      - path: Vendor/melonds/src/RTC.cpp
+      - path: Vendor/melonds/src/Savestate.cpp
+      - path: Vendor/melonds/src/SPI.cpp
+      - path: Vendor/melonds/src/SPU.cpp
+      - path: Vendor/melonds/src/Wifi.cpp
+      - path: Vendor/melonds/src/WifiAP.cpp
+      - path: Vendor/melonds/src/frontend/Util_ROM.cpp
+      - path: Vendor/melonds/src/libretro/config.cpp
+      - path: Vendor/melonds/src/libretro/input.cpp
+      - path: Vendor/melonds/src/libretro/libretro.cpp
+      - path: Vendor/melonds/src/libretro/platform.cpp
+      - path: Vendor/melonds/src/libretro/screenlayout.cpp
+      - path: Vendor/melonds/src/libretro/utils.cpp
+      - path: Vendor/melonds/src/teakra/src/ahbm.cpp
+      - path: Vendor/melonds/src/teakra/src/apbp.cpp
+      - path: Vendor/melonds/src/teakra/src/btdmp.cpp
+      - path: Vendor/melonds/src/teakra/src/disassembler_c.cpp
+      - path: Vendor/melonds/src/teakra/src/disassembler.cpp
+      - path: Vendor/melonds/src/teakra/src/dma.cpp
+      - path: Vendor/melonds/src/teakra/src/memory_interface.cpp
+      - path: Vendor/melonds/src/teakra/src/mmio.cpp
+      - path: Vendor/melonds/src/teakra/src/parser.cpp
+      - path: Vendor/melonds/src/teakra/src/processor.cpp
+      - path: Vendor/melonds/src/teakra/src/teakra_c.cpp
+      - path: Vendor/melonds/src/teakra/src/teakra.cpp
+      - path: Vendor/melonds/src/teakra/src/timer.cpp
+      - path: Vendor/melonds/src/libretro/libretro-common/rthreads/rthreads.c
+      - path: Vendor/melonds/src/libretro/libretro-common/rthreads/rsemaphore.c
   Duomulator:
     type: application
     platform: iOS
     dependencies:
       - target: SNESCore
       - target: NESCore
+      - target: DSCore
     sources:
       - path: App
       - path: Core
