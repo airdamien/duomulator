@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		01872160937E14B167248FC6 /* smp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CFCBC013F80275EE163D4F26 /* smp.cpp */; };
 		0389926CB7AD7B5FD8760189 /* tile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB1BCD5A24F1410EF2B8C6 /* tile.cpp */; };
+		0B32EDDCE799A22361FB92DD /* GameShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 14572CF561A8773DCEDD1124 /* GameShaders.metal */; };
 		19D08CA366632E61C4C7FEE0 /* dsp2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1134CA2B67641867CF32E557 /* dsp2.cpp */; };
 		21E03612AC25BE2B8827A5F1 /* msu1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67971E29AA64BF5E4ED96251 /* msu1.cpp */; };
 		27491D7FBBACAE3CB108001F /* dsp4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD05A4A7D8E7AA09D3A841F1 /* dsp4.cpp */; };
@@ -97,6 +98,7 @@
 		0B5EF58BAC94F1B5DE144A98 /* GameControllerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameControllerManager.swift; sourceTree = "<group>"; };
 		0C76315E52EBFA8C6E182EFB /* GameRenderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRenderView.swift; sourceTree = "<group>"; };
 		1134CA2B67641867CF32E557 /* dsp2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dsp2.cpp; sourceTree = "<group>"; };
+		14572CF561A8773DCEDD1124 /* GameShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = GameShaders.metal; sourceTree = "<group>"; };
 		1BD95D931A3C8253A923A174 /* DuomulatorTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DuomulatorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1CA7993315EE3DBA235EB9BE /* cheats.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cheats.cpp; sourceTree = "<group>"; };
 		1ECB1BCD5A24F1410EF2B8C6 /* tile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tile.cpp; sourceTree = "<group>"; };
@@ -228,6 +230,7 @@
 			isa = PBXGroup;
 			children = (
 				0C76315E52EBFA8C6E182EFB /* GameRenderView.swift */,
+				14572CF561A8773DCEDD1124 /* GameShaders.metal */,
 			);
 			path = Video;
 			sourceTree = "<group>";
@@ -511,6 +514,7 @@
 				672D517C048373089EA88ED7 /* EmulatorCore.swift in Sources */,
 				DAF697A8649CFE85572AD013 /* GameControllerManager.swift in Sources */,
 				CB611BD8C0D5421BB8A55967 /* GameRenderView.swift in Sources */,
+				0B32EDDCE799A22361FB92DD /* GameShaders.metal in Sources */,
 				C54CDD2860E853849CCA2F63 /* GameViewController.swift in Sources */,
 				7068C60E3CB0DBC81DEBBE20 /* PostureMonitor.swift in Sources */,
 				6F370D6DD68C61485CDDF20F /* SharedTypes.swift in Sources */,
