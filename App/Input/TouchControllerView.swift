@@ -237,6 +237,10 @@ private final class ControllerSkin: CALayer {
     /// light neutral so they read on the dark panel).
     private static let nesFaceColor = UIColor(red: 0.82, green: 0.16, blue: 0.16, alpha: 1)
     private static let genesisFaceColor = UIColor(white: 0.62, alpha: 1)
+    /// N64: blue A, green B, yellow C buttons.
+    private static let n64Blue = UIColor(red: 0.30, green: 0.45, blue: 0.95, alpha: 1)
+    private static let n64Green = UIColor(red: 0.25, green: 0.70, blue: 0.40, alpha: 1)
+    private static let n64Yellow = UIColor(red: 0.95, green: 0.80, blue: 0.20, alpha: 1)
     /// PlayStation: green triangle, red circle, blue cross, pink square.
     private static let playStationColors: [UInt32: UIColor] = [
         SNESButtons.x.rawValue: UIColor(red: 0.20, green: 0.75, blue: 0.60, alpha: 1),
@@ -267,7 +271,7 @@ private final class ControllerSkin: CALayer {
         sublayers?.forEach { $0.removeFromSuperlayer() }
         parts.removeAll()
         needsRebuild = false
-        guard layout.dpadRadius > 0 else { return }
+        guard layout.faceRadius > 0 else { return }
 
         let panel = skinStyle == .panel
         let neutral = panel ? UIColor(white: 0.19, alpha: 1) : UIColor(white: 1, alpha: 0.13)
@@ -276,29 +280,32 @@ private final class ControllerSkin: CALayer {
         let labelColor = panel ? UIColor(white: 0.72, alpha: 1) : UIColor(white: 1, alpha: 0.70)
         let labelPressed = UIColor(white: 1, alpha: 0.95)
 
-        // D-pad: base cross, then one highlight arm per direction drawn on top.
-        let c = layout.dpadCenter, r = layout.dpadRadius * 0.94, w = layout.dpadRadius * 0.68
-        let cross = Self.crossPath(center: c, radius: r, armWidth: w)
-        let base = Self.shape(cross, fill: neutral, stroke: stroke)
-        base.lineJoin = .round
-        addSublayer(base)
-        let half = w / 2
-        let arms: [(SNESButtons, CGRect)] = [
-            (.up, CGRect(x: c.x - half, y: c.y - r, width: w, height: r - half)),
-            (.down, CGRect(x: c.x - half, y: c.y + half, width: w, height: r - half)),
-            (.left, CGRect(x: c.x - r, y: c.y - half, width: r - half, height: w)),
-            (.right, CGRect(x: c.x + half, y: c.y - half, width: r - half, height: w)),
-        ]
-        for (button, rect) in arms {
-            let arm = Self.shape(UIBezierPath(roundedRect: rect.insetBy(dx: 1.5, dy: 1.5),
-                                              cornerRadius: w * 0.12), fill: .clear, stroke: nil)
-            addSublayer(arm)
-            let arrow = Self.shape(Self.arrowPath(in: rect, pointing: button, size: w * 0.32),
-                                   fill: labelColor, stroke: nil)
-            addSublayer(arrow)
-            parts.append(Part(shape: arm, label: nil, buttons: button, fill: UIColor.clear.cgColor,
-                              pressedFill: neutralPressed.cgColor, labelColor: labelColor.cgColor,
-                              pressedLabelColor: labelPressed.cgColor, isMenu: false))
+        // D-pad: base cross, then one highlight arm per direction drawn on top. (The N64
+        // pad has none on screen; its analog stick sits there.)
+        if layout.dpadRadius > 0 {
+            let c = layout.dpadCenter, r = layout.dpadRadius * 0.94, w = layout.dpadRadius * 0.68
+            let cross = Self.crossPath(center: c, radius: r, armWidth: w)
+            let base = Self.shape(cross, fill: neutral, stroke: stroke)
+            base.lineJoin = .round
+            addSublayer(base)
+            let half = w / 2
+            let arms: [(SNESButtons, CGRect)] = [
+                (.up, CGRect(x: c.x - half, y: c.y - r, width: w, height: r - half)),
+                (.down, CGRect(x: c.x - half, y: c.y + half, width: w, height: r - half)),
+                (.left, CGRect(x: c.x - r, y: c.y - half, width: r - half, height: w)),
+                (.right, CGRect(x: c.x + half, y: c.y - half, width: r - half, height: w)),
+            ]
+            for (button, rect) in arms {
+                let arm = Self.shape(UIBezierPath(roundedRect: rect.insetBy(dx: 1.5, dy: 1.5),
+                                                  cornerRadius: w * 0.12), fill: .clear, stroke: nil)
+                addSublayer(arm)
+                let arrow = Self.shape(Self.arrowPath(in: rect, pointing: button, size: w * 0.32),
+                                       fill: labelColor, stroke: nil)
+                addSublayer(arrow)
+                parts.append(Part(shape: arm, label: nil, buttons: button, fill: UIColor.clear.cgColor,
+                                  pressedFill: neutralPressed.cgColor, labelColor: labelColor.cgColor,
+                                  pressedLabelColor: labelPressed.cgColor, isMenu: false))
+            }
         }
 
         // Face buttons: tinted fill, colored ring, label in a lighter shade of the button color.
@@ -309,9 +316,10 @@ private final class ControllerSkin: CALayer {
             case .genesis3, .genesis6: Self.genesisFaceColor
             case .snes: Self.faceColors[button.rawValue] ?? .white
             case .playstation: Self.playStationColors[button.rawValue] ?? .white
+            case .n64: button == .b ? Self.n64Blue : button == .y ? Self.n64Green : Self.n64Yellow
             }
-            let rect = CGRect(x: center.x - layout.faceRadius, y: center.y - layout.faceRadius,
-                              width: layout.faceRadius * 2, height: layout.faceRadius * 2)
+            let radius = layout.radius(for: button)
+            let rect = CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
             let fill = color.withAlphaComponent(panel ? 0.22 : 0.20)
             let pressed = color.withAlphaComponent(panel ? 0.80 : 0.62)
             let shape = Self.shape(UIBezierPath(ovalIn: rect), fill: fill,
@@ -329,12 +337,13 @@ private final class ControllerSkin: CALayer {
         // Shoulders, Select, Start: rounded neutral buttons with text labels.
         let small: [(SNESButtons, CGRect, String, CGFloat)] = [
             (.l, layout.lRect, "L", panel ? 17 : 15),
+            (.l2, layout.zRect, "Z", panel ? 17 : 15),
             (.r, layout.rRect, "R", panel ? 17 : 15),
             (.select, layout.selectRect, layout.system.isArcade ? "COIN" : "SELECT", 10),
             (.start, layout.startRect, "START", 10),
         ]
         for (button, rect, title, size) in small where !rect.isNull {
-            let radius = button == .l || button == .r ? min(rect.height / 2, 14) : rect.height / 2
+            let radius = button == .l || button == .r || button == .l2 ? min(rect.height / 2, 14) : rect.height / 2
             let shape = Self.shape(UIBezierPath(roundedRect: rect, cornerRadius: radius),
                                    fill: neutral, stroke: stroke)
             addSublayer(shape)
@@ -348,7 +357,7 @@ private final class ControllerSkin: CALayer {
         // Analog sticks: a base ring and a knob that follows the thumb.
         stickKnobs.removeAll()
         if layout.stickRadius > 0 {
-            for center in [layout.leftStickCenter, layout.rightStickCenter] {
+            for center in [layout.leftStickCenter, layout.rightStickCenter].prefix(layout.stickCount) {
                 let r = layout.stickRadius
                 let ring = Self.shape(UIBezierPath(ovalIn: CGRect(x: center.x - r, y: center.y - r,
                                                                    width: r * 2, height: r * 2)),

@@ -444,6 +444,7 @@ private struct FallbackTile: View {
         case .cps: Color(red: 0.70, green: 0.20, blue: 0.45)
         case .arcade: Color(red: 0.20, green: 0.55, blue: 0.45)
         case .psx: Color(red: 0.35, green: 0.36, blue: 0.42)
+        case .n64: Color(red: 0.15, green: 0.45, blue: 0.30)
         case nil: .gray
         }
     }

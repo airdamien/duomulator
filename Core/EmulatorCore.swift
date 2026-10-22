@@ -53,6 +53,7 @@ extension GameSystem {
         case .genesis, .sega32x, .segaCD: duo_core_picodrive
         case .neoGeo, .cps, .arcade: duo_core_fbneo
         case .psx: duo_core_pcsx
+        case .n64: duo_core_mupen64
         }
     }
 }
@@ -95,6 +96,12 @@ private enum CoreEnvironment {
         // One frame with the top screen above the touch screen; the UI splits it at the fold.
         "melonds_screen_layout": "Top/Bottom",
         "melonds_screen_gap": "0",
+        // N64: no JIT on iOS, so the cached interpreter; GLideN64 on OpenGL ES; HLE RSP.
+        "mupen64plus-cpucore": "cached_interpreter",
+        "mupen64plus-rdp-plugin": "gliden64",
+        "mupen64plus-rsp-plugin": "hle",
+        "mupen64plus-43screensize": "640x480",
+        "mupen64plus-aspect": "4:3",
     ]
 }
 
@@ -157,6 +164,16 @@ private func environmentCallback(_ cmd: UInt32, _ data: UnsafeMutableRawPointer?
         data?.assumingMemoryBound(to: Bool.self).pointee = true
         return data != nil
 
+    case UInt32(RETRO_ENVIRONMENT_SET_HW_RENDER):
+        return duo_hw_set_render(data)
+
+    case 56: // RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER
+        data?.assumingMemoryBound(to: UInt32.self).pointee = 4   // RETRO_HW_CONTEXT_OPENGLES3
+        return data != nil
+
+    case 44 | envExperimental: // RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT
+        return true
+
     case UInt32(RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE):
         guard let data else { return false }
         diskControl = data.load(as: retro_disk_control_callback.self)
@@ -218,6 +235,13 @@ private func registerVariables(_ list: UnsafeMutablePointer<retro_variable>) {
 private func videoRefreshCallback(_ data: UnsafeRawPointer?, _ width: UInt32, _ height: UInt32, _ pitch: Int) {
     // data == NULL is a dupe frame (we advertise GET_CAN_DUPE): keep showing the last one.
     guard let data, width > 0, height > 0, let host = activeHost else { return }
+    if data == UnsafeRawPointer(bitPattern: -1) {
+        // RETRO_HW_FRAME_BUFFER_VALID: the core drew this frame with OpenGL ES.
+        let w = min(Int(width), FrameBuffer.maxWidth), h = min(Int(height), FrameBuffer.maxHeight)
+        guard duo_hw_read_frame(Int32(w), Int32(h), host.conversionBuffer, w * 2) else { return }
+        host.frameBuffer.submit(host.conversionBuffer, width: w, height: h, pitch: w * 2)
+        return
+    }
     guard corePixelFormats[apiSystem.coreName] == RETRO_PIXEL_FORMAT_XRGB8888 else {
         host.frameBuffer.submit(data, width: Int(width), height: Int(height), pitch: pitch)
         return
@@ -268,7 +292,13 @@ private func inputStateCallback(_ port: UInt32, _ device: UInt32, _ index: UInt3
     if device & 0xFF == UInt32(RETRO_DEVICE_ANALOG) {
         // index 0/1 = left/right stick, id 0/1 = x/y. Analog button pressure isn't emulated.
         guard port < UInt32(InputHub.maxPlayers), index < 2, id < 2 else { return 0 }
-        let stick = InputHub.shared.stick(Int(index), player: Int(port))
+        var stick = InputHub.shared.stick(Int(index), player: Int(port))
+        if index == 1, apiSystem == .n64, let host = activeHost {
+            // N64 C buttons: Mupen64Plus reads them from the right stick.
+            let c = SNESButtons(rawValue: host.polledButtons[Int(port)])
+            if c.contains(.cLeft) { stick.x = -32767 } else if c.contains(.cRight) { stick.x = 32767 }
+            if c.contains(.cUp) { stick.y = -32767 } else if c.contains(.cDown) { stick.y = 32767 }
+        }
         return id == 0 ? stick.x : stick.y
     }
     guard let host = activeHost,
@@ -312,6 +342,8 @@ final class EmulatorCore: @unchecked Sendable {
     private(set) var displayAspect: Double?
     /// System of the loaded game (valid after `load`).
     private(set) var system: GameSystem = .snes
+    /// The loaded core draws with OpenGL ES; its context must be current around `run`.
+    private var usesHardwareRender = false
     private(set) var isRunning = false
     /// Runs the core as fast as possible (audio is dropped while true).
     /// False for throwaway runs (title-screen artwork captures): battery saves are neither
@@ -378,9 +410,23 @@ final class EmulatorCore: @unchecked Sendable {
             }
             guard loaded else {
                 activeHost = nil
+                duo_hw_stop()
                 throw content.system.isArcade
                     ? EmulatorError.arcadeSetRejected(rom.lastPathComponent)
                     : EmulatorError.coreRejectedROM
+            }
+            // Cores that draw with OpenGL ES (N64) asked for a context while loading.
+            usesHardwareRender = duo_hw_requested()
+            if usesHardwareRender {
+                guard duo_hw_start(Int32(FrameBuffer.maxWidth), Int32(FrameBuffer.maxHeight)) else {
+                    api.unload_game()
+                    duo_hw_stop()
+                    usesHardwareRender = false
+                    activeHost = nil
+                    throw EmulatorError.coreRejectedROM
+                }
+                // The emulation thread makes it current before each frame.
+                duo_hw_release_current()
             }
             // PlayStation: a DualShock (RETRO_DEVICE_SUBCLASS(ANALOG, 1) in PCSX), so games
             // read the sticks; everything else: a plain joypad.
@@ -533,7 +579,12 @@ final class EmulatorCore: @unchecked Sendable {
                     log.error("Auto-save failed: \(error.localizedDescription, privacy: .public)")
                 }
             }
+            if usesHardwareRender { duo_hw_make_current() }
             api.unload_game()
+            if usesHardwareRender {
+                duo_hw_stop()
+                usesHardwareRender = false
+            }
             if activeHost === self { activeHost = nil }
             lastSavedSRAM = nil
         }
@@ -741,6 +792,7 @@ final class EmulatorCore: @unchecked Sendable {
             runCondition.unlock()
             if go {
                 audioEnabledThisFrame = !turbo
+                if usesHardwareRender { duo_hw_make_current() }
                 api.run()
                 framesSinceLoad += 1
                 let now = mach_absolute_time()
@@ -799,6 +851,7 @@ final class EmulatorCore: @unchecked Sendable {
         guard loadedROM != nil else { return }
         coreLock.withLock {
             audioEnabledThisFrame = true
+            if usesHardwareRender { duo_hw_make_current() }
             for _ in 0..<n { api.run() }
             framesSinceLoad += n
         }

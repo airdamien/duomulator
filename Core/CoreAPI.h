@@ -38,3 +38,4 @@ extern const DuoCoreAPI duo_core_melonds;
 extern const DuoCoreAPI duo_core_picodrive;
 extern const DuoCoreAPI duo_core_fbneo;
 extern const DuoCoreAPI duo_core_pcsx;
+extern const DuoCoreAPI duo_core_mupen64;

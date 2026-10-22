@@ -1649,6 +1649,304 @@ targets:
       - path: Vendor/pcsx/frontend/main.c
         compilerFlags: ["-DHAVE_RTHREADS", "-DBUILTIN_GPU=neon"]
       - path: Vendor/pcsx/frontend/plugin.c
+  N64Core:
+    type: library.static
+    platform: iOS
+    settings:
+      base:
+        GCC_PREPROCESSOR_DEFINITIONS: "GLES3 HAVE_LLE HAVE_NEON HAVE_OPENGLES HAVE_OPENGLES3 HAVE_POSIX_MEMALIGN HAVE_THR_AL IOS M64P_CORE_PROTOTYPES M64P_PLUGIN_API MUPENPLUSAPI NDEBUG NO_ASM OS_IOS SINC_LOWER_QUALITY TXFILTER_LIB USE_FILE32API USE_SSE2NEON _CRT_SECURE_NO_WARNINGS _ENDUSER_RELEASE __ARM_NEON__ __LIBRETRO__ __NEON_OPT __STDC_CONSTANT_MACROS __STDC_LIMIT_MACROS __VEC4_OPT GIT_VERSION=\\\"duomulator\\\""
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/mupen64/mupen64plus-core/subprojects/md5 $(SRCROOT)/Vendor/mupen64/custom $(SRCROOT)/Vendor/mupen64/custom/mupen64plus-core $(SRCROOT)/Vendor/mupen64/custom/android/include $(SRCROOT)/Vendor/mupen64/custom/GLideN64 $(SRCROOT)/Vendor/mupen64/GLideN64/src $(SRCROOT)/Vendor/mupen64/GLideN64/src/osal $(SRCROOT)/Vendor/mupen64/mupen64plus-core/src $(SRCROOT)/Vendor/mupen64/mupen64plus-core/src/api $(SRCROOT)/Vendor/mupen64/custom/mupen64plus-core/plugin/audio_libretro $(SRCROOT)/Vendor/mupen64/libretro-common/include $(SRCROOT)/Vendor/mupen64/libretro $(SRCROOT)/Vendor/mupen64/GLideN64/src/inc $(SRCROOT)/Vendor/mupen64/custom/dependencies/libpng $(SRCROOT)/Vendor/mupen64/mupen64plus-core/subprojects/minizip $(SRCROOT)/Vendor/mupen64/xxHash $(SRCROOT)/Vendor/mupen64/custom/dependencies/libzlib"
+        CLANG_CXX_LANGUAGE_STANDARD: "gnu++11"
+        GCC_C_LANGUAGE_STANDARD: "gnu11"
+        GCC_OPTIMIZATION_LEVEL: "3"
+        OTHER_CFLAGS: "-Wno-everything -ffast-math -include $(SRCROOT)/CoreBuild/mupen64-prefix.h"
+        OTHER_CPLUSPLUSFLAGS: "-Wno-everything -ffast-math -include $(SRCROOT)/CoreBuild/mupen64-prefix.h"
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
+        SKIP_INSTALL: YES
+        CLANG_ENABLE_MODULES: NO
+        USE_HEADERMAP: NO
+        GENERATE_MASTER_OBJECT_FILE: YES
+        PRELINK_FLAGS: "-exported_symbols_list $(SRCROOT)/CoreBuild/mupen64.exp"
+    sources:
+      - path: Vendor/mupen64/GLideN64/src/Combiner.cpp
+      - path: Vendor/mupen64/GLideN64/src/CombinerKey.cpp
+      - path: Vendor/mupen64/GLideN64/src/CommonPluginAPI.cpp
+      - path: Vendor/mupen64/GLideN64/src/Config.cpp
+      - path: Vendor/mupen64/GLideN64/src/convert.cpp
+      - path: Vendor/mupen64/GLideN64/src/DebugDump.cpp
+      - path: Vendor/mupen64/GLideN64/src/Debugger.cpp
+      - path: Vendor/mupen64/GLideN64/src/DepthBuffer.cpp
+      - path: Vendor/mupen64/GLideN64/src/DisplayWindow.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/mupen64plus/mupen64plus_DisplayWindow.cpp
+      - path: Vendor/mupen64/GLideN64/src/DisplayLoadProgress.cpp
+      - path: Vendor/mupen64/GLideN64/src/FrameBuffer.cpp
+      - path: Vendor/mupen64/GLideN64/src/FrameBufferInfo.cpp
+      - path: Vendor/mupen64/GLideN64/src/GBI.cpp
+      - path: Vendor/mupen64/GLideN64/src/gDP.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideN64.cpp
+      - path: Vendor/mupen64/GLideN64/src/gSP.cpp
+      - path: Vendor/mupen64/GLideN64/src/N64.cpp
+      - path: Vendor/mupen64/GLideN64/src/TextDrawer.cpp
+      - path: Vendor/mupen64/GLideN64/src/PaletteTexture.cpp
+      - path: Vendor/mupen64/GLideN64/src/Performance.cpp
+      - path: Vendor/mupen64/GLideN64/src/PostProcessor.cpp
+      - path: Vendor/mupen64/GLideN64/src/RDP.cpp
+      - path: Vendor/mupen64/GLideN64/src/RSP.cpp
+      - path: Vendor/mupen64/GLideN64/src/SoftwareRender.cpp
+      - path: Vendor/mupen64/GLideN64/src/TexrectDrawer.cpp
+      - path: Vendor/mupen64/GLideN64/src/TextureFilterHandler.cpp
+      - path: Vendor/mupen64/GLideN64/src/Textures.cpp
+      - path: Vendor/mupen64/GLideN64/src/VI.cpp
+      - path: Vendor/mupen64/GLideN64/src/ZlutTexture.cpp
+      - path: Vendor/mupen64/GLideN64/src/common/CommonAPIImpl_common.cpp
+      - path: Vendor/mupen64/GLideN64/src/DepthBufferRender/ClipPolygon.cpp
+      - path: Vendor/mupen64/GLideN64/src/DepthBufferRender/DepthBufferRender.cpp
+      - path: Vendor/mupen64/GLideN64/src/BufferCopy/BlueNoiseTexture.cpp
+      - path: Vendor/mupen64/GLideN64/src/BufferCopy/ColorBufferToRDRAM.cpp
+      - path: Vendor/mupen64/GLideN64/src/BufferCopy/DepthBufferToRDRAM.cpp
+      - path: Vendor/mupen64/GLideN64/src/BufferCopy/RDRAMtoColorBuffer.cpp
+      - path: Vendor/mupen64/GLideN64/src/GraphicsDrawer.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/Context.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/ColorBufferReader.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/CombinerProgram.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/ObjectHandle.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLFunctions.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/ThreadedOpenGl/opengl_Wrapper.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/ThreadedOpenGl/opengl_WrappedFunctions.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/ThreadedOpenGl/opengl_Command.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/ThreadedOpenGl/opengl_ObjectPool.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/ThreadedOpenGl/RingBufferPool.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_Attributes.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_BufferedDrawer.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_BufferManipulationObjectFactory.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_CachedFunctions.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_ColorBufferReaderWithBufferStorage.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_ColorBufferReaderWithPixelBuffer.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_ColorBufferReaderWithReadPixels.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_ColorBufferReaderWithEGLImage.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_ContextImpl.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_GLInfo.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_Parameters.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_TextureManipulationObjectFactory.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_UnbufferedDrawer.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/opengl_Utils.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_CombinerInputs.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilder.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramImpl.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramUniformFactory.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramUniformFactoryAccurate.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramUniformFactoryFast.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramUniformFactoryCommon.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilderCommon.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilderAccurate.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilderFast.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_FXAA.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_ShaderStorage.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_SpecialShadersFactory.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GLSL/glsl_Utils.cpp
+      - path: Vendor/mupen64/GLideN64/src/Graphics/OpenGLContext/GraphicBuffer/PrivateApi/GraphicBuffer.cpp
+      - path: Vendor/mupen64/GLideN64/src/mupenplus/MemoryStatus_mupenplus.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3D.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DAM.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DBETA.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DDKR.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DEX.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DEX2.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DEX3.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DEX095.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DEX2ACCLAIM.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DEX2CBFD.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DZEX2.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DFLX2.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DGOLDEN.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DPD.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DSETA.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F5Indi_Naboo.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F5Rogue.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/F3DTEXA.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/L3D.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/L3DEX2.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/L3DEX.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/S2DEX2.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/S2DEX.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/T3DUX.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/Turbo3D.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/ZSort.cpp
+      - path: Vendor/mupen64/GLideN64/src/uCodes/ZSortBOSS.cpp
+      - path: Vendor/mupen64/GLideN64/src/MupenPlusPluginAPI.cpp
+      - path: Vendor/mupen64/GLideN64/src/mupenplus/MupenPlusAPIImpl.cpp
+      - path: Vendor/mupen64/custom/GLideN64/mupenplus/Config_mupenplus.cpp
+      - path: Vendor/mupen64/custom/GLideN64/mupenplus/CommonAPIImpl_mupenplus.cpp
+      - path: Vendor/mupen64/GLideN64/src/Log.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TextureFilters.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TextureFilters_2xsai.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TextureFilters_hq2x.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TextureFilters_hq4x.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TextureFilters_xbrz.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxCache.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxDbg.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxFilter.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxFilterExport.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxHiResCache.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxHiResNoCache.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxHiResLoader.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxImage.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxQuantize.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxReSample.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxTexCache.cpp
+      - path: Vendor/mupen64/GLideN64/src/GLideNHQ/TxUtil.cpp
+      - path: Vendor/mupen64/GLideN64/src/RSP_LoadMatrix.cpp
+      - path: Vendor/mupen64/mupen64plus-video-angrylion/parallel_al.cpp
+      - path: Vendor/mupen64/GLideN64/src/CRC_OPT.cpp
+      - path: Vendor/mupen64/GLideN64/src/Neon/3DMathNeon.cpp
+      - path: Vendor/mupen64/GLideN64/src/Neon/gSPNeon.cpp
+      - path: Vendor/mupen64/mupen64plus-core/src/asm_defines/asm_defines.c
+      - path: Vendor/mupen64/mupen64plus-core/src/api/callbacks.c
+      - path: Vendor/mupen64/custom/mupen64plus-core/api/config.c
+      - path: Vendor/mupen64/mupen64plus-core/src/api/debugger.c
+      - path: Vendor/mupen64/mupen64plus-core/src/api/frontend.c
+      - path: Vendor/mupen64/mupen64plus-core/src/backends/plugins_compat/audio_plugin_compat.c
+      - path: Vendor/mupen64/mupen64plus-core/src/backends/api/video_capture_backend.c
+      - path: Vendor/mupen64/mupen64plus-core/src/backends/plugins_compat/input_plugin_compat.c
+      - path: Vendor/mupen64/mupen64plus-core/src/backends/clock_ctime_plus_delta.c
+      - path: Vendor/mupen64/mupen64plus-core/src/backends/dummy_video_capture.c
+      - path: Vendor/mupen64/mupen64plus-core/src/backends/file_storage.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/cart/cart.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/cart/af_rtc.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/cart/cart_rom.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/cart/eeprom.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/cart/flashram.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/cart/is_viewer.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/cart/sram.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/controllers/game_controller.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/controllers/vru_controller.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/controllers/paks/biopak.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/controllers/paks/mempak.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/controllers/paks/rumblepak.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/controllers/paks/transferpak.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/dd/dd_controller.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/dd/disk.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/device.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/gb/gb_cart.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/gb/mbc3_rtc.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/gb/m64282fp.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/memory/memory.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/pif/bootrom_hle.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/pif/cic.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/pif/n64_cic_nus_6105.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/pif/pif.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/r4300/cached_interp.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/r4300/cp0.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/r4300/cp1.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/r4300/cp2.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/r4300/idec.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/r4300/interrupt.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/r4300/pure_interp.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/r4300/r4300_core.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/r4300/tlb.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/rcp/ai/ai_controller.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/rcp/mi/mi_controller.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/rcp/pi/pi_controller.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/rcp/rdp/fb.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/rcp/rdp/rdp_core.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/rcp/ri/ri_controller.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/rcp/rsp/rsp_core.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/rcp/si/si_controller.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/rcp/vi/vi_controller.c
+      - path: Vendor/mupen64/mupen64plus-core/src/device/rdram/rdram.c
+      - path: Vendor/mupen64/mupen64plus-core/src/main/main.c
+      - path: Vendor/mupen64/mupen64plus-core/src/main/util.c
+      - path: Vendor/mupen64/mupen64plus-core/src/main/cheat.c
+      - path: Vendor/mupen64/mupen64plus-core/src/main/rom.c
+      - path: Vendor/mupen64/mupen64plus-core/src/main/savestates.c
+      - path: Vendor/mupen64/mupen64plus-core/src/plugin/plugin.c
+      - path: Vendor/mupen64/mupen64plus-core/src/plugin/dummy_audio.c
+      - path: Vendor/mupen64/mupen64plus-core/src/plugin/dummy_input.c
+      - path: Vendor/mupen64/mupen64plus-core/subprojects/md5/md5.c
+      - path: Vendor/mupen64/custom/dependencies/libpng/png.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngerror.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngget.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngmem.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngpread.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngread.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngrio.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngrtran.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngrutil.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngset.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngtrans.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngwio.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngwrite.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngwtran.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/custom/dependencies/libpng/pngwutil.c
+        compilerFlags: ["-include", "math.h"]
+      - path: Vendor/mupen64/mupen64plus-core/subprojects/minizip/zip.c
+      - path: Vendor/mupen64/mupen64plus-core/subprojects/minizip/unzip.c
+      - path: Vendor/mupen64/mupen64plus-core/subprojects/minizip/ioapi.c
+      - path: Vendor/mupen64/GLideN64/src/osal/osal_files_unix.c
+      - path: Vendor/mupen64/libretro/libretro.c
+      - path: Vendor/mupen64/libretro-common/memmap/memalign.c
+      - path: Vendor/mupen64/custom/mupen64plus-core/plugin/emulate_game_controller_via_libretro.c
+      - path: Vendor/mupen64/libretro-common/audio/resampler/drivers/sinc_resampler.c
+      - path: Vendor/mupen64/libretro-common/audio/resampler/drivers/nearest_resampler.c
+      - path: Vendor/mupen64/libretro-common/audio/resampler/audio_resampler.c
+      - path: Vendor/mupen64/custom/mupen64plus-core/plugin/audio_libretro/audio_backend_libretro.c
+      - path: Vendor/mupen64/libretro-common/file/config_file.c
+      - path: Vendor/mupen64/libretro-common/file/config_file_userdata.c
+      - path: Vendor/mupen64/libretro-common/file/file_path.c
+      - path: Vendor/mupen64/libretro-common/file/file_path_io.c
+      - path: Vendor/mupen64/libretro-common/time/rtime.c
+      - path: Vendor/mupen64/libretro-common/compat/compat_strl.c
+      - path: Vendor/mupen64/libretro-common/compat/compat_posix_string.c
+      - path: Vendor/mupen64/libretro-common/compat/compat_strcasestr.c
+      - path: Vendor/mupen64/libretro-common/audio/conversion/float_to_s16.c
+      - path: Vendor/mupen64/libretro-common/audio/conversion/s16_to_float.c
+      - path: Vendor/mupen64/libretro-common/features/features_cpu.c
+      - path: Vendor/mupen64/libretro-common/lists/string_list.c
+      - path: Vendor/mupen64/libretro-common/encodings/encoding_utf.c
+      - path: Vendor/mupen64/libretro-common/string/stdstring.c
+      - path: Vendor/mupen64/libretro-common/vfs/vfs_implementation.c
+      - path: Vendor/mupen64/libretro-common/streams/file_stream.c
+      - path: Vendor/mupen64/libretro-common/compat/fopen_utf8.c
+      - path: Vendor/mupen64/custom/mupen64plus-core/api/vidext_libretro.c
+      - path: Vendor/mupen64/libretro-common/glsm/glsm.c
+      - path: Vendor/mupen64/mupen64plus-video-angrylion/interface.c
+      - path: Vendor/mupen64/mupen64plus-video-angrylion/n64video.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/alist.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/alist_audio.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/alist_naudio.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/alist_nead.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/audio.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/cicx105.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/hle.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/hvqm.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/jpeg.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/memory.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/mp3.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/musyx.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/re2.c
+      - path: Vendor/mupen64/mupen64plus-rsp-hle/src/plugin.c
+      - path: Vendor/mupen64/mupen64plus-rsp-cxd4/rsp.c
+      - path: Vendor/mupen64/libretro-common/libco/libco.c
+      - path: Vendor/mupen64/custom/ios/compat.c
+      - path: Vendor/mupen64/libretro-common/glsym/glsym_es3.c
+      - path: Vendor/mupen64/libretro-common/glsym/rglgen.c
+      - path: Vendor/mupen64/libretro-common/audio/conversion/float_to_s16_neon.S
+      - path: Vendor/mupen64/libretro-common/audio/conversion/s16_to_float_neon.S
+      - path: Vendor/mupen64/libretro-common/audio/resampler/drivers/sinc_resampler_neon.S
   Duomulator:
     type: application
     platform: iOS
@@ -1659,6 +1957,12 @@ targets:
       - target: SegaCore
       - target: ArcadeCore
       - target: PSXCore
+      - target: N64Core
+      - sdk: OpenGLES.framework
+      - sdk: AudioToolbox.framework
+      # Mupen64Plus' bundled zlib breaks on Apple platforms (zutil.h defines fdopen as NULL);
+      # the system zlib is ABI-compatible.
+      - sdk: libz.tbd
     sources:
       - path: App
       - path: Core

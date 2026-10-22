@@ -1,0 +1,28 @@
+// Generated from libretro.h: renames the libretro entry points of the mupen64 core so several
+// cores can link into one app. Force-included into every mupen64 source file (see project.yml).
+#pragma once
+#define retro_api_version mupen64_retro_api_version
+#define retro_cheat_reset mupen64_retro_cheat_reset
+#define retro_cheat_set mupen64_retro_cheat_set
+#define retro_deinit mupen64_retro_deinit
+#define retro_get_memory_data mupen64_retro_get_memory_data
+#define retro_get_memory_size mupen64_retro_get_memory_size
+#define retro_get_region mupen64_retro_get_region
+#define retro_get_system_av_info mupen64_retro_get_system_av_info
+#define retro_get_system_info mupen64_retro_get_system_info
+#define retro_init mupen64_retro_init
+#define retro_load_game mupen64_retro_load_game
+#define retro_load_game_special mupen64_retro_load_game_special
+#define retro_reset mupen64_retro_reset
+#define retro_run mupen64_retro_run
+#define retro_serialize mupen64_retro_serialize
+#define retro_serialize_size mupen64_retro_serialize_size
+#define retro_set_audio_sample mupen64_retro_set_audio_sample
+#define retro_set_audio_sample_batch mupen64_retro_set_audio_sample_batch
+#define retro_set_controller_port_device mupen64_retro_set_controller_port_device
+#define retro_set_environment mupen64_retro_set_environment
+#define retro_set_input_poll mupen64_retro_set_input_poll
+#define retro_set_input_state mupen64_retro_set_input_state
+#define retro_set_video_refresh mupen64_retro_set_video_refresh
+#define retro_unload_game mupen64_retro_unload_game
+#define retro_unserialize mupen64_retro_unserialize

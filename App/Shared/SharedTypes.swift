@@ -26,6 +26,12 @@ struct SNESButtons: OptionSet, Hashable, Sendable {
     static let r2     = SNESButtons(rawValue: 1 << 13)
     static let l3     = SNESButtons(rawValue: 1 << 14)
     static let r3     = SNESButtons(rawValue: 1 << 15)
+    /// N64 C buttons from the touch pad (not libretro joypad ids: the host turns them into
+    /// right-stick deflection for Mupen64Plus).
+    static let cUp    = SNESButtons(rawValue: 1 << 16)
+    static let cDown  = SNESButtons(rawValue: 1 << 17)
+    static let cLeft  = SNESButtons(rawValue: 1 << 18)
+    static let cRight = SNESButtons(rawValue: 1 << 19)
 
     static let dpad: SNESButtons = [.up, .down, .left, .right]
 }
@@ -276,7 +282,7 @@ enum Posture: Equatable, Sendable {
 
 /// A console the app can emulate. Each maps to one statically linked libretro core.
 enum GameSystem: String, CaseIterable, Sendable {
-    case snes, nes, nds, genesis, sega32x, segaCD, neoGeo, cps, arcade, psx
+    case snes, nes, nds, genesis, sega32x, segaCD, neoGeo, cps, arcade, psx, n64
 
     var displayName: String {
         switch self {
@@ -290,6 +296,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .cps: "Capcom CPS"
         case .arcade: "Arcade"
         case .psx: "PlayStation"
+        case .n64: "N64"
         }
     }
 
@@ -299,7 +306,7 @@ enum GameSystem: String, CaseIterable, Sendable {
     /// Who made the console; the library's top-level folders.
     var manufacturer: String {
         switch self {
-        case .nes, .snes, .nds: "Nintendo"
+        case .nes, .snes, .nds, .n64: "Nintendo"
         case .genesis, .sega32x, .segaCD: "Sega"
         case .neoGeo, .cps, .arcade: "Arcade"
         case .psx: "Sony"
@@ -318,6 +325,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .cps: 1988
         case .neoGeo: 1990
         case .psx: 1995
+        case .n64: 1996
         // "Arcade" (every other board) is listed last.
         case .arcade: 9999
         }
@@ -333,6 +341,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .genesis, .sega32x, .segaCD: "picodrive"
         case .neoGeo, .cps, .arcade: "fbneo"
         case .psx: "pcsx"
+        case .n64: "mupen64"
         }
     }
 
@@ -345,7 +354,7 @@ enum GameSystem: String, CaseIterable, Sendable {
     /// way; nil means derive the shape from the frame (SNES/NES 8:7 pixels, DS square).
     var displayAspect: CGFloat? {
         switch self {
-        case .genesis, .sega32x, .segaCD, .psx: 4.0 / 3.0
+        case .genesis, .sega32x, .segaCD, .psx, .n64: 4.0 / 3.0
         default: nil
         }
     }
@@ -367,7 +376,7 @@ enum GameSystem: String, CaseIterable, Sendable {
     /// NES (A/B, Select/Start), or the Genesis 3-button (A/B/C) / 6-button (also X/Y/Z) pad
     /// with Start. Sega games pick 3 or 6 per game (`GenesisPad`).
     enum PadStyle: Equatable, Sendable {
-        case snes, nes, genesis3, genesis6, playstation
+        case snes, nes, genesis3, genesis6, playstation, n64
         var isGenesis: Bool { self == .genesis3 || self == .genesis6 }
         /// Four face buttons in a diamond with L/R shoulders (SNES, DS, arcade, PlayStation).
         var isDiamond: Bool { self == .snes || self == .playstation }
@@ -380,6 +389,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .nes: .nes
         case .genesis, .sega32x, .segaCD: .genesis6
         case .psx: .playstation
+        case .n64: .n64
         }
     }
 
@@ -400,6 +410,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .neoGeo, .cps, .arcade: []
         // .cue / .chd are shared with Sega CD; `GameSystem.of(rom:)` looks inside.
         case .psx: ["pbp", "m3u"]
+        case .n64: ["z64", "n64", "v64"]
         }
     }
 
@@ -416,6 +427,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .segaCD: "SegaCD"
         case .neoGeo, .cps, .arcade: "Arcade"
         case .psx: "PSX"
+        case .n64: "N64"
         }
     }
 

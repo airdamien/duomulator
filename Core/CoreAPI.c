@@ -157,6 +157,32 @@ unsigned pcsx_retro_get_region(void);
 void * pcsx_retro_get_memory_data(unsigned id);
 size_t pcsx_retro_get_memory_size(unsigned id);
 
+void mupen64_retro_set_environment(retro_environment_t);
+void mupen64_retro_set_video_refresh(retro_video_refresh_t);
+void mupen64_retro_set_audio_sample(retro_audio_sample_t);
+void mupen64_retro_set_audio_sample_batch(retro_audio_sample_batch_t);
+void mupen64_retro_set_input_poll(retro_input_poll_t);
+void mupen64_retro_set_input_state(retro_input_state_t);
+void mupen64_retro_init(void);
+void mupen64_retro_deinit(void);
+unsigned mupen64_retro_api_version(void);
+void mupen64_retro_get_system_info(struct retro_system_info *info);
+void mupen64_retro_get_system_av_info(struct retro_system_av_info *info);
+void mupen64_retro_set_controller_port_device(unsigned port, unsigned device);
+void mupen64_retro_reset(void);
+void mupen64_retro_run(void);
+size_t mupen64_retro_serialize_size(void);
+bool mupen64_retro_serialize(void *data, size_t size);
+bool mupen64_retro_unserialize(const void *data, size_t size);
+void mupen64_retro_cheat_reset(void);
+void mupen64_retro_cheat_set(unsigned index, bool enabled, const char *code);
+bool mupen64_retro_load_game(const struct retro_game_info *game);
+bool mupen64_retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info);
+void mupen64_retro_unload_game(void);
+unsigned mupen64_retro_get_region(void);
+void * mupen64_retro_get_memory_data(unsigned id);
+size_t mupen64_retro_get_memory_size(unsigned id);
+
 const DuoCoreAPI duo_core_snes9x = {
     .set_environment = snes9x_retro_set_environment,
     .set_video_refresh = snes9x_retro_set_video_refresh,
@@ -323,4 +349,32 @@ const DuoCoreAPI duo_core_pcsx = {
     .get_region = pcsx_retro_get_region,
     .get_memory_data = pcsx_retro_get_memory_data,
     .get_memory_size = pcsx_retro_get_memory_size,
+};
+
+const DuoCoreAPI duo_core_mupen64 = {
+    .set_environment = mupen64_retro_set_environment,
+    .set_video_refresh = mupen64_retro_set_video_refresh,
+    .set_audio_sample = mupen64_retro_set_audio_sample,
+    .set_audio_sample_batch = mupen64_retro_set_audio_sample_batch,
+    .set_input_poll = mupen64_retro_set_input_poll,
+    .set_input_state = mupen64_retro_set_input_state,
+    .init = mupen64_retro_init,
+    .deinit = mupen64_retro_deinit,
+    .api_version = mupen64_retro_api_version,
+    .get_system_info = mupen64_retro_get_system_info,
+    .get_system_av_info = mupen64_retro_get_system_av_info,
+    .set_controller_port_device = mupen64_retro_set_controller_port_device,
+    .reset = mupen64_retro_reset,
+    .run = mupen64_retro_run,
+    .serialize_size = mupen64_retro_serialize_size,
+    .serialize = mupen64_retro_serialize,
+    .unserialize = mupen64_retro_unserialize,
+    .cheat_reset = mupen64_retro_cheat_reset,
+    .cheat_set = mupen64_retro_cheat_set,
+    .load_game = mupen64_retro_load_game,
+    .load_game_special = mupen64_retro_load_game_special,
+    .unload_game = mupen64_retro_unload_game,
+    .get_region = mupen64_retro_get_region,
+    .get_memory_data = mupen64_retro_get_memory_data,
+    .get_memory_size = mupen64_retro_get_memory_size,
 };

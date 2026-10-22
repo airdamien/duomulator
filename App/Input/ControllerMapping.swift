@@ -57,6 +57,11 @@ struct ControllerMapping: Equatable, Sendable {
         case .genesis3:
             b[.north] = []
             b[.leftShoulder] = []; b[.rightShoulder] = []; b[.leftTrigger] = []; b[.rightTrigger] = []
+        case .n64:
+            // Mupen64Plus: A <- libretro B, B <- Y, Z <- L2; the right stick is the C buttons.
+            b[.south] = .b; b[.west] = .y; b[.east] = .y; b[.north] = []
+            b[.leftTrigger] = .l2; b[.rightTrigger] = .l2
+            b[.options] = []
         case .snes, .genesis6:
             break
         }
@@ -71,6 +76,7 @@ struct ControllerMapping: Equatable, Sendable {
         case .genesis6: [.y, .b, .a, .l, .x, .r, .start, .select]
         case .snes: [.b, .a, .y, .x, .l, .r, .select, .start]
         case .playstation: [.b, .a, .y, .x, .l, .r, .l2, .r2, .l3, .r3, .select, .start]
+        case .n64: [.b, .y, .l2, .l, .r, .start, .cUp, .cDown, .cLeft, .cRight]
         }
     }
 
@@ -80,7 +86,7 @@ struct ControllerMapping: Equatable, Sendable {
     /// plus whatever each pressed physical button is bound to.
     /// The pad has analog sticks of its own (PlayStation DualShock): the gamepad's sticks
     /// drive them instead of the d-pad.
-    var usesAnalogSticks: Bool { system.padStyle == .playstation }
+    var usesAnalogSticks: Bool { system.padStyle == .playstation || system.padStyle == .n64 }
 
     func buttons(for s: GamepadSnapshot) -> SNESButtons {
         var m = s.directions(includingStick: !usesAnalogSticks)
@@ -145,12 +151,17 @@ extension SNESButtons {
         case .r2: "r2"
         case .l3: "l3"
         case .r3: "r3"
+        case .cUp: "cup"
+        case .cDown: "cdown"
+        case .cLeft: "cleft"
+        case .cRight: "cright"
         default: "none"
         }
     }
 
     init?(name: String) {
-        let all: [SNESButtons] = [.b, .y, .select, .start, .a, .x, .l, .r, .l2, .r2, .l3, .r3]
+        let all: [SNESButtons] = [.b, .y, .select, .start, .a, .x, .l, .r, .l2, .r2, .l3, .r3,
+                                  .cUp, .cDown, .cLeft, .cRight]
         if name == "none" { self = []; return }
         guard let match = all.first(where: { $0.name == name }) else { return nil }
         self = match
@@ -189,6 +200,20 @@ enum ButtonLabels {
             case .r3: return "R3"
             case .select: return "Select"
             case .start: return "Start"
+            default: return ""
+            }
+        case .n64:
+            switch button {
+            case .b: return "A"
+            case .y: return "B"
+            case .l2: return "Z"
+            case .l: return "L"
+            case .r: return "R"
+            case .start: return "Start"
+            case .cUp: return "C▲"
+            case .cDown: return "C▼"
+            case .cLeft: return "C◀"
+            case .cRight: return "C▶"
             default: return ""
             }
         case .snes, .nes:

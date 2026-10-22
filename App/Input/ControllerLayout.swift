@@ -43,6 +43,8 @@ struct ControllerLayout: Equatable, Sendable {
     let lRect: CGRect
     let rRect: CGRect
     let selectRect: CGRect
+    /// N64 Z trigger, beside L (`.null` on other pads).
+    let zRect: CGRect
     let startRect: CGRect
     let menuRect: CGRect
     /// PlayStation analog sticks (radius 0 = none): lower center, between the clusters.
@@ -89,6 +91,7 @@ struct ControllerLayout: Equatable, Sendable {
             dpadCenter = c; dpadRadius = 0
             faceCenter = c; faceSpacing = 0; faceRadius = 0
             lRect = .null; rRect = .null; selectRect = .null; startRect = .null; menuRect = .null
+            zRect = .null
             stickRadius = 0; leftStickCenter = c; rightStickCenter = c
             return
         }
@@ -117,6 +120,7 @@ struct ControllerLayout: Equatable, Sendable {
                 dpadCenter = c; dpadRadius = 0
                 faceCenter = c; faceSpacing = 0; faceRadius = 0
                 lRect = .null; rRect = .null; selectRect = .null; startRect = .null; menuRect = .null
+                zRect = .null
                 stickRadius = 0; leftStickCenter = c; rightStickCenter = c
                 return
             }
@@ -135,6 +139,7 @@ struct ControllerLayout: Equatable, Sendable {
                 ? .null : CGRect(x: left.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
             startRect = CGRect(x: right.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
             menuRect = .null
+            zRect = .null
             stickRadius = 0; leftStickCenter = .zero; rightStickCenter = .zero
             return
         }
@@ -171,7 +176,8 @@ struct ControllerLayout: Equatable, Sendable {
         }
 
         dpadCenter = CGPoint(x: area.minX + size / 2, y: clusterY)
-        dpadRadius = size / 2
+        // N64: the analog stick takes the d-pad's place (the d-pad stays on physical pads).
+        dpadRadius = pad == .n64 ? 0 : size / 2
         faceCenter = CGPoint(x: area.maxX - size / 2, y: clusterY)
         faceSpacing = size * Self.faceSpacingScale(pad)
         faceRadius = size * Self.faceRadiusScale(pad)
@@ -179,9 +185,17 @@ struct ControllerLayout: Equatable, Sendable {
         if pad.isDiamond {
             lRect = CGRect(x: area.minX, y: area.minY, width: shoulderW, height: shoulderH)
             rRect = CGRect(x: area.maxX - shoulderW, y: area.minY, width: shoulderW, height: shoulderH)
+            zRect = .null
+        } else if pad == .n64 {
+            // L and Z share the left shoulder slot; R on the right.
+            let half = (shoulderW - gap / 2) / 2
+            lRect = CGRect(x: area.minX, y: area.minY, width: half, height: shoulderH)
+            zRect = CGRect(x: area.minX + half + gap / 2, y: area.minY, width: half, height: shoulderH)
+            rRect = CGRect(x: area.maxX - shoulderW, y: area.minY, width: shoulderW, height: shoulderH)
         } else {
             lRect = .null
             rRect = .null
+            zRect = .null
         }
         menuRect = CGRect(x: area.midX - menuSize / 2, y: area.minY + (shoulderH - menuSize) / 2,
                           width: menuSize, height: menuSize)
@@ -195,7 +209,12 @@ struct ControllerLayout: Equatable, Sendable {
             ssY = area.maxY - ssH
         }
 
-        if wantsSticks {
+        if pad == .n64 {
+            // One analog stick, where the d-pad would be.
+            stickRadius = size * 0.42
+            leftStickCenter = dpadCenter
+            rightStickCenter = .zero
+        } else if wantsSticks {
             // Sticks as low as the area allows, with a thumb's clearance up to Select/Start.
             let y = area.maxY - stickR
             stickRadius = stickR
@@ -208,7 +227,7 @@ struct ControllerLayout: Equatable, Sendable {
             rightStickCenter = .zero
         }
 
-        if pad.isGenesis {
+        if pad.isGenesis || pad == .n64 {
             // Start only, centered.
             selectRect = .null
             startRect = CGRect(x: area.midX - ssW / 2, y: ssY, width: ssW, height: ssH)
@@ -236,6 +255,19 @@ struct ControllerLayout: Equatable, Sendable {
             return row([.y, .b, .a], y: c.y)
         case .genesis6:
             return row([.l, .x, .r], y: c.y - d * 0.56) + row([.y, .b, .a], y: c.y + d * 0.56)
+        case .n64:
+            // A (big, lower left), B (above-left of it) and the C buttons in a diamond to the
+            // upper right, as on the N64 pad. d is the cluster size here.
+            let cc = CGPoint(x: c.x + d * 0.22, y: c.y - d * 0.12)
+            let k = d * 0.165
+            return [
+                (.b, CGPoint(x: c.x - d * 0.2, y: c.y + d * 0.22)),
+                (.y, CGPoint(x: c.x - d * 0.34, y: c.y - d * 0.1)),
+                (.cUp, CGPoint(x: cc.x, y: cc.y - k)),
+                (.cDown, CGPoint(x: cc.x, y: cc.y + k)),
+                (.cLeft, CGPoint(x: cc.x - k, y: cc.y)),
+                (.cRight, CGPoint(x: cc.x + k, y: cc.y)),
+            ]
         case .nes:
             return [
                 (.b, CGPoint(x: c.x - d * 0.75, y: c.y + d * 0.3)),
@@ -254,6 +286,7 @@ struct ControllerLayout: Equatable, Sendable {
     /// Center-to-center button distance as a fraction of the cluster size.
     private static func faceSpacingScale(_ pad: GameSystem.PadStyle) -> CGFloat {
         switch pad {
+        case .n64: 1.0   // faceSpacing is the cluster size; positions scale from it
         case .snes, .nes, .playstation: 0.32
         case .genesis3: 0.355
         case .genesis6: 0.34
@@ -264,6 +297,7 @@ struct ControllerLayout: Equatable, Sendable {
     /// Genesis buttons sit in rows, so they're kept small enough to leave a visible gap.
     private static func faceRadiusScale(_ pad: GameSystem.PadStyle) -> CGFloat {
         switch pad {
+        case .n64: 0.15
         case .snes, .playstation: 0.18
         case .nes: 0.21
         case .genesis3: 0.135
@@ -273,6 +307,17 @@ struct ControllerLayout: Equatable, Sendable {
 
     /// A face button is pressed within this distance of its center.
     var faceHitRadius: CGFloat { Self.faceHitRadius(pad: pad, spacing: faceSpacing) }
+
+    /// Drawn radius of one face button: all the same, except the N64's big A, smaller B and
+    /// small C buttons.
+    func radius(for button: SNESButtons) -> CGFloat {
+        guard pad == .n64 else { return faceRadius }
+        switch button {
+        case .b: return faceRadius
+        case .y: return faceRadius * 0.85
+        default: return faceRadius * 0.6
+        }
+    }
 
     /// SNES/NES: 0.85 x spacing, so the gap between two adjacent buttons presses both while
     /// opposite buttons never can. Genesis rows are tighter: 0.6 x the neighbor distance
@@ -294,7 +339,7 @@ struct ControllerLayout: Equatable, Sendable {
         if reserved.contains(point) { return nil }
         if isOnMenu(point) { return .menu }
         if stickRadius > 0 {
-            for (i, center) in [leftStickCenter, rightStickCenter].enumerated()
+            for (i, center) in [leftStickCenter, rightStickCenter].prefix(stickCount).enumerated()
             where Self.distance(point, center) <= stickRadius * 1.25 {
                 return .stick(i)
             }
@@ -318,6 +363,12 @@ struct ControllerLayout: Equatable, Sendable {
         case .buttons: return faceButtons(at: point).union(buttonsOutsideFace(at: point))
         case .menu, .stick: return []
         }
+    }
+
+    /// Number of on-screen analog sticks: two on the DualShock, one on the N64 pad.
+    var stickCount: Int {
+        guard stickRadius > 0 else { return 0 }
+        return pad == .n64 ? 1 : 2
     }
 
     /// Analog value of stick `index` for a finger at `point`: offset from the stick's center
@@ -354,7 +405,8 @@ struct ControllerLayout: Equatable, Sendable {
         guard faceRadius > 0 else { return [] }
         let hit = faceHitRadius
         var result: SNESButtons = []
-        for (button, center) in faceButtons where Self.distance(point, center) <= hit {
+        for (button, center) in faceButtons
+        where Self.distance(point, center) <= (pad == .n64 ? radius(for: button) * 1.2 : hit) {
             result.insert(button)
         }
         return result
@@ -369,6 +421,7 @@ struct ControllerLayout: Equatable, Sendable {
         var result: SNESButtons = []
         let s = Self.shoulderSlop, b = Self.smallButtonSlop
         if lRect.insetBy(dx: -s, dy: -s).contains(point) { result.insert(.l) }
+        if zRect.insetBy(dx: -s / 2, dy: -s).contains(point) { result.insert(.l2) }
         if rRect.insetBy(dx: -s, dy: -s).contains(point) { result.insert(.r) }
         if selectRect.insetBy(dx: -b.width, dy: -b.height).contains(point) { result.insert(.select) }
         if startRect.insetBy(dx: -b.width, dy: -b.height).contains(point) { result.insert(.start) }
