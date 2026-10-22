@@ -1,0 +1,28 @@
+// Generated from libretro.h: renames the libretro entry points of the pcsx core so several
+// cores can link into one app. Force-included into every pcsx source file (see project.yml).
+#pragma once
+#define retro_api_version pcsx_retro_api_version
+#define retro_cheat_reset pcsx_retro_cheat_reset
+#define retro_cheat_set pcsx_retro_cheat_set
+#define retro_deinit pcsx_retro_deinit
+#define retro_get_memory_data pcsx_retro_get_memory_data
+#define retro_get_memory_size pcsx_retro_get_memory_size
+#define retro_get_region pcsx_retro_get_region
+#define retro_get_system_av_info pcsx_retro_get_system_av_info
+#define retro_get_system_info pcsx_retro_get_system_info
+#define retro_init pcsx_retro_init
+#define retro_load_game pcsx_retro_load_game
+#define retro_load_game_special pcsx_retro_load_game_special
+#define retro_reset pcsx_retro_reset
+#define retro_run pcsx_retro_run
+#define retro_serialize pcsx_retro_serialize
+#define retro_serialize_size pcsx_retro_serialize_size
+#define retro_set_audio_sample pcsx_retro_set_audio_sample
+#define retro_set_audio_sample_batch pcsx_retro_set_audio_sample_batch
+#define retro_set_controller_port_device pcsx_retro_set_controller_port_device
+#define retro_set_environment pcsx_retro_set_environment
+#define retro_set_input_poll pcsx_retro_set_input_poll
+#define retro_set_input_state pcsx_retro_set_input_state
+#define retro_set_video_refresh pcsx_retro_set_video_refresh
+#define retro_unload_game pcsx_retro_unload_game
+#define retro_unserialize pcsx_retro_unserialize

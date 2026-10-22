@@ -10,6 +10,8 @@ settings:
     CODE_SIGN_STYLE: Automatic
     SWIFT_VERSION: "5.0"
     IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+    # PCSX ReARMed's GTE is arm64 assembly; Apple-silicon simulators are arm64 anyway.
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": x86_64
 targets:
   SNESCore:
     type: library.static
@@ -1535,6 +1537,118 @@ targets:
       - path: Vendor/fbneo/src/burn/drv/toaplan/toaplan.cpp
       - path: Vendor/fbneo/src/burn/drv/toaplan/toaplan1.cpp
       - path: Vendor/fbneo/src/burn/drv/d_parent.cpp
+  PSXCore:
+    type: library.static
+    platform: iOS
+    settings:
+      base:
+        GCC_PREPROCESSOR_DEFINITIONS: "DISABLE_MEM_LUTS=0 DRC_DISABLE GPU_NEON HAVE_CHD HAVE_LIBRETRO IOS NDEBUG NO_FRONTEND P_HAVE_MMAP=1 P_HAVE_POSIX_MEMALIGN=1 USE_LIBRETRO_VFS USE_MINIZ GIT_VERSION=\\\"duomulator\\\""
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/pcsx/include $(SRCROOT)/Vendor/pcsx/deps/libchdr/include $(SRCROOT)/Vendor/pcsx/deps/libchdr/deps/miniz-3.1.2 $(SRCROOT)/Vendor/pcsx/deps/libretro-common/include $(SRCROOT)/Vendor/pcsx/deps/libchdr/deps/lzma-26.02/include"
+        GCC_OPTIMIZATION_LEVEL: "3"
+        OTHER_CFLAGS: "-Wno-everything -ffast-math -include $(SRCROOT)/CoreBuild/pcsx-prefix.h"
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
+        SKIP_INSTALL: YES
+        CLANG_ENABLE_MODULES: NO
+        USE_HEADERMAP: NO
+        GENERATE_MASTER_OBJECT_FILE: YES
+        PRELINK_FLAGS: "-exported_symbols_list $(SRCROOT)/CoreBuild/pcsx.exp"
+    sources:
+      - path: Vendor/pcsx/libpcsxcore/cdriso.c
+      - path: Vendor/pcsx/libpcsxcore/cdrom.c
+      - path: Vendor/pcsx/libpcsxcore/cdrom-async.c
+        compilerFlags: ["-DUSE_ASYNC_CDROM"]
+      - path: Vendor/pcsx/libpcsxcore/cheat.c
+      - path: Vendor/pcsx/libpcsxcore/database.c
+      - path: Vendor/pcsx/libpcsxcore/decode_xa.c
+      - path: Vendor/pcsx/libpcsxcore/mdec.c
+      - path: Vendor/pcsx/libpcsxcore/misc.c
+        compilerFlags: ["-DBUILTIN_GPU=neon"]
+      - path: Vendor/pcsx/libpcsxcore/plugins.c
+      - path: Vendor/pcsx/libpcsxcore/ppf.c
+      - path: Vendor/pcsx/libpcsxcore/psxbios.c
+      - path: Vendor/pcsx/libpcsxcore/psxcommon.c
+      - path: Vendor/pcsx/libpcsxcore/psxcounters.c
+      - path: Vendor/pcsx/libpcsxcore/psxdma.c
+      - path: Vendor/pcsx/libpcsxcore/psxhw.c
+      - path: Vendor/pcsx/libpcsxcore/psxinterpreter.c
+      - path: Vendor/pcsx/libpcsxcore/psxmem.c
+      - path: Vendor/pcsx/libpcsxcore/psxevents.c
+      - path: Vendor/pcsx/libpcsxcore/r3000a.c
+      - path: Vendor/pcsx/libpcsxcore/sio.c
+      - path: Vendor/pcsx/libpcsxcore/spu.c
+      - path: Vendor/pcsx/libpcsxcore/gpu.c
+      - path: Vendor/pcsx/libpcsxcore/pad.c
+      - path: Vendor/pcsx/libpcsxcore/gte.c
+      - path: Vendor/pcsx/libpcsxcore/gte_nf.c
+      - path: Vendor/pcsx/libpcsxcore/gte_divider.c
+      - path: Vendor/pcsx/libpcsxcore/gte_arm64.S
+      - path: Vendor/pcsx/libpcsxcore/gte_nf_arm64.S
+      - path: Vendor/pcsx/libpcsxcore/new_dynarec/emu_if.c
+      - path: Vendor/pcsx/plugins/dfsound/dma.c
+        compilerFlags: ["-DUSE_ASYNC_SPU"]
+      - path: Vendor/pcsx/plugins/dfsound/freeze.c
+        compilerFlags: ["-DUSE_ASYNC_SPU"]
+      - path: Vendor/pcsx/plugins/dfsound/registers.c
+        compilerFlags: ["-DUSE_ASYNC_SPU"]
+      - path: Vendor/pcsx/plugins/dfsound/spu.c
+        compilerFlags: ["-DUSE_ASYNC_SPU"]
+      - path: Vendor/pcsx/plugins/dfsound/out.c
+        compilerFlags: ["-DUSE_ASYNC_SPU"]
+      - path: Vendor/pcsx/plugins/dfsound/nullsnd.c
+        compilerFlags: ["-DUSE_ASYNC_SPU"]
+      - path: Vendor/pcsx/plugins/gpulib/gpu.c
+        compilerFlags: ["-DUSE_ASYNC_GPU"]
+      - path: Vendor/pcsx/plugins/gpulib/vout_pl.c
+        compilerFlags: ["-DUSE_ASYNC_GPU"]
+      - path: Vendor/pcsx/plugins/gpulib/prim.c
+        compilerFlags: ["-DUSE_ASYNC_GPU"]
+      - path: Vendor/pcsx/plugins/gpulib/gpu_async.c
+        compilerFlags: ["-DUSE_ASYNC_GPU"]
+      - path: Vendor/pcsx/plugins/gpu_neon/psx_gpu_if.c
+        compilerFlags: ["-DNEON_BUILD", "-DTEXTURE_CACHE_4BPP", "-DTEXTURE_CACHE_8BPP", "-DSIMD_BUILD"]
+      - path: Vendor/pcsx/plugins/gpu_neon/psx_gpu/psx_gpu_simd.c
+        compilerFlags: ["-DSIMD_BUILD"]
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_bitstream.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_cdrom.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_chd.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_codec_cdfl.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_codec_cdlz.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_codec_cdzl.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_codec_cdzs.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_codec_flac.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_codec_huff.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_codec_lzma.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_codec_zlib.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_codec_zstd.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_flac.c
+      - path: Vendor/pcsx/deps/libchdr/src/libchdr_huffman.c
+      - path: Vendor/pcsx/deps/libchdr/deps/lzma-26.02/src/LzmaDec.c
+        compilerFlags: ["-DZ7_LZMA_DEC_OPT"]
+      - path: Vendor/pcsx/deps/libchdr/deps/lzma-26.02/Asm/arm64/LzmaDecOpt.S
+      - path: Vendor/pcsx/deps/libchdr/deps/zstd-1.5.7/zstddeclib.c
+      - path: Vendor/pcsx/deps/libchdr/deps/miniz-3.1.2/miniz.c
+        compilerFlags: ["-DMINIZ_NO_STDIO", "-DMINIZ_NO_DEFLATE_APIS", "-DMINIZ_NO_ARCHIVE_APIS"]
+      - path: Vendor/pcsx/frontend/cspace.c
+      - path: Vendor/pcsx/deps/libretro-common/compat/compat_strl.c
+      - path: Vendor/pcsx/deps/libretro-common/file/file_path.c
+      - path: Vendor/pcsx/deps/libretro-common/file/file_path_io.c
+      - path: Vendor/pcsx/deps/libretro-common/string/stdstring.c
+      - path: Vendor/pcsx/deps/libretro-common/string/rstrtod.c
+      - path: Vendor/pcsx/deps/libretro-common/vfs/vfs_implementation.c
+      - path: Vendor/pcsx/deps/libretro-common/compat/compat_posix_string.c
+      - path: Vendor/pcsx/deps/libretro-common/compat/fopen_utf8.c
+      - path: Vendor/pcsx/deps/libretro-common/encodings/encoding_utf.c
+      - path: Vendor/pcsx/deps/libretro-common/file/retro_dirent.c
+      - path: Vendor/pcsx/deps/libretro-common/streams/file_stream.c
+      - path: Vendor/pcsx/deps/libretro-common/streams/file_stream_transforms.c
+      - path: Vendor/pcsx/deps/libretro-common/time/rtime.c
+      - path: Vendor/pcsx/frontend/libretro.c
+        compilerFlags: ["-DUSE_ASYNC_CDROM", "-DUSE_ASYNC_GPU", "-DUSE_ASYNC_SPU"]
+      - path: Vendor/pcsx/frontend/pcsxr-threads.c
+      - path: Vendor/pcsx/deps/libretro-common/features/features_cpu.c
+      - path: Vendor/pcsx/frontend/main.c
+        compilerFlags: ["-DHAVE_RTHREADS", "-DBUILTIN_GPU=neon"]
+      - path: Vendor/pcsx/frontend/plugin.c
   Duomulator:
     type: application
     platform: iOS
@@ -1544,6 +1658,7 @@ targets:
       - target: DSCore
       - target: SegaCore
       - target: ArcadeCore
+      - target: PSXCore
     sources:
       - path: App
       - path: Core

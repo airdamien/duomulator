@@ -117,9 +117,9 @@ struct ControllerLayout: Equatable, Sendable {
             faceCenter = CGPoint(x: right.midX, y: clusterY)
             faceSpacing = cluster * Self.faceSpacingScale(pad)
             faceRadius = cluster * Self.faceRadiusScale(pad)
-            lRect = pad == .snes
+            lRect = pad.isDiamond
                 ? CGRect(x: left.minX, y: area.minY, width: left.width, height: shoulderH) : .null
-            rRect = pad == .snes
+            rRect = pad.isDiamond
                 ? CGRect(x: right.minX, y: area.minY, width: right.width, height: shoulderH) : .null
             let w = min(ssW, gutter)
             selectRect = pad.isGenesis
@@ -156,7 +156,7 @@ struct ControllerLayout: Equatable, Sendable {
         faceSpacing = size * Self.faceSpacingScale(pad)
         faceRadius = size * Self.faceRadiusScale(pad)
 
-        if pad == .snes {
+        if pad.isDiamond {
             lRect = CGRect(x: area.minX, y: area.minY, width: shoulderW, height: shoulderH)
             rRect = CGRect(x: area.maxX - shoulderW, y: area.minY, width: shoulderW, height: shoulderH)
         } else {
@@ -207,7 +207,7 @@ struct ControllerLayout: Equatable, Sendable {
                 (.b, CGPoint(x: c.x - d * 0.75, y: c.y + d * 0.3)),
                 (.a, CGPoint(x: c.x + d * 0.75, y: c.y - d * 0.3)),
             ]
-        case .snes:
+        case .snes, .playstation:
             return [
                 (.x, CGPoint(x: c.x, y: c.y - d)),
                 (.a, CGPoint(x: c.x + d, y: c.y)),
@@ -220,7 +220,7 @@ struct ControllerLayout: Equatable, Sendable {
     /// Center-to-center button distance as a fraction of the cluster size.
     private static func faceSpacingScale(_ pad: GameSystem.PadStyle) -> CGFloat {
         switch pad {
-        case .snes, .nes: 0.32
+        case .snes, .nes, .playstation: 0.32
         case .genesis3: 0.355
         case .genesis6: 0.34
         }
@@ -230,7 +230,7 @@ struct ControllerLayout: Equatable, Sendable {
     /// Genesis buttons sit in rows, so they're kept small enough to leave a visible gap.
     private static func faceRadiusScale(_ pad: GameSystem.PadStyle) -> CGFloat {
         switch pad {
-        case .snes: 0.18
+        case .snes, .playstation: 0.18
         case .nes: 0.21
         case .genesis3: 0.135
         case .genesis6: 0.125
@@ -257,6 +257,15 @@ struct ControllerLayout: Equatable, Sendable {
             case .l: return "X"
             case .x: return "Y"
             case .r: return "Z"
+            default: return ""
+            }
+        }
+        if pad == .playstation {
+            switch button {
+            case .x: return "△"
+            case .a: return "○"
+            case .b: return "✕"
+            case .y: return "□"
             default: return ""
             }
         }

@@ -52,9 +52,14 @@ extension GameSystem {
         case .nds: duo_core_melonds
         case .genesis, .sega32x, .segaCD: duo_core_picodrive
         case .neoGeo, .cps, .arcade: duo_core_fbneo
+        case .psx: duo_core_pcsx
         }
     }
 }
+
+/// Disc-swap callbacks the loaded game's core registered (multi-disc PlayStation games via
+/// .m3u), or nil. Cleared before every load; the core registers again while loading.
+nonisolated(unsafe) private var diskControl: retro_disk_control_callback?
 
 /// System whose core `api` points at; environment answers that differ per core use it.
 nonisolated(unsafe) private var apiSystem = GameSystem.snes
@@ -151,6 +156,11 @@ private func environmentCallback(_ cmd: UInt32, _ data: UnsafeMutableRawPointer?
     case UInt32(RETRO_ENVIRONMENT_GET_CAN_DUPE):
         data?.assumingMemoryBound(to: Bool.self).pointee = true
         return data != nil
+
+    case UInt32(RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE):
+        guard let data else { return false }
+        diskControl = data.load(as: retro_disk_control_callback.self)
+        return true
 
     case UInt32(DUO_ENVIRONMENT_GET_GAME_INFO_EXT):
         return duo_get_game_info_ext(data)
@@ -344,6 +354,7 @@ final class EmulatorCore: @unchecked Sendable {
         try coreLock.withLock {
             api = content.system.coreAPI
             apiSystem = content.system
+            diskControl = nil
             Self.initializeCoreIfNeeded(content.system)
             activeHost = self
             let loaded = content.path.withCString { path in
@@ -519,6 +530,35 @@ final class EmulatorCore: @unchecked Sendable {
         loadedROM = nil
         isRunning = false
         fastForward = false
+    }
+
+    // MARK: Discs
+
+    /// Number of discs in the loaded game (a multi-disc .m3u playlist); 1 or 0 otherwise.
+    var discCount: Int {
+        coreLock.withLock {
+            guard loadedROM != nil, let count = diskControl?.get_num_images?() else { return 0 }
+            return Int(count)
+        }
+    }
+
+    /// Zero-based index of the disc in the drive.
+    var currentDisc: Int {
+        coreLock.withLock { Int(diskControl?.get_image_index?() ?? 0) }
+    }
+
+    /// Swaps discs the way a player would: open the lid, change the disc, close the lid.
+    @discardableResult
+    func insertDisc(_ index: Int) -> Bool {
+        apiLock.lock(); defer { apiLock.unlock() }
+        return coreLock.withLock {
+            guard loadedROM != nil, let control = diskControl,
+                  let count = control.get_num_images?(), index >= 0, index < Int(count),
+                  control.set_eject_state?(true) == true else { return false }
+            let swapped = control.set_image_index?(UInt32(index)) == true
+            _ = control.set_eject_state?(false)
+            return swapped
+        }
     }
 
     /// Sets a core option for the current or next game (e.g. PicoDrive's controller type).

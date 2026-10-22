@@ -191,7 +191,7 @@ struct LibraryView: View {
         ContentUnavailableView {
             Label("No Games Yet", systemImage: "gamecontroller")
         } description: {
-            Text("Add ROMs with +, from the Files app (On My iPhone ▸ Duomulator ▸ ROMs), or via Finder over USB.\n\nSNES: .sfc .smc .swc .fig .bs .st\nNES: .nes .unf\nDS: .nds\nGenesis: .md .gen .smd .bin · 32X: .32x\nSega CD: .chd, or .cue with its .bin tracks (needs your console's BIOS in the System folder)\nZipped cartridge ROMs (.zip) work too.")
+            Text("Add ROMs with +, from the Files app (On My iPhone ▸ Duomulator ▸ ROMs), or via Finder over USB.\n\nSNES: .sfc .smc .swc .fig .bs .st\nNES: .nes .unf\nDS: .nds\nGenesis: .md .gen .smd .bin · 32X: .32x\nSega CD: .chd, or .cue with its .bin tracks (needs your console's BIOS in the System folder)\nArcade: FinalBurn Neo .zip sets (with BIOS sets like neogeo.zip beside them)\nPlayStation: .chd, .cue + .bin, .pbp; multi-disc games are grouped automatically\nZipped cartridge ROMs (.zip) work too.")
         } actions: {
             Button { showingImporter = true } label: {
                 Label("Add ROMs", systemImage: "plus")
@@ -443,6 +443,7 @@ private struct FallbackTile: View {
         case .neoGeo: Color(red: 0.80, green: 0.55, blue: 0.10)
         case .cps: Color(red: 0.70, green: 0.20, blue: 0.45)
         case .arcade: Color(red: 0.20, green: 0.55, blue: 0.45)
+        case .psx: Color(red: 0.35, green: 0.36, blue: 0.42)
         case nil: .gray
         }
     }

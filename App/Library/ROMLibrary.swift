@@ -147,12 +147,19 @@ final class ROMLibrary: ObservableObject {
         GamePaths.ensureDirectories()
         let fm = FileManager.default
         let keys: [URLResourceKey] = [.fileSizeKey, .isRegularFileKey]
-        let urls = (try? fm.contentsOfDirectory(at: GamePaths.roms, includingPropertiesForKeys: keys,
+        var urls = (try? fm.contentsOfDirectory(at: GamePaths.roms, includingPropertiesForKeys: keys,
                                                 options: [.skipsHiddenFiles])) ?? []
+        if ROMLibrary.writeMissingPlaylists(for: urls) {
+            urls = (try? fm.contentsOfDirectory(at: GamePaths.roms, includingPropertiesForKeys: keys,
+                                                options: [.skipsHiddenFiles])) ?? []
+        }
         let played = RecentlyPlayed.dates()
-        // .bin files a cue sheet points at are CD tracks, not Genesis cartridges.
+        // .bin files a cue sheet points at are CD tracks, not Genesis cartridges, and discs a
+        // .m3u lists are part of that one multi-disc game.
         let tracks = Set(urls.filter { $0.pathExtension.lowercased() == "cue" }
             .flatMap { CueSheet.trackFiles(of: $0) }.map { $0.lowercased() })
+            .union(urls.filter { $0.pathExtension.lowercased() == "m3u" }
+                .flatMap { DiscPlaylist.entries(of: $0) }.map { $0.lowercased() })
         let found = urls.compactMap { url -> ROMEntry? in
             guard ROMLibrary.isROM(url), !tracks.contains(url.lastPathComponent.lowercased()),
                   ArcadeCatalog.entry(forSet: url)?.isBIOS != true else { return nil }
@@ -179,6 +186,23 @@ final class ROMLibrary: ObservableObject {
         if found != entries { entries = found }
         // The folder may have been deleted and recreated from the Files app.
         if watcher == nil { startWatching() }
+    }
+
+    /// Writes "<Game>.m3u" for multi-disc games found as separate files ("Game Disc 1.chd",
+    /// "Game Disc 2.chd"...) that don't have a playlist yet, so they show up as one game and
+    /// the core can swap discs. Returns whether anything was written.
+    static func writeMissingPlaylists(for urls: [URL]) -> Bool {
+        let names = urls.map(\.lastPathComponent)
+        let existing = Set(urls.filter { $0.pathExtension.lowercased() == "m3u" }
+            .flatMap { DiscPlaylist.entries(of: $0) })
+        var wrote = false
+        for (title, discs) in DiscPlaylist.groups(in: names) where existing.isDisjoint(with: discs) {
+            let playlist = GamePaths.roms.appending(path: title + ".m3u")
+            guard !FileManager.default.fileExists(atPath: playlist.path) else { continue }
+            let text = "# Discs of \(title), written by Duomulator\n" + discs.joined(separator: "\n") + "\n"
+            if (try? text.write(to: playlist, atomically: true, encoding: .utf8)) != nil { wrote = true }
+        }
+        return wrote
     }
 
     static func isROM(_ url: URL) -> Bool {
@@ -329,8 +353,10 @@ final class ROMLibrary: ObservableObject {
         // Collect saves before the ROM disappears, then remove the ROM first: if that fails,
         // the saves are left untouched.
         let saves = includingSaves ? ROMLibrary.saveFiles(for: entry.url) : []
-        let tracks = CueSheet.trackFiles(of: entry.url)
-            .map { entry.url.deletingLastPathComponent().appending(path: $0) }
+        let folder = entry.url.deletingLastPathComponent()
+        let discs = DiscPlaylist.entries(of: entry.url).map { folder.appending(path: $0) }
+        let tracks = (([entry.url] + discs).flatMap { CueSheet.trackFiles(of: $0) }
+            .map { folder.appending(path: $0) }) + discs
         try fm.removeItem(at: entry.url)
         for file in saves + tracks { try? fm.removeItem(at: file) }
         RecentlyPlayed.forget(entry.fileName)

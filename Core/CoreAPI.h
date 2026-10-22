@@ -37,3 +37,4 @@ extern const DuoCoreAPI duo_core_fceumm;
 extern const DuoCoreAPI duo_core_melonds;
 extern const DuoCoreAPI duo_core_picodrive;
 extern const DuoCoreAPI duo_core_fbneo;
+extern const DuoCoreAPI duo_core_pcsx;

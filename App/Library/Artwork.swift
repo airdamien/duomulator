@@ -301,6 +301,7 @@ actor BoxArtDownloader {
         case .sega32x: "Sega - 32X"
         case .segaCD: "Sega - Mega-CD - Sega CD"
         case .neoGeo, .cps, .arcade: "FBNeo - Arcade Games"
+        case .psx: "Sony - PlayStation"
         }
     }
 

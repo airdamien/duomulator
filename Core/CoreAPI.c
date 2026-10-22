@@ -131,6 +131,32 @@ unsigned fbneo_retro_get_region(void);
 void * fbneo_retro_get_memory_data(unsigned id);
 size_t fbneo_retro_get_memory_size(unsigned id);
 
+void pcsx_retro_set_environment(retro_environment_t);
+void pcsx_retro_set_video_refresh(retro_video_refresh_t);
+void pcsx_retro_set_audio_sample(retro_audio_sample_t);
+void pcsx_retro_set_audio_sample_batch(retro_audio_sample_batch_t);
+void pcsx_retro_set_input_poll(retro_input_poll_t);
+void pcsx_retro_set_input_state(retro_input_state_t);
+void pcsx_retro_init(void);
+void pcsx_retro_deinit(void);
+unsigned pcsx_retro_api_version(void);
+void pcsx_retro_get_system_info(struct retro_system_info *info);
+void pcsx_retro_get_system_av_info(struct retro_system_av_info *info);
+void pcsx_retro_set_controller_port_device(unsigned port, unsigned device);
+void pcsx_retro_reset(void);
+void pcsx_retro_run(void);
+size_t pcsx_retro_serialize_size(void);
+bool pcsx_retro_serialize(void *data, size_t size);
+bool pcsx_retro_unserialize(const void *data, size_t size);
+void pcsx_retro_cheat_reset(void);
+void pcsx_retro_cheat_set(unsigned index, bool enabled, const char *code);
+bool pcsx_retro_load_game(const struct retro_game_info *game);
+bool pcsx_retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info);
+void pcsx_retro_unload_game(void);
+unsigned pcsx_retro_get_region(void);
+void * pcsx_retro_get_memory_data(unsigned id);
+size_t pcsx_retro_get_memory_size(unsigned id);
+
 const DuoCoreAPI duo_core_snes9x = {
     .set_environment = snes9x_retro_set_environment,
     .set_video_refresh = snes9x_retro_set_video_refresh,
@@ -269,4 +295,32 @@ const DuoCoreAPI duo_core_fbneo = {
     .get_region = fbneo_retro_get_region,
     .get_memory_data = fbneo_retro_get_memory_data,
     .get_memory_size = fbneo_retro_get_memory_size,
+};
+
+const DuoCoreAPI duo_core_pcsx = {
+    .set_environment = pcsx_retro_set_environment,
+    .set_video_refresh = pcsx_retro_set_video_refresh,
+    .set_audio_sample = pcsx_retro_set_audio_sample,
+    .set_audio_sample_batch = pcsx_retro_set_audio_sample_batch,
+    .set_input_poll = pcsx_retro_set_input_poll,
+    .set_input_state = pcsx_retro_set_input_state,
+    .init = pcsx_retro_init,
+    .deinit = pcsx_retro_deinit,
+    .api_version = pcsx_retro_api_version,
+    .get_system_info = pcsx_retro_get_system_info,
+    .get_system_av_info = pcsx_retro_get_system_av_info,
+    .set_controller_port_device = pcsx_retro_set_controller_port_device,
+    .reset = pcsx_retro_reset,
+    .run = pcsx_retro_run,
+    .serialize_size = pcsx_retro_serialize_size,
+    .serialize = pcsx_retro_serialize,
+    .unserialize = pcsx_retro_unserialize,
+    .cheat_reset = pcsx_retro_cheat_reset,
+    .cheat_set = pcsx_retro_cheat_set,
+    .load_game = pcsx_retro_load_game,
+    .load_game_special = pcsx_retro_load_game_special,
+    .unload_game = pcsx_retro_unload_game,
+    .get_region = pcsx_retro_get_region,
+    .get_memory_data = pcsx_retro_get_memory_data,
+    .get_memory_size = pcsx_retro_get_memory_size,
 };

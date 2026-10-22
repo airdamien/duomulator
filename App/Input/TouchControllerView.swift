@@ -222,6 +222,13 @@ private final class ControllerSkin: CALayer {
     /// light neutral so they read on the dark panel).
     private static let nesFaceColor = UIColor(red: 0.82, green: 0.16, blue: 0.16, alpha: 1)
     private static let genesisFaceColor = UIColor(white: 0.62, alpha: 1)
+    /// PlayStation: green triangle, red circle, blue cross, pink square.
+    private static let playStationColors: [UInt32: UIColor] = [
+        SNESButtons.x.rawValue: UIColor(red: 0.20, green: 0.75, blue: 0.60, alpha: 1),
+        SNESButtons.a.rawValue: UIColor(red: 0.92, green: 0.30, blue: 0.35, alpha: 1),
+        SNESButtons.b.rawValue: UIColor(red: 0.40, green: 0.55, blue: 0.95, alpha: 1),
+        SNESButtons.y.rawValue: UIColor(red: 0.90, green: 0.50, blue: 0.80, alpha: 1),
+    ]
 
     var skinStyle: ControllerLayout.Style = .overlay
     var needsRebuild = true
@@ -286,6 +293,7 @@ private final class ControllerSkin: CALayer {
             case .nes: Self.nesFaceColor
             case .genesis3, .genesis6: Self.genesisFaceColor
             case .snes: Self.faceColors[button.rawValue] ?? .white
+            case .playstation: Self.playStationColors[button.rawValue] ?? .white
             }
             let rect = CGRect(x: center.x - layout.faceRadius, y: center.y - layout.faceRadius,
                               width: layout.faceRadius * 2, height: layout.faceRadius * 2)

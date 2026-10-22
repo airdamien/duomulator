@@ -237,7 +237,7 @@ enum Posture: Equatable, Sendable {
 
 /// A console the app can emulate. Each maps to one statically linked libretro core.
 enum GameSystem: String, CaseIterable, Sendable {
-    case snes, nes, nds, genesis, sega32x, segaCD, neoGeo, cps, arcade
+    case snes, nes, nds, genesis, sega32x, segaCD, neoGeo, cps, arcade, psx
 
     var displayName: String {
         switch self {
@@ -250,6 +250,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .neoGeo: "Neo Geo"
         case .cps: "Capcom CPS"
         case .arcade: "Arcade"
+        case .psx: "PlayStation"
         }
     }
 
@@ -262,6 +263,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .nes, .snes, .nds: "Nintendo"
         case .genesis, .sega32x, .segaCD: "Sega"
         case .neoGeo, .cps, .arcade: "Arcade"
+        case .psx: "Sony"
         }
     }
 
@@ -276,6 +278,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .nds: 2004
         case .cps: 1988
         case .neoGeo: 1990
+        case .psx: 1995
         // "Arcade" (every other board) is listed last.
         case .arcade: 9999
         }
@@ -290,19 +293,20 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .nds: "melonds"
         case .genesis, .sega32x, .segaCD: "picodrive"
         case .neoGeo, .cps, .arcade: "fbneo"
+        case .psx: "pcsx"
         }
     }
 
     /// The core opens the file itself: disc images (a .cue names its .bin tracks) and arcade
     /// sets (FinalBurn Neo reads the zip and finds BIOS sets such as neogeo.zip beside it),
     /// so the app passes the path instead of reading hundreds of MB into memory.
-    var loadsFromPath: Bool { self == .segaCD || isArcade }
+    var loadsFromPath: Bool { self == .segaCD || self == .psx || isArcade }
 
     /// Sega's consoles output 256- or 320-pixel-wide frames that a TV showed at 4:3 either
     /// way; nil means derive the shape from the frame (SNES/NES 8:7 pixels, DS square).
     var displayAspect: CGFloat? {
         switch self {
-        case .genesis, .sega32x, .segaCD: 4.0 / 3.0
+        case .genesis, .sega32x, .segaCD, .psx: 4.0 / 3.0
         default: nil
         }
     }
@@ -324,8 +328,10 @@ enum GameSystem: String, CaseIterable, Sendable {
     /// NES (A/B, Select/Start), or the Genesis 3-button (A/B/C) / 6-button (also X/Y/Z) pad
     /// with Start. Sega games pick 3 or 6 per game (`GenesisPad`).
     enum PadStyle: Equatable, Sendable {
-        case snes, nes, genesis3, genesis6
+        case snes, nes, genesis3, genesis6, playstation
         var isGenesis: Bool { self == .genesis3 || self == .genesis6 }
+        /// Four face buttons in a diamond with L/R shoulders (SNES, DS, arcade, PlayStation).
+        var isDiamond: Bool { self == .snes || self == .playstation }
     }
 
     /// Default pad for the system; Sega systems default to the 6-button pad.
@@ -334,11 +340,12 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .snes, .nds, .neoGeo, .cps, .arcade: .snes
         case .nes: .nes
         case .genesis, .sega32x, .segaCD: .genesis6
+        case .psx: .playstation
         }
     }
 
     /// Whether the pad has L/R shoulder buttons (and X/Y).
-    var hasShoulderButtons: Bool { padStyle == .snes }
+    var hasShoulderButtons: Bool { padStyle.isDiamond }
 
     /// ROM file extensions (lowercase, without the dot). `.zip` is handled separately.
     var romExtensions: Set<String> {
@@ -352,6 +359,8 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .segaCD: ["cue", "chd"]
         // Arcade sets are .zip / .7z named after the set; see `GameSystem.of(rom:)`.
         case .neoGeo, .cps, .arcade: []
+        // .cue / .chd are shared with Sega CD; `GameSystem.of(rom:)` looks inside.
+        case .psx: ["pbp", "m3u"]
         }
     }
 
@@ -367,6 +376,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .sega32x: "32X"
         case .segaCD: "SegaCD"
         case .neoGeo, .cps, .arcade: "Arcade"
+        case .psx: "PSX"
         }
     }
 
@@ -386,6 +396,12 @@ enum GameSystem: String, CaseIterable, Sendable {
         let ext = rom.pathExtension.lowercased()
         if ext == "bin" { return isSega32XCartridge(rom) ? .sega32x : .genesis }
         if ext == "7z" { return ArcadeCatalog.system(forSet: rom) }
+        if ext == "cue" || ext == "chd" { return DiscImage.system(of: rom) }
+        if ext == "m3u" {
+            // A multi-disc playlist is whatever its first disc is.
+            return DiscPlaylist.entries(of: rom).first
+                .flatMap { GameSystem.of(rom: rom.deletingLastPathComponent().appending(path: $0)) } ?? .psx
+        }
         if ext != "zip" { return GameSystem(romExtension: ext) }
         guard let handle = try? FileHandle(forReadingFrom: rom) else { return nil }
         defer { try? handle.close() }
@@ -483,4 +499,96 @@ enum GamePaths {
     /// Every importable extension: all systems' ROMs plus `.zip`.
     static let romExtensions: Set<String> = GameSystem.allCases
         .reduce(into: ["zip", "7z"]) { $0.formUnion($1.romExtensions) }
+}
+
+// MARK: - Disc images
+
+/// Tells PlayStation discs from Sega CD ones, which share the .cue / .chd formats: PlayStation
+/// discs are CD-ROM XA "Mode 2", Sega CD discs "Mode 1".
+enum DiscImage {
+    static func system(of disc: URL) -> GameSystem? {
+        let mode: Int?
+        switch disc.pathExtension.lowercased() {
+        case "cue": mode = cueDataMode(disc)
+        case "chd": mode = chdDataMode(disc)
+        default: mode = nil
+        }
+        guard FileManager.default.fileExists(atPath: disc.path) else { return nil }
+        return mode == 2 ? .psx : .segaCD
+    }
+
+    /// Mode of the first data track in a cue sheet ("TRACK 01 MODE2/2352" -> 2).
+    static func cueDataMode(_ cue: URL) -> Int? {
+        guard let data = try? Data(contentsOf: cue), data.count < 1_000_000 else { return nil }
+        return dataMode(in: String(decoding: data, as: UTF8.self).uppercased())
+    }
+
+    /// Mode of the first data track in a CHD's CD metadata ("TYPE:MODE2_RAW" -> 2). Reads the
+    /// header's metadata offset (v5 at byte 48, v3/v4 at 36) and the first metadata entry.
+    static func chdDataMode(_ chd: URL) -> Int? {
+        guard let handle = try? FileHandle(forReadingFrom: chd) else { return nil }
+        defer { try? handle.close() }
+        guard let header = try? handle.read(upToCount: 124), header.count >= 56,
+              header.prefix(8) == Data("MComprHD".utf8) else { return nil }
+        let bytes = [UInt8](header)
+        func be(_ at: Int, _ count: Int) -> UInt64 { (0..<count).reduce(0) { $0 << 8 | UInt64(bytes[at + $1]) } }
+        let version = be(12, 4)
+        var offset = version >= 5 ? be(48, 8) : be(36, 8)
+        // Walk a few metadata entries: tag(4) flags+length(4) next(8) data.
+        for _ in 0..<8 where offset > 0 {
+            guard (try? handle.seek(toOffset: offset)) != nil,
+                  let entry = try? handle.read(upToCount: 16), entry.count == 16 else { return nil }
+            let e = [UInt8](entry)
+            let length = Int(e[5]) << 16 | Int(e[6]) << 8 | Int(e[7])
+            let next = (8..<16).reduce(UInt64(0)) { $0 << 8 | UInt64(e[$1]) }
+            if let text = try? handle.read(upToCount: min(length, 512)),
+               let mode = dataMode(in: String(decoding: text, as: UTF8.self).uppercased()) {
+                return mode
+            }
+            offset = next
+        }
+        return nil
+    }
+
+    private static func dataMode(in text: String) -> Int? {
+        if text.contains("MODE2") { return 2 }
+        if text.contains("MODE1") { return 1 }
+        return nil
+    }
+}
+
+/// .m3u multi-disc playlists: one disc file name per line ("#" lines are comments).
+enum DiscPlaylist {
+    static func entries(of m3u: URL) -> [String] {
+        guard let data = try? Data(contentsOf: m3u), data.count < 100_000 else { return [] }
+        return String(decoding: data, as: UTF8.self).split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && !$0.hasPrefix("#") && !$0.contains("/") }
+    }
+
+    /// Groups disc files named like "Game Disc 1.chd", "Game (Disc 2).chd", "Game CD3.chd",
+    /// "Game (1of2).chd" by game, for files that make up more than one disc. Returns
+    /// playlist name -> disc file names in disc order.
+    static func groups(in fileNames: [String]) -> [String: [String]] {
+        let pattern = try! NSRegularExpression(
+            pattern: #"^(.*?)[\s\-_]*[\(\[]?(?:disc|disk|cd)\s*(\d+)(?:\s*of\s*\d+)?[\)\]]?(.*)\.(chd|cue|pbp)$|^(.*?)\s*\((\d+)\s*of\s*\d+\)(.*)\.(chd|cue|pbp)$"#,
+            options: [.caseInsensitive])
+        var byGame: [String: [(Int, String)]] = [:]
+        for name in fileNames {
+            let range = NSRange(name.startIndex..., in: name)
+            guard let m = pattern.firstMatch(in: name, range: range) else { continue }
+            let first = m.range(at: 1).location != NSNotFound ? 1 : 5
+            func group(_ i: Int) -> String {
+                Range(m.range(at: i), in: name).map { String(name[$0]) } ?? ""
+            }
+            // Per-disc serials ("[SLUS_013.13]" / "[SLUS_013.14]") don't make different games.
+            let rest = group(first + 2).replacingOccurrences(of: #"\[[^\]]*\]"#, with: "", options: .regularExpression)
+            let title = (group(first) + rest)
+                .trimmingCharacters(in: CharacterSet(charactersIn: " -_"))
+            guard let disc = Int(group(first + 1)), !title.isEmpty else { continue }
+            byGame[title, default: []].append((disc, name))
+        }
+        return byGame.filter { $0.value.count > 1 }
+            .mapValues { $0.sorted { $0.0 < $1.0 }.map(\.1) }
+    }
 }

@@ -395,6 +395,11 @@ final class GameViewController: UIViewController {
             core.setCoreOption("picodrive_input1", pad.coreOptionValue)
             menuView.update(menuState())
         }
+        menuView.onDisc = { [weak self] index in
+            guard let self else { return }
+            if core.insertDisc(index) { toast.show("Disc \(index + 1) inserted") }
+            menuView.update(menuState())
+        }
         menuView.onReset = { [weak self] in self?.confirmReset() }
         menuView.onQuit = { [weak self] in self?.exit(unloadCore: true) }
     }
@@ -416,7 +421,8 @@ final class GameViewController: UIViewController {
             filter: renderView.filter,
             genesisPad: genesisPad.map { _ in
                 (GenesisPad.override(for: rom), GenesisPad.automatic(for: rom))
-            })
+            },
+            discs: core.discCount > 1 ? (core.discCount, core.currentDisc) : nil)
     }
 
     private func toggleMenu() {
