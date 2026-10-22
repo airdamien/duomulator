@@ -434,7 +434,10 @@ final class GameViewController: UIViewController {
             bounds: view.bounds,
             safeArea: view.safeAreaInsets,
             occlusions: postureMonitor.occlusionFrames,
-            controllerConnected: lastControllerConnected)
+            // Testing hook (launch argument `-layoutIgnoresGamepads YES`): the Simulator
+            // forwards the Mac's paired gamepads, which would otherwise hide the touch controls.
+            controllerConnected: lastControllerConnected
+                && !UserDefaults.standard.bool(forKey: "layoutIgnoresGamepads"))
         lastLayoutKind = posture.kind
 
         renderView.frame = frames.game

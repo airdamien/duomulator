@@ -51,7 +51,10 @@ final class QuickActionBar: UIView {
         config.title = title
         config.image = UIImage(systemName: symbol,
                                withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold))
-        config.imagePadding = 6
+        config.imagePadding = 4
+        // Four buttons share ~90pt each on the outer display; keep titles on one line.
+        config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8)
+        config.titleLineBreakMode = .byTruncatingTail
         config.cornerStyle = .capsule
         config.baseForegroundColor = .white
         config.baseBackgroundColor = UIColor(white: 1, alpha: 0.12)

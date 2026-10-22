@@ -32,8 +32,8 @@ static float2 frame_uv(float2 uv, constant GameUniforms &u) {
     return clamp(uv * u.uvMax, u.texel * 0.5, u.uvMax - u.texel * 0.5);
 }
 
-/// Hardware path: `b5g6r5Unorm` texture (R in the high 5 bits, as libretro's RGB565), filtered
-/// by the sampler the view picks (nearest or linear).
+/// Samples the BGRA8 frame texture (expanded from libretro RGB565 on upload) with the sampler
+/// the view picks (nearest or linear).
 fragment float4 game_fragment_rgb565(GameVertexOut in [[stage_in]],
                                      texture2d<float> tex [[texture(0)]],
                                      sampler smp [[sampler(0)]],

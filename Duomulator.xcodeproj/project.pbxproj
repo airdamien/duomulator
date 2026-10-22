@@ -10,23 +10,34 @@
 		01872160937E14B167248FC6 /* smp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CFCBC013F80275EE163D4F26 /* smp.cpp */; };
 		0389926CB7AD7B5FD8760189 /* tile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB1BCD5A24F1410EF2B8C6 /* tile.cpp */; };
 		0B32EDDCE799A22361FB92DD /* GameShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 14572CF561A8773DCEDD1124 /* GameShaders.metal */; };
+		0CCDA7D14E768D8A06C8EE73 /* CoreShim.c in Sources */ = {isa = PBXBuildFile; fileRef = 2A303702E60BFB9FF4A43835 /* CoreShim.c */; };
+		10B0FDC3D2173C569BBB42AD /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2394688CA40094A86C55004C /* AppSettings.swift */; };
 		19D08CA366632E61C4C7FEE0 /* dsp2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1134CA2B67641867CF32E557 /* dsp2.cpp */; };
+		1D6CEAC6ABB8D6DD2A290DB4 /* ZipArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A10854970BC63691AAFC506 /* ZipArchive.swift */; };
 		21E03612AC25BE2B8827A5F1 /* msu1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67971E29AA64BF5E4ED96251 /* msu1.cpp */; };
 		27491D7FBBACAE3CB108001F /* dsp4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD05A4A7D8E7AA09D3A841F1 /* dsp4.cpp */; };
 		28145FDD70D8BA9CBA20526F /* TouchControllerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C5D50EF9351E7A4D0F7913 /* TouchControllerView.swift */; };
 		2CCED1BE2749A6F864A96D02 /* libretro.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5DFC362B13233407B3610250 /* libretro.cpp */; };
+		341961B39982105381BBDD0B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BEE8F1C6DB6676D9DB0A3CCD /* Assets.xcassets */; };
+		3A8A9DD2F9C8445236115017 /* QuickActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DB00374AB46E6C204B65BA3 /* QuickActionBar.swift */; };
+		3E353F6EB720AEEF5B203987 /* GameLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = E89D80E1363355B83E5DA162 /* GameLauncher.swift */; };
 		43608AF2C56B1677C8A47092 /* controls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F1E8AD0A4B9DE0486361ECCA /* controls.cpp */; };
 		44CF515CBD73912F91009A57 /* snes_ntsc.c in Sources */ = {isa = PBXBuildFile; fileRef = CAB2C5275E41C1FFBC9FF7E5 /* snes_ntsc.c */; };
 		4729A47FB9D28B1BF3E309A9 /* snes9x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CA39C3BD92BDD2A30D61B16 /* snes9x.cpp */; };
+		4892F61D02B5F1711DB33CE2 /* cputest-deflate.zip in Resources */ = {isa = PBXBuildFile; fileRef = 63B5250C3744182808A9B9BE /* cputest-deflate.zip */; };
 		4E5FA505AFD161B7B7F2908B /* cpu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B3A169C727D3549BA6C49EA /* cpu.cpp */; };
 		50BC491FAD3399D0B5EB0C8F /* crosshairs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BB1AFD9546C2164DD35F8480 /* crosshairs.cpp */; };
+		53E68EAAC8F39A46DD33758B /* ROMLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D00BF5BC91FB83236EDE9C5 /* ROMLibrary.swift */; };
 		5405C2EA3F391E545365DF3A /* tileimpl-h2x1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B99AD3F2571AAA1E4AF708 /* tileimpl-h2x1.cpp */; };
 		56BB204B2F6CD48570C8C198 /* fscompat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA17380BA9312F3C47D3AEC5 /* fscompat.cpp */; };
 		5CE5A6808354DE22DFFD78F2 /* AudioOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B196E58EE584BFC9486D9D9 /* AudioOutput.swift */; };
+		5DB76B1922CB532E8EB8ED65 /* GameMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92F37D95A8EE9D419B2641C3 /* GameMenuView.swift */; };
 		5E3787A32CF3073D84379D98 /* libSNESCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 308A9AC8B3B008EE414C11A0 /* libSNESCore.a */; };
 		5F2D2CC4B0A3A84C47B5A527 /* sdd1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CF1AED567D676BF915CA94E1 /* sdd1.cpp */; };
+		5F4746CF7F78BDB3FBBC1DD3 /* ControllerLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA375F4CE055B8B9BB27BA8 /* ControllerLayout.swift */; };
 		6331D765A2DE2922D0ADAC99 /* cheats2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 31CB2A2165BE7E0C5A459485 /* cheats2.cpp */; };
 		672D517C048373089EA88ED7 /* EmulatorCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7C99BF6A2BFA349EF46C7A3 /* EmulatorCore.swift */; };
+		6EF68BC0D306076B2DD50E91 /* InputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0916E4BFAEA5E1423D6E1D5 /* InputTests.swift */; };
 		6F370D6DD68C61485CDDF20F /* SharedTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770BD6BE223A7151537A2743 /* SharedTypes.swift */; };
 		7068C60E3CB0DBC81DEBBE20 /* PostureMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A646E7C248F7D587EDF3ABD /* PostureMonitor.swift */; };
 		7D3C6C3FF67888EFC58E2D25 /* sha256.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E261634519602F37D896E08E /* sha256.cpp */; };
@@ -40,6 +51,7 @@
 		9D14241B3DA0233E6022B263 /* c4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 86BE89BB137069C4811B78E6 /* c4.cpp */; };
 		9EB248C6EC69BDA108CC6055 /* snapshot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AEA5AB9BA6BDFB9B04A970F2 /* snapshot.cpp */; };
 		A33BD0B03A47E9D27284957A /* srtc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BB579542D339FA5D8001C /* srtc.cpp */; };
+		AA0BAC94B5FE13B3D8FC888C /* cputest-stored.zip in Resources */ = {isa = PBXBuildFile; fileRef = ABD67ED26122BEFF8FBC121C /* cputest-stored.zip */; };
 		AAFB1AABDB19F8E6EEE2A7F1 /* sdd1emu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B23A6AAF08CA9C5D00162BE /* sdd1emu.cpp */; };
 		AC05D448438C136FCE2E3304 /* dsp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE5EDAEE7A05332260974FFE /* dsp.cpp */; };
 		B182148F5EA37587CC06D545 /* fxemu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB31FA2F154694E2A4023B31 /* fxemu.cpp */; };
@@ -52,7 +64,9 @@
 		BFD3A4F07B9DEA5865E8FBE0 /* obc1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FDD5909C6593AED978D72125 /* obc1.cpp */; };
 		C021CC4CEEB8B74C056AC5EA /* bsx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9DD8B6C69F6B05FD853C8081 /* bsx.cpp */; };
 		C0B1E2CC6403EBB33164E090 /* tileimpl-n1x1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52C4257094FD9B305ADA921E /* tileimpl-n1x1.cpp */; };
+		C2915338B542BCAA19F6F049 /* CxxRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F0E0513F3A5C31072569C853 /* CxxRuntime.cpp */; };
 		C54CDD2860E853849CCA2F63 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4563EFA30FEEF344BACFE7C0 /* GameViewController.swift */; };
+		C65DC708935FAFAE2A47D630 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A83C4A511F3C369C591CE272 /* LibraryView.swift */; };
 		CB611BD8C0D5421BB8A55967 /* GameRenderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C76315E52EBFA8C6E182EFB /* GameRenderView.swift */; };
 		CCA28AFF0B1F98A9298C7C01 /* movie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6AB377CDBB4F1656A59FDF18 /* movie.cpp */; };
 		CD13F6A73ADD6A0E07E4240D /* dma.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AFF53FFDC965ED6CA7EF4E06 /* dma.cpp */; };
@@ -61,7 +75,9 @@
 		D41E17596C9B99961A373908 /* sa1cpu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F1001F5DE24E4E484A9A29E /* sa1cpu.cpp */; };
 		D7EB16206B2523E55EB66627 /* memmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FDAA7797DF720F910ED92E0A /* memmap.cpp */; };
 		DAF697A8649CFE85572AD013 /* GameControllerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B5EF58BAC94F1B5DE144A98 /* GameControllerManager.swift */; };
+		DC02E95EF5D7B2E164DFBE43 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ACF21C73C8BD1B48D269CB8 /* SettingsView.swift */; };
 		DDE7F15A7FE60F01CB4400AE /* sa1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D6AE6927F7DFE95B56844D8 /* sa1.cpp */; };
+		DEE43C0FC5F7962AC7527B3C /* cputest-basic.sfc in Resources */ = {isa = PBXBuildFile; fileRef = 3BF59A67467C1D8A8159E775 /* cputest-basic.sfc */; };
 		DF70A3805D00086823067039 /* tileimpl-n2x1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A523A80C7124D4C5E255CE01 /* tileimpl-n2x1.cpp */; };
 		E0C76AEDA65F671415D71859 /* dsp3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 942201A80FBF786B56A6C1B0 /* dsp3.cpp */; };
 		E70E34D2653D5D6E20BA8FF9 /* fxinst.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE44553A5CB407395223CBB /* fxinst.cpp */; };
@@ -71,6 +87,7 @@
 		EA934C20208C91722471116D /* conffile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C82DC50DF3955F418CD5387A /* conffile.cpp */; };
 		EE2D62949D1FBCE12237F19C /* clip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCA0D057E590ED24B2BE4EC2 /* clip.cpp */; };
 		F239B8F83A9421A14E130CCB /* c4emu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0531A1CD020629B4C53F8ABA /* c4emu.cpp */; };
+		F4F44B09B4D82EF3DA9DA903 /* GameSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828F439F3640E8B47FD7D93D /* GameSettings.swift */; };
 		F88618C825755C243EBB47D7 /* apu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 621E06883702D4FA3FF0A750 /* apu.cpp */; };
 		FB8B19E7C46C5F75EF4D35BC /* screenshot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66562F56F660754CCFA18380 /* screenshot.cpp */; };
 /* End PBXBuildFile section */
@@ -101,29 +118,38 @@
 		14572CF561A8773DCEDD1124 /* GameShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = GameShaders.metal; sourceTree = "<group>"; };
 		1BD95D931A3C8253A923A174 /* DuomulatorTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DuomulatorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1CA7993315EE3DBA235EB9BE /* cheats.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cheats.cpp; sourceTree = "<group>"; };
+		1D00BF5BC91FB83236EDE9C5 /* ROMLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ROMLibrary.swift; sourceTree = "<group>"; };
 		1ECB1BCD5A24F1410EF2B8C6 /* tile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tile.cpp; sourceTree = "<group>"; };
+		2394688CA40094A86C55004C /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		29674C970B44FA745DEC138E /* bml.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bml.cpp; sourceTree = "<group>"; };
 		2A0BB579542D339FA5D8001C /* srtc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = srtc.cpp; sourceTree = "<group>"; };
+		2A303702E60BFB9FF4A43835 /* CoreShim.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CoreShim.c; sourceTree = "<group>"; };
+		2ACF21C73C8BD1B48D269CB8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		308A9AC8B3B008EE414C11A0 /* libSNESCore.a */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = archive.ar; path = libSNESCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		31CB2A2165BE7E0C5A459485 /* cheats2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cheats2.cpp; sourceTree = "<group>"; };
+		3BF59A67467C1D8A8159E775 /* cputest-basic.sfc */ = {isa = PBXFileReference; path = "cputest-basic.sfc"; sourceTree = "<group>"; };
 		3F1001F5DE24E4E484A9A29E /* sa1cpu.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sa1cpu.cpp; sourceTree = "<group>"; };
 		40BBF5135F62BC5805D920D3 /* Duomulator-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Duomulator-Bridging-Header.h"; sourceTree = "<group>"; };
 		41CDD98BEC8DDB42F8ACA202 /* cpuexec.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cpuexec.cpp; sourceTree = "<group>"; };
 		4563EFA30FEEF344BACFE7C0 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		4B3A169C727D3549BA6C49EA /* cpu.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cpu.cpp; sourceTree = "<group>"; };
+		4DB00374AB46E6C204B65BA3 /* QuickActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionBar.swift; sourceTree = "<group>"; };
 		52C4257094FD9B305ADA921E /* tileimpl-n1x1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "tileimpl-n1x1.cpp"; sourceTree = "<group>"; };
 		57D6E812EAA20C6E3E8F8A99 /* seta010.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = seta010.cpp; sourceTree = "<group>"; };
 		5B23A6AAF08CA9C5D00162BE /* sdd1emu.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sdd1emu.cpp; sourceTree = "<group>"; };
 		5DFC362B13233407B3610250 /* libretro.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libretro.cpp; sourceTree = "<group>"; };
 		621E06883702D4FA3FF0A750 /* apu.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = apu.cpp; sourceTree = "<group>"; };
+		63B5250C3744182808A9B9BE /* cputest-deflate.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "cputest-deflate.zip"; sourceTree = "<group>"; };
 		66562F56F660754CCFA18380 /* screenshot.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = screenshot.cpp; sourceTree = "<group>"; };
 		67971E29AA64BF5E4ED96251 /* msu1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = msu1.cpp; sourceTree = "<group>"; };
 		69FDF7257924DD386C9982CD /* seta.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = seta.cpp; sourceTree = "<group>"; };
+		6A10854970BC63691AAFC506 /* ZipArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipArchive.swift; sourceTree = "<group>"; };
 		6AB377CDBB4F1656A59FDF18 /* movie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = movie.cpp; sourceTree = "<group>"; };
 		770BD6BE223A7151537A2743 /* SharedTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTypes.swift; sourceTree = "<group>"; };
 		7CA39C3BD92BDD2A30D61B16 /* snes9x.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = snes9x.cpp; sourceTree = "<group>"; };
 		7D6AE6927F7DFE95B56844D8 /* sa1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sa1.cpp; sourceTree = "<group>"; };
 		80F3FEA367EC4CF3F1AC6907 /* globals.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = globals.cpp; sourceTree = "<group>"; };
+		828F439F3640E8B47FD7D93D /* GameSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSettings.swift; sourceTree = "<group>"; };
 		837D9CAF7C1A1D17355ABE9A /* dsp1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dsp1.cpp; sourceTree = "<group>"; };
 		85B1B7780E539CBB9BF7E732 /* Duomulator.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Duomulator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		86BE89BB137069C4811B78E6 /* c4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = c4.cpp; sourceTree = "<group>"; };
@@ -131,6 +157,7 @@
 		89AAFBC33744A0989C753B63 /* seta018.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = seta018.cpp; sourceTree = "<group>"; };
 		8A646E7C248F7D587EDF3ABD /* PostureMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostureMonitor.swift; sourceTree = "<group>"; };
 		8B196E58EE584BFC9486D9D9 /* AudioOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioOutput.swift; sourceTree = "<group>"; };
+		92F37D95A8EE9D419B2641C3 /* GameMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMenuView.swift; sourceTree = "<group>"; };
 		93D73CCFD7B7F8B5B2236BDE /* seta011.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = seta011.cpp; sourceTree = "<group>"; };
 		942201A80FBF786B56A6C1B0 /* dsp3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dsp3.cpp; sourceTree = "<group>"; };
 		9DD8B6C69F6B05FD853C8081 /* bsx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bsx.cpp; sourceTree = "<group>"; };
@@ -138,6 +165,8 @@
 		A1DEC6F42D67928D9EA4E3A4 /* CoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreTests.swift; sourceTree = "<group>"; };
 		A3B99AD3F2571AAA1E4AF708 /* tileimpl-h2x1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "tileimpl-h2x1.cpp"; sourceTree = "<group>"; };
 		A523A80C7124D4C5E255CE01 /* tileimpl-n2x1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "tileimpl-n2x1.cpp"; sourceTree = "<group>"; };
+		A83C4A511F3C369C591CE272 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		ABD67ED26122BEFF8FBC121C /* cputest-stored.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "cputest-stored.zip"; sourceTree = "<group>"; };
 		AD05A4A7D8E7AA09D3A841F1 /* dsp4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dsp4.cpp; sourceTree = "<group>"; };
 		AE5EDAEE7A05332260974FFE /* dsp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dsp.cpp; sourceTree = "<group>"; };
 		AE7E3A9302FAA373B253C274 /* spc7110.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = spc7110.cpp; sourceTree = "<group>"; };
@@ -146,20 +175,27 @@
 		B0FA5E15A54228F29E438CB2 /* sdsp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sdsp.cpp; sourceTree = "<group>"; };
 		B974EC6BBE0CDD86329C5191 /* stream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = stream.cpp; sourceTree = "<group>"; };
 		BB1AFD9546C2164DD35F8480 /* crosshairs.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = crosshairs.cpp; sourceTree = "<group>"; };
+		BEE8F1C6DB6676D9DB0A3CCD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BFA375F4CE055B8B9BB27BA8 /* ControllerLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerLayout.swift; sourceTree = "<group>"; };
 		C82DC50DF3955F418CD5387A /* conffile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = conffile.cpp; sourceTree = "<group>"; };
 		CAB2C5275E41C1FFBC9FF7E5 /* snes_ntsc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = snes_ntsc.c; sourceTree = "<group>"; };
 		CEA7A4A2962C04F8AF617EC2 /* gfx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gfx.cpp; sourceTree = "<group>"; };
 		CF1AED567D676BF915CA94E1 /* sdd1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sdd1.cpp; sourceTree = "<group>"; };
 		CFCBC013F80275EE163D4F26 /* smp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = smp.cpp; sourceTree = "<group>"; };
+		D00F749E8E1FC6A63D2B195A /* README */ = {isa = PBXFileReference; path = README; sourceTree = "<group>"; };
 		DB31FA2F154694E2A4023B31 /* fxemu.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = fxemu.cpp; sourceTree = "<group>"; };
 		DCA0D057E590ED24B2BE4EC2 /* clip.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = clip.cpp; sourceTree = "<group>"; };
 		E261634519602F37D896E08E /* sha256.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sha256.cpp; sourceTree = "<group>"; };
 		E7C99BF6A2BFA349EF46C7A3 /* EmulatorCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorCore.swift; sourceTree = "<group>"; };
+		E89D80E1363355B83E5DA162 /* GameLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLauncher.swift; sourceTree = "<group>"; };
 		EA17380BA9312F3C47D3AEC5 /* fscompat.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = fscompat.cpp; sourceTree = "<group>"; };
 		EB00389058559719A14B4AF4 /* cpuops.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cpuops.cpp; sourceTree = "<group>"; };
 		EDE44553A5CB407395223CBB /* fxinst.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = fxinst.cpp; sourceTree = "<group>"; };
+		F0916E4BFAEA5E1423D6E1D5 /* InputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputTests.swift; sourceTree = "<group>"; };
+		F0E0513F3A5C31072569C853 /* CxxRuntime.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CxxRuntime.cpp; sourceTree = "<group>"; };
 		F1E8AD0A4B9DE0486361ECCA /* controls.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = controls.cpp; sourceTree = "<group>"; };
 		F8C811C0E7FB3B11C276C030 /* ppu.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ppu.cpp; sourceTree = "<group>"; };
+		FB1F6856AC0CA9218A5E00E6 /* CoreShim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreShim.h; sourceTree = "<group>"; };
 		FDAA7797DF720F910ED92E0A /* memmap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = memmap.cpp; sourceTree = "<group>"; };
 		FDD5909C6593AED978D72125 /* obc1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = obc1.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -179,6 +215,7 @@
 		0184B2DB695D3E6BADC5AFED /* Input */ = {
 			isa = PBXGroup;
 			children = (
+				BFA375F4CE055B8B9BB27BA8 /* ControllerLayout.swift */,
 				0B5EF58BAC94F1B5DE144A98 /* GameControllerManager.swift */,
 				A1C5D50EF9351E7A4D0F7913 /* TouchControllerView.swift */,
 			);
@@ -189,6 +226,8 @@
 			isa = PBXGroup;
 			children = (
 				A1DEC6F42D67928D9EA4E3A4 /* CoreTests.swift */,
+				F0916E4BFAEA5E1423D6E1D5 /* InputTests.swift */,
+				84FDDB607829442F6CD45F3C /* Fixtures */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -323,9 +362,26 @@
 		7B709BA367B7451F5A15DAF6 /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				2394688CA40094A86C55004C /* AppSettings.swift */,
+				BEE8F1C6DB6676D9DB0A3CCD /* Assets.xcassets */,
 				0272EAF2546285AFC7F7A893 /* DuomulatorApp.swift */,
+				E89D80E1363355B83E5DA162 /* GameLauncher.swift */,
+				A83C4A511F3C369C591CE272 /* LibraryView.swift */,
+				1D00BF5BC91FB83236EDE9C5 /* ROMLibrary.swift */,
+				2ACF21C73C8BD1B48D269CB8 /* SettingsView.swift */,
 			);
 			path = Library;
+			sourceTree = "<group>";
+		};
+		84FDDB607829442F6CD45F3C /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				3BF59A67467C1D8A8159E775 /* cputest-basic.sfc */,
+				63B5250C3744182808A9B9BE /* cputest-deflate.zip */,
+				ABD67ED26122BEFF8FBC121C /* cputest-stored.zip */,
+				D00F749E8E1FC6A63D2B195A /* README */,
+			);
+			path = Fixtures;
 			sourceTree = "<group>";
 		};
 		8DAA8DFBB67B32F5E3CF44C6 /* Audio */ = {
@@ -372,8 +428,12 @@
 		EE1F26672D7250A8BE1FC9D5 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				2A303702E60BFB9FF4A43835 /* CoreShim.c */,
+				FB1F6856AC0CA9218A5E00E6 /* CoreShim.h */,
+				F0E0513F3A5C31072569C853 /* CxxRuntime.cpp */,
 				40BBF5135F62BC5805D920D3 /* Duomulator-Bridging-Header.h */,
 				E7C99BF6A2BFA349EF46C7A3 /* EmulatorCore.swift */,
+				6A10854970BC63691AAFC506 /* ZipArchive.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -381,8 +441,11 @@
 		F7A36594996E7CE47F89E42F /* Duo */ = {
 			isa = PBXGroup;
 			children = (
+				92F37D95A8EE9D419B2641C3 /* GameMenuView.swift */,
+				828F439F3640E8B47FD7D93D /* GameSettings.swift */,
 				4563EFA30FEEF344BACFE7C0 /* GameViewController.swift */,
 				8A646E7C248F7D587EDF3ABD /* PostureMonitor.swift */,
+				4DB00374AB46E6C204B65BA3 /* QuickActionBar.swift */,
 			);
 			path = Duo;
 			sourceTree = "<group>";
@@ -420,6 +483,7 @@
 			buildConfigurationList = 2B315A78A315FEF2A28E70EC /* Build configuration list for PBXNativeTarget "Duomulator" */;
 			buildPhases = (
 				7CC476CC4F7FC65506AA66EC /* Sources */,
+				494DA7EE8418AF2A6F9402B1 /* Resources */,
 				5AA46C699BD55D8ED278CFD8 /* Frameworks */,
 			);
 			buildRules = (
@@ -439,6 +503,7 @@
 			buildConfigurationList = FE76A8377BF0E604DDC4F7DD /* Build configuration list for PBXNativeTarget "DuomulatorTests" */;
 			buildPhases = (
 				0AD81CD1A0F26F1075B1B722 /* Sources */,
+				311CCDD2951A5FAA76011AC5 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -496,12 +561,34 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		311CCDD2951A5FAA76011AC5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DEE43C0FC5F7962AC7527B3C /* cputest-basic.sfc in Resources */,
+				4892F61D02B5F1711DB33CE2 /* cputest-deflate.zip in Resources */,
+				AA0BAC94B5FE13B3D8FC888C /* cputest-stored.zip in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		494DA7EE8418AF2A6F9402B1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				341961B39982105381BBDD0B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		0AD81CD1A0F26F1075B1B722 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				B6D5260A0ACDAB38100C2811 /* CoreTests.swift in Sources */,
+				6EF68BC0D306076B2DD50E91 /* InputTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -509,16 +596,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				10B0FDC3D2173C569BBB42AD /* AppSettings.swift in Sources */,
 				5CE5A6808354DE22DFFD78F2 /* AudioOutput.swift in Sources */,
+				5F4746CF7F78BDB3FBBC1DD3 /* ControllerLayout.swift in Sources */,
+				0CCDA7D14E768D8A06C8EE73 /* CoreShim.c in Sources */,
+				C2915338B542BCAA19F6F049 /* CxxRuntime.cpp in Sources */,
 				D0A098E327207FE8347D9A2C /* DuomulatorApp.swift in Sources */,
 				672D517C048373089EA88ED7 /* EmulatorCore.swift in Sources */,
 				DAF697A8649CFE85572AD013 /* GameControllerManager.swift in Sources */,
+				3E353F6EB720AEEF5B203987 /* GameLauncher.swift in Sources */,
+				5DB76B1922CB532E8EB8ED65 /* GameMenuView.swift in Sources */,
 				CB611BD8C0D5421BB8A55967 /* GameRenderView.swift in Sources */,
+				F4F44B09B4D82EF3DA9DA903 /* GameSettings.swift in Sources */,
 				0B32EDDCE799A22361FB92DD /* GameShaders.metal in Sources */,
 				C54CDD2860E853849CCA2F63 /* GameViewController.swift in Sources */,
+				C65DC708935FAFAE2A47D630 /* LibraryView.swift in Sources */,
 				7068C60E3CB0DBC81DEBBE20 /* PostureMonitor.swift in Sources */,
+				3A8A9DD2F9C8445236115017 /* QuickActionBar.swift in Sources */,
+				53E68EAAC8F39A46DD33758B /* ROMLibrary.swift in Sources */,
+				DC02E95EF5D7B2E164DFBE43 /* SettingsView.swift in Sources */,
 				6F370D6DD68C61485CDDF20F /* SharedTypes.swift in Sources */,
 				28145FDD70D8BA9CBA20526F /* TouchControllerView.swift in Sources */,
+				1D6CEAC6ABB8D6DD2A290DB4 /* ZipArchive.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

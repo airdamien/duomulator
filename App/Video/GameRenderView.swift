@@ -213,8 +213,17 @@ final class GameRenderView: UIView {
             let texture = gpu.textures[slot]
             // Lock held only for the copy into the texture.
             let uploaded = frameBuffer.withLatestFrame { frame, pixels -> (Int, Int, UInt64) in
+                let count = frame.width * frame.height
+                let src = pixels.assumingMemoryBound(to: UInt16.self)
+                let dst = gpu.staging
+                for i in 0..<count {
+                    let p = UInt32(src[i])
+                    let r = (p >> 11) & 0x1F, g = (p >> 5) & 0x3F, b = p & 0x1F
+                    dst[i] = 0xFF00_0000
+                        | ((r << 3 | r >> 2) << 16) | ((g << 2 | g >> 4) << 8) | (b << 3 | b >> 2)
+                }
                 texture.replace(region: MTLRegionMake2D(0, 0, frame.width, frame.height),
-                                mipmapLevel: 0, withBytes: pixels, bytesPerRow: frame.width * 2)
+                                mipmapLevel: 0, withBytes: dst, bytesPerRow: frame.width * 4)
                 return (frame.width, frame.height, frame.sequence)
             }
             currentSlot = slot
@@ -281,6 +290,8 @@ final class GameRenderView: UIView {
         let nearestSampler: MTLSamplerState
         let linearSampler: MTLSamplerState
         let textures: [MTLTexture]
+        /// BGRA8 conversion buffer for one max-size frame; main thread only.
+        let staging = UnsafeMutablePointer<UInt32>.allocate(capacity: FrameBuffer.maxWidth * FrameBuffer.maxHeight)
         let inFlight = DispatchSemaphore(value: slotCount)
 
         init?() {
@@ -309,10 +320,11 @@ final class GameRenderView: UIView {
             nearestSampler = nearest
             linearSampler = linear
 
-            // b5g6r5Unorm is packed least-significant-first: B in bits 0-4, R in bits 11-15,
-            // which is exactly libretro's RGB565.
+            // RGB565 is expanded to BGRA8 on upload: b5g6r5Unorm would avoid that, but the
+            // iOS Simulator's Metal rejects it, and one path that's testable everywhere is worth
+            // the ~57K pixel conversion per frame.
             let tex = MTLTextureDescriptor.texture2DDescriptor(
-                pixelFormat: .b5g6r5Unorm, width: FrameBuffer.maxWidth,
+                pixelFormat: .bgra8Unorm, width: FrameBuffer.maxWidth,
                 height: FrameBuffer.maxHeight, mipmapped: false)
             tex.usage = .shaderRead
             tex.storageMode = .shared
@@ -323,5 +335,7 @@ final class GameRenderView: UIView {
             }
             self.textures = textures
         }
+
+        deinit { staging.deallocate() }
     }
 }
