@@ -129,7 +129,7 @@ struct LibraryView: View {
         ContentUnavailableView {
             Label("No Games Yet", systemImage: "gamecontroller")
         } description: {
-            Text("Add ROMs with +, from the Files app (On My iPhone ▸ Duomulator ▸ ROMs), or via Finder over USB.\n\nSupported: .sfc .smc .swc .fig .bs .st .zip")
+            Text("Add ROMs with +, from the Files app (On My iPhone ▸ Duomulator ▸ ROMs), or via Finder over USB.\n\nSNES: .sfc .smc .swc .fig .bs .st\nNES: .nes .unf\nZipped ROMs (.zip) work too.")
         } actions: {
             Button { showingImporter = true } label: {
                 Label("Add ROMs", systemImage: "plus")
@@ -220,6 +220,13 @@ private struct ROMRow: View {
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                 HStack(spacing: 6) {
+                    if let system = entry.system {
+                        Text(system.displayName)
+                            .font(.caption.weight(.bold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 1)
+                            .background(.secondary.opacity(0.2), in: Capsule())
+                    }
                     Text(entry.fileExtension)
                     Text("·")
                     Text(Self.sizeFormatter.string(fromByteCount: entry.fileSize))

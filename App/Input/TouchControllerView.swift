@@ -16,6 +16,14 @@ final class TouchControllerView: UIView {
             setNeedsLayout()
         }
     }
+    /// Which console's pad to show (NES has no X/Y/L/R).
+    var system: GameSystem = .snes {
+        didSet {
+            guard system != oldValue else { return }
+            releaseAllTouches()
+            setNeedsLayout()
+        }
+    }
     /// Called when the on-screen menu button is tapped.
     var onMenu: (() -> Void)?
 
@@ -53,7 +61,7 @@ final class TouchControllerView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         let newLayout = ControllerLayout(bounds: bounds, safeArea: safeAreaInsets,
-                                         style: style.layoutStyle)
+                                         style: style.layoutStyle, system: system)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         skin.frame = bounds
@@ -193,6 +201,8 @@ private final class ControllerSkin: CALayer {
         SNESButtons.x.rawValue: UIColor(red: 0.28, green: 0.47, blue: 0.92, alpha: 1),
         SNESButtons.y.rawValue: UIColor(red: 0.22, green: 0.70, blue: 0.40, alpha: 1),
     ]
+    /// The NES pad's A and B are both red.
+    private static let nesFaceColor = UIColor(red: 0.82, green: 0.16, blue: 0.16, alpha: 1)
     private static let faceLabels: [UInt32: String] = [
         SNESButtons.a.rawValue: "A", SNESButtons.b.rawValue: "B",
         SNESButtons.x.rawValue: "X", SNESButtons.y.rawValue: "Y",
@@ -257,7 +267,7 @@ private final class ControllerSkin: CALayer {
         // Face buttons: tinted fill, colored ring, label in a lighter shade of the button color.
         let fontSize = max(13, layout.faceRadius * 0.85)
         for (button, center) in layout.faceButtons {
-            let color = Self.faceColors[button.rawValue] ?? .white
+            let color = layout.system == .nes ? Self.nesFaceColor : Self.faceColors[button.rawValue] ?? .white
             let rect = CGRect(x: center.x - layout.faceRadius, y: center.y - layout.faceRadius,
                               width: layout.faceRadius * 2, height: layout.faceRadius * 2)
             let fill = color.withAlphaComponent(panel ? 0.22 : 0.20)
@@ -281,7 +291,7 @@ private final class ControllerSkin: CALayer {
             (.select, layout.selectRect, "SELECT", 10),
             (.start, layout.startRect, "START", 10),
         ]
-        for (button, rect, title, size) in small {
+        for (button, rect, title, size) in small where !rect.isNull {
             let radius = button == .l || button == .r ? min(rect.height / 2, 14) : rect.height / 2
             let shape = Self.shape(UIBezierPath(roundedRect: rect, cornerRadius: radius),
                                    fill: neutral, stroke: stroke)

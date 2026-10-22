@@ -510,6 +510,7 @@
 		D41E17596C9B99961A373908 /* sa1cpu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F1001F5DE24E4E484A9A29E /* sa1cpu.cpp */; };
 		D4E6D133A248B13A87B06F71 /* 79.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AFA4A297B9501B26DEB6AB9 /* 79.c */; };
 		D55C2CBC8B601C8946C184D4 /* oekakids.c in Sources */ = {isa = PBXBuildFile; fileRef = 1362CB7DFC636016F6033AD2 /* oekakids.c */; };
+		D55F46CD40008120C994A05B /* NESInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C45DC49D966A5C094609BEC2 /* NESInputTests.swift */; };
 		D56FD8D3233B8F7807EC3400 /* lh53.c in Sources */ = {isa = PBXBuildFile; fileRef = 5A0276224F0FD3E0760DE54A /* lh53.c */; };
 		D57291B269F3DA73D12DEBCB /* rtime.c in Sources */ = {isa = PBXBuildFile; fileRef = 690913725318FBA407B4FF5A /* rtime.c */; };
 		D617F49A117CCF42F0EB5FF6 /* 382.c in Sources */ = {isa = PBXBuildFile; fileRef = 4AE0663435494069725606FA /* 382.c */; };
@@ -1143,6 +1144,7 @@
 		C2C850FE39FD612FD05C0685 /* 372.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 372.c; sourceTree = "<group>"; };
 		C35FBBD9A5D7A7219C66CE70 /* fceu.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fceu.c; sourceTree = "<group>"; };
 		C3A4E69A831B9E53799C428A /* 595.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 595.c; sourceTree = "<group>"; };
+		C45DC49D966A5C094609BEC2 /* NESInputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESInputTests.swift; sourceTree = "<group>"; };
 		C4D225F3076EFB333F87F016 /* compat_strl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = compat_strl.c; sourceTree = "<group>"; };
 		C4FC175060D42F701139CAF5 /* 430.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 430.c; sourceTree = "<group>"; };
 		C536563C1160B3CD40F5C4CF /* 418.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 418.c; sourceTree = "<group>"; };
@@ -1829,6 +1831,7 @@
 				A1DEC6F42D67928D9EA4E3A4 /* CoreTests.swift */,
 				F0916E4BFAEA5E1423D6E1D5 /* InputTests.swift */,
 				CD4C58AB1C6E55F7A4477A38 /* NESCoreTests.swift */,
+				C45DC49D966A5C094609BEC2 /* NESInputTests.swift */,
 				84FDDB607829442F6CD45F3C /* Fixtures */,
 			);
 			path = Tests;
@@ -2353,6 +2356,7 @@
 				B6D5260A0ACDAB38100C2811 /* CoreTests.swift in Sources */,
 				6EF68BC0D306076B2DD50E91 /* InputTests.swift in Sources */,
 				F5D641430DC261BF06385D8D /* NESCoreTests.swift in Sources */,
+				D55F46CD40008120C994A05B /* NESInputTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

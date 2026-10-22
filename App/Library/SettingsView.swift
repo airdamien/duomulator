@@ -61,7 +61,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Game Controller")
                 } footer: {
-                    Text("Buttons map by position, not label: the right face button is A and the bottom is B, as on a SNES pad. Touch controls hide while a controller is connected.")
+                    Text("Buttons map by position, not label: the right face button is A and the bottom is B, as on a SNES pad (and the NES pad's A and B). Touch controls hide while a controller is connected, except below the fold in DS mode.")
                 }
 
                 Section {
@@ -69,7 +69,7 @@ struct SettingsView: View {
                 } header: {
                     Text("About")
                 } footer: {
-                    Text("Duomulator uses the snes9x emulation core, used under its non-commercial license. Duomulator includes no games: only play ROMs dumped from cartridges you own.")
+                    Text("Duomulator uses the snes9x emulation core (SNES), used under its non-commercial license, and FCEUmm (NES), under the GPL-2.0. Duomulator includes no games: only play ROMs dumped from cartridges you own.")
                 }
             }
             .navigationTitle("Settings")

@@ -11,6 +11,8 @@ struct ROMEntry: Identifiable, Hashable {
     let hasSuspendState: Bool
     /// A battery save (.srm) exists.
     let hasSRAM: Bool
+    /// Console the ROM is for; nil if it can't be told (e.g. a zip with no known ROM inside).
+    let system: GameSystem?
 
     var id: URL { url }
     var fileName: String { url.lastPathComponent }
@@ -45,7 +47,7 @@ final class ROMLibrary: ObservableObject {
         var problemSummary: String? {
             var lines: [String] = []
             if !unsupported.isEmpty {
-                lines.append("Not SNES ROMs (\(GamePaths.romExtensions.sorted().joined(separator: ", ")) only): "
+                lines.append("Not SNES or NES ROMs (\(GamePaths.romExtensions.sorted().joined(separator: ", ")) only): "
                              + unsupported.joined(separator: ", "))
             }
             if !duplicates.isEmpty {
@@ -95,10 +97,13 @@ final class ROMLibrary: ObservableObject {
             guard ROMLibrary.isROM(url) else { return nil }
             let values = try? url.resourceValues(forKeys: Set(keys))
             guard values?.isRegularFile ?? true else { return nil }
+            // Detected once here: for zips this reads the archive's directory.
+            let system = GameSystem.of(rom: url)
             return ROMEntry(url: url.standardizedFileURL,
                             fileSize: Int64(values?.fileSize ?? 0),
-                            hasSuspendState: fm.fileExists(atPath: GamePaths.state(for: url, slot: 0).path),
-                            hasSRAM: fm.fileExists(atPath: GamePaths.sram(for: url).path))
+                            hasSuspendState: fm.fileExists(atPath: GamePaths.state(for: url, slot: 0, system: system).path),
+                            hasSRAM: fm.fileExists(atPath: GamePaths.sram(for: url, system: system).path),
+                            system: system)
         }
         .sorted { lhs, rhs in
             let order = lhs.title.localizedStandardCompare(rhs.title)
@@ -228,10 +233,13 @@ final class ROMLibrary: ObservableObject {
     static func saveFiles(for rom: URL) -> [URL] {
         let fm = FileManager.default
         var files: [URL] = []
-        let sram = GamePaths.sram(for: rom)
+        let system = GameSystem.of(rom: rom)
+        let sram = GamePaths.sram(for: rom, system: system)
         if fm.fileExists(atPath: sram.path) { files.append(sram) }
         let prefix = rom.deletingPathExtension().lastPathComponent + ".s"
-        let states = (try? fm.contentsOfDirectory(at: GamePaths.states, includingPropertiesForKeys: nil)) ?? []
+        // NES states live in their own subfolder; ask GamePaths rather than assume.
+        let statesFolder = GamePaths.state(for: rom, slot: 0, system: system).deletingLastPathComponent()
+        let states = (try? fm.contentsOfDirectory(at: statesFolder, includingPropertiesForKeys: nil)) ?? []
         for state in states {
             let name = state.lastPathComponent
             guard name.hasPrefix(prefix) else { continue }

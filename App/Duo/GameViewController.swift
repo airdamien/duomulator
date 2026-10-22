@@ -65,6 +65,7 @@ final class GameViewController: UIViewController {
         view.addSubview(renderView)
 
         touchView = TouchControllerView(style: .overlay)
+        touchView.system = GameSystem.of(rom: rom) ?? .snes
         touchView.onMenu = { [weak self] in self?.openMenu() }
         view.addSubview(touchView)
 

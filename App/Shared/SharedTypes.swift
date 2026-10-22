@@ -224,6 +224,9 @@ enum GameSystem: String, CaseIterable, Sendable {
         }
     }
 
+    /// Whether the pad has L/R shoulder buttons (and X/Y); the NES pad has only A/B.
+    var hasShoulderButtons: Bool { self == .snes }
+
     /// ROM file extensions (lowercase, without the dot). `.zip` is handled separately.
     var romExtensions: Set<String> {
         switch self {

@@ -18,16 +18,17 @@ enum TouchControl: Equatable, Sendable {
 // MARK: - Geometry
 
 /// Pure geometry for the on-screen controller: where every control sits for a given size and
-/// style, and which SNES buttons a point presses. No UIKit state, so it is unit-testable and
+/// style, and which buttons a point presses. NES layouts drop L/R and use two face buttons. No UIKit state, so it is unit-testable and
 /// shared by drawing and hit-testing (what you see is exactly what you can press).
 struct ControllerLayout: Equatable, Sendable {
     enum Style: Equatable, Sendable { case overlay, panel }
 
     let style: Style
+    let system: GameSystem
     /// Center and outer radius of the d-pad cross.
     let dpadCenter: CGPoint
     let dpadRadius: CGFloat
-    /// Center of the A/B/X/Y diamond, center-to-button distance, and each button's radius.
+    /// Center of the face-button cluster, center-to-button distance, and each button's radius.
     let faceCenter: CGPoint
     let faceSpacing: CGFloat
     let faceRadius: CGFloat
@@ -56,8 +57,9 @@ struct ControllerLayout: Equatable, Sendable {
 
     /// Lays out controls inside `bounds` minus `safeArea`. Control sizes scale with the
     /// available space, clamped so they stay thumb-sized on both small and large areas.
-    init(bounds: CGRect, safeArea: UIEdgeInsets = .zero, style: Style) {
+    init(bounds: CGRect, safeArea: UIEdgeInsets = .zero, style: Style, system: GameSystem = .snes) {
         self.style = style
+        self.system = system
         let isPanel = style == .panel
         let margin: CGFloat = isPanel ? 14 : 10
         let area = bounds.inset(by: safeArea).insetBy(dx: margin, dy: margin)
@@ -106,10 +108,16 @@ struct ControllerLayout: Equatable, Sendable {
         dpadRadius = size / 2
         faceCenter = CGPoint(x: area.maxX - size / 2, y: clusterY)
         faceSpacing = size * 0.32
-        faceRadius = size * 0.18
+        // NES: two buttons, so each can be bigger.
+        faceRadius = size * (system == .nes ? 0.21 : 0.18)
 
-        lRect = CGRect(x: area.minX, y: area.minY, width: shoulderW, height: shoulderH)
-        rRect = CGRect(x: area.maxX - shoulderW, y: area.minY, width: shoulderW, height: shoulderH)
+        if system.hasShoulderButtons {
+            lRect = CGRect(x: area.minX, y: area.minY, width: shoulderW, height: shoulderH)
+            rRect = CGRect(x: area.maxX - shoulderW, y: area.minY, width: shoulderW, height: shoulderH)
+        } else {
+            lRect = .null
+            rRect = .null
+        }
         menuRect = CGRect(x: area.midX - menuSize / 2, y: area.minY + (shoulderH - menuSize) / 2,
                           width: menuSize, height: menuSize)
 
@@ -125,9 +133,17 @@ struct ControllerLayout: Equatable, Sendable {
         startRect = CGRect(x: area.midX + ssGap / 2, y: ssY, width: ssW, height: ssH)
     }
 
-    /// The four face buttons in the SNES diamond: X top, A right, B bottom, Y left.
+    /// Face buttons. SNES: the diamond, X top, A right, B bottom, Y left. NES: B lower-left
+    /// and A upper-right on a diagonal like the original pad; the gap between them is within
+    /// both hit radii, so a thumb there presses B+A (run + jump).
     var faceButtons: [(button: SNESButtons, center: CGPoint)] {
         let c = faceCenter, d = faceSpacing
+        if system == .nes {
+            return [
+                (.b, CGPoint(x: c.x - d * 0.75, y: c.y + d * 0.3)),
+                (.a, CGPoint(x: c.x + d * 0.75, y: c.y - d * 0.3)),
+            ]
+        }
         return [
             (.x, CGPoint(x: c.x, y: c.y - d)),
             (.a, CGPoint(x: c.x + d, y: c.y)),
