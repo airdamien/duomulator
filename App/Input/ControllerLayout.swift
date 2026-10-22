@@ -191,10 +191,13 @@ struct ControllerLayout: Equatable, Sendable {
             rRect = CGRect(x: area.maxX - shoulderW, y: area.minY, width: shoulderW, height: shoulderH)
             zRect = .null
         } else if pad == .n64 {
-            // L and Z share the left shoulder slot; R on the right.
-            let half = (shoulderW - gap / 2) / 2
-            lRect = CGRect(x: area.minX, y: area.minY, width: half, height: shoulderH)
-            zRect = CGRect(x: area.minX + half + gap / 2, y: area.minY, width: half, height: shoulderH)
+            // L and Z side by side on the left, with a thumb's gap between them and clear of
+            // the menu button; R on the right.
+            let lzGap: CGFloat = 16
+            let room = area.midX - menuSize / 2 - 12 - area.minX
+            let each = max(44, min(shoulderW * 0.62, (room - lzGap) / 2))
+            lRect = CGRect(x: area.minX, y: area.minY, width: each, height: shoulderH)
+            zRect = CGRect(x: area.minX + each + lzGap, y: area.minY, width: each, height: shoulderH)
             rRect = CGRect(x: area.maxX - shoulderW, y: area.minY, width: shoulderW, height: shoulderH)
         } else {
             lRect = .null

@@ -32,7 +32,9 @@ final class N64Tests: XCTestCase {
             XCTAssertEqual(l.startRect.midX, l.menuRect.midX, accuracy: 0.5)
             XCTAssertEqual(l.label(for: .cUp), "▲", "arrows only on the yellow buttons")
             XCTAssertFalse(l.zRect.isNull)
-            XCTAssertFalse(l.zRect.intersects(l.lRect), "Z beside L")
+            XCTAssertGreaterThanOrEqual(l.zRect.minX - l.lRect.maxX, 16, "a gap between L and Z")
+            XCTAssertLessThan(l.zRect.maxX, l.menuRect.minX, "Z clear of the menu button at \(size)")
+            XCTAssertGreaterThanOrEqual(l.lRect.width, 80, "L wide enough to hit at \(size)")
             XCTAssertTrue(l.selectRect.isNull)
             let buttons = l.faceButtons
             XCTAssertEqual(Set(buttons.map(\.button.rawValue)),

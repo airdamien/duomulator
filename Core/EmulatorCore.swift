@@ -771,6 +771,9 @@ final class EmulatorCore: @unchecked Sendable {
         var deadline = mach_absolute_time()
         var lastSRAMCheck = deadline
         var lastConsumed = 0
+        // Speed report every 10 s (log category "core"): how close the core keeps to full speed.
+        var speedWindowStart = deadline
+        var speedWindowFrames = 0
 
         while true {
             runCondition.lock()
@@ -795,7 +798,15 @@ final class EmulatorCore: @unchecked Sendable {
                 if usesHardwareRender { duo_hw_make_current() }
                 api.run()
                 framesSinceLoad += 1
+                speedWindowFrames += 1
                 let now = mach_absolute_time()
+                let window = Double(now &- speedWindowStart) / ticksPerSecond
+                if window >= 10 {
+                    let fps = Double(speedWindowFrames) / window
+                    log.notice("speed: \(fps, format: .fixed(precision: 1)) fps of \(self.frameRate, format: .fixed(precision: 1)) (\(Int(fps / self.frameRate * 100))%)\(turbo ? " fast-forward" : "", privacy: .public)")
+                    speedWindowStart = now
+                    speedWindowFrames = 0
+                }
                 if now &- lastSRAMCheck >= sramInterval {
                     lastSRAMCheck = now
                     flushSRAMLocked()

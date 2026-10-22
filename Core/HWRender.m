@@ -95,6 +95,13 @@ bool duo_hw_start(int width, int height) {
         duo_hw_stop();
         return false;
     }
+    // Start black: GLideN64 doesn't draw the edge rows/columns outside its viewport, and
+    // uninitialised renderbuffer memory would show there.
+    glViewport(0, 0, width, height);
+    glClearColor(0, 0, 0, 1);
+    glClearDepthf(1);
+    glClearStencil(0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     readback = malloc((size_t)width * (size_t)height * 4);
     if (request.context_reset) request.context_reset();
     started = true;
