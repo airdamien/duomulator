@@ -238,12 +238,14 @@ struct LibraryView: View {
     private static var didOpenRequestedFolder = false
 
     private func openFolderIfRequested() {
+        #if DEBUG
         guard !Self.didOpenRequestedFolder else { return }
         Self.didOpenRequestedFolder = true
         guard path.isEmpty, let raw = UserDefaults.standard.string(forKey: "openLibraryFolder") else { return }
         if raw == "bios" { path = [.bios]; return }
         guard let system = GameSystem(rawValue: raw) else { return }
         path = [.maker(system.manufacturer), .system(system)]
+        #endif
     }
 
     private func play(_ entry: ROMEntry) {

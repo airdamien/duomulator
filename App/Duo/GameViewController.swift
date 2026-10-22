@@ -52,6 +52,7 @@ final class GameViewController: UIViewController {
     /// Set while half open: the screen holds the orientation that puts the fold across it,
     /// game on the upper panel and controls on the lower one in the player's hands.
     private var orientationLock: UIInterfaceOrientationMask?
+    private var didHintSideways = false
     private var lastControllerConnected = false
     private var observers: [NSObjectProtocol] = []
     private let log = Logger(subsystem: "io.kurast.duomulator", category: "game")
@@ -182,6 +183,12 @@ final class GameViewController: UIViewController {
         }
         orientationLock = mask
         setNeedsUpdateOfSupportedInterfaceOrientations()
+        if sideways && !didHintSideways {
+            // The inner display doesn't always honor orientation requests; if the screen
+            // stays sideways, the player needs to turn the device instead.
+            didHintSideways = true
+            toast.show("Turn iPhone so the fold runs across the screen")
+        }
         if target != current {
             scene.requestGeometryUpdate(.iOS(interfaceOrientations: mask)) { [weak self] error in
                 self?.log.error("rotating out of sideways half-fold failed: \(error.localizedDescription, privacy: .public)")
@@ -532,7 +539,10 @@ final class GameViewController: UIViewController {
     /// Testing hook (launch argument `-layoutIgnoresGamepads YES`): the Simulator forwards
     /// the Mac's paired gamepads, which would otherwise hide the overlay controls.
     private var gamepadHidesOverlay: Bool {
-        lastControllerConnected && !UserDefaults.standard.bool(forKey: "layoutIgnoresGamepads")
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: "layoutIgnoresGamepads") { return false }
+        #endif
+        return lastControllerConnected
     }
 
     private func updateOverlayVisibility(animated: Bool) {
@@ -604,6 +614,7 @@ final class GameViewController: UIViewController {
             InputHub.shared.set([], source: .touch)
         }
         if let bar = frames.quickBar {
+            quickBar.isVertical = frames.quickBarVertical
             quickBar.frame = bar
             quickBar.alpha = 1
             quickBar.isUserInteractionEnabled = true
@@ -639,6 +650,8 @@ enum GameLayout {
         var menuArea: CGRect
         /// Dual-screen systems: where the touch screen goes (controls flank it).
         var secondScreen: CGRect? = nil
+        /// Duo outer display: the quick bar stands at the right edge.
+        var quickBarVertical = false
     }
 
     /// Controls are always laid out; with a gamepad connected the game screen hides the
@@ -652,9 +665,40 @@ enum GameLayout {
         switch posture {
         case .tent(let division):
             return tent(division: division, bounds: bounds, safe: safe, occlusions: occlusions)
-        case .flat, .closed:
+        case .flat:
             return flat(bounds: bounds, safe: safe, occlusions: occlusions)
+        case .closed:
+            return closed(bounds: bounds, safe: safe, occlusions: occlusions)
         }
+    }
+
+    /// Duo outer display: like flat, but the quick bar stands at the right edge, in the strip
+    /// the system reserves there for its own bars (the right safe-area inset), vertically
+    /// centered to keep clear of the Dynamic Island. Without such a strip it takes one from
+    /// the play area. The menu card sits beside it.
+    private static func closed(bounds: CGRect, safe: CGRect, occlusions: [CGRect]) -> Frames {
+        let barWidth = QuickActionBar.verticalWidth
+        let height = max(0, min(QuickActionBar.verticalHeight, safe.height - 16))
+        let inset = bounds.maxX - safe.maxX
+        var frames: Frames
+        let barX: CGFloat
+        if inset >= barWidth + 8 {
+            frames = flat(bounds: bounds, safe: safe, occlusions: occlusions)
+            barX = safe.maxX + (inset - barWidth) / 2
+        } else {
+            let stripMinX = safe.maxX - barWidth - 8
+            var playBounds = bounds
+            playBounds.size.width = max(0, stripMinX - bounds.minX)
+            var playSafe = safe
+            playSafe.size.width = max(0, stripMinX - safe.minX)
+            frames = flat(bounds: playBounds, safe: playSafe, occlusions: occlusions)
+            barX = safe.maxX - barWidth
+        }
+        frames.quickBar = CGRect(x: barX, y: safe.midY - height / 2, width: barWidth, height: height).integral
+        frames.quickBarVertical = true
+        let cardWidth = min(safe.width, 380)
+        frames.menuArea = CGRect(x: safe.maxX - cardWidth, y: safe.minY, width: cardWidth, height: safe.height)
+        return frames
     }
 
     private static func tent(division: CGRect, bounds: CGRect, safe: CGRect, occlusions: [CGRect]) -> Frames {

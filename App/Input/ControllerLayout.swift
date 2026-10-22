@@ -206,6 +206,16 @@ struct ControllerLayout: Equatable, Sendable {
         }
         menuRect = CGRect(x: area.midX - menuSize / 2, y: area.minY + (shoulderH - menuSize) / 2,
                           width: menuSize, height: menuSize)
+        if !isPanel && area.height > area.width {
+            // Tall overlay (a phone in portrait): bring the shoulder row down to sit just above
+            // the clusters, within thumb reach, instead of at the top of the control area.
+            let top = max(area.minY, clusterY - size / 2 - gap * 2 - shoulderH)
+            let dy = top - area.minY
+            lRect = lRect.offsetBy(dx: 0, dy: dy)
+            rRect = rRect.offsetBy(dx: 0, dy: dy)
+            zRect = zRect.offsetBy(dx: 0, dy: dy)
+            menuRect = menuRect.offsetBy(dx: 0, dy: dy)
+        }
 
         var ssY: CGFloat
         if !ssBetween {

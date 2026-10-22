@@ -186,6 +186,10 @@ final class PostureMonitor {
         // bottom) isn't a way to play, and the game screen rotates out of it.
         let crossFold = division.flatMap { $0.width >= $0.height ? $0 : nil }
 
+        #if DEBUG
+        // Testing hook: `-debugPosture closed` lays out as on the Duo's outer display.
+        if UserDefaults.standard.string(forKey: "debugPosture") == "closed" { return .closed }
+        #endif
         switch PostureOverride.current {
         case .forceFlat:
             return .flat

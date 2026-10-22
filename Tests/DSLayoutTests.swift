@@ -73,3 +73,41 @@ final class DSLayoutTests: XCTestCase {
         }
     }
 }
+
+/// Duo outer display: the quick bar stands at the right edge and nothing overlaps it.
+final class OuterDisplayLayoutTests: XCTestCase {
+    func testQuickBarMovesToTheRightEdge() {
+        for size in [CGSize(width: 466, height: 678), CGSize(width: 678, height: 466)] {
+            let bounds = CGRect(origin: .zero, size: size)
+            let insets = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0)
+            let frames = GameLayout.frames(system: .snes, posture: .closed, bounds: bounds,
+                                           safeArea: insets, occlusions: [])
+            let bar = try! XCTUnwrap(frames.quickBar)
+            XCTAssertTrue(frames.quickBarVertical)
+            XCTAssertLessThanOrEqual(bar.maxX, bounds.maxX)
+            XCTAssertGreaterThan(bar.minX, bounds.midX)
+            XCTAssertGreaterThan(bar.height, bar.width)
+            XCTAssertFalse(frames.game.intersects(bar), "\(size)")
+            XCTAssertFalse(try! XCTUnwrap(frames.controls).intersects(bar), "\(size)")
+        }
+    }
+
+    func testQuickBarUsesTheSystemSideStrip() {
+        // The outer display reserves a strip on the right for system bars.
+        let bounds = CGRect(x: 0, y: 0, width: 466, height: 678)
+        let insets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 84)
+        let frames = GameLayout.frames(system: .snes, posture: .closed, bounds: bounds,
+                                       safeArea: insets, occlusions: [])
+        let bar = try! XCTUnwrap(frames.quickBar)
+        XCTAssertGreaterThanOrEqual(bar.minX, bounds.maxX - 84)
+        XCTAssertEqual(frames.game.width, 466 - 84, accuracy: 1)
+    }
+
+    func testRegularIPhoneKeepsHorizontalBar() {
+        let bounds = CGRect(x: 0, y: 0, width: 393, height: 852)
+        let frames = GameLayout.frames(system: .snes, posture: .flat, bounds: bounds,
+                                       safeArea: UIEdgeInsets(top: 59, left: 0, bottom: 34, right: 0),
+                                       occlusions: [])
+        XCTAssertFalse(frames.quickBarVertical)
+    }
+}

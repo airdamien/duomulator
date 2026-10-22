@@ -209,6 +209,7 @@
 		148ACA2ECD8007E33A12BD41 /* ARMInterpreter_LoadStore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E5B10978DC27E94E154E8B83 /* ARMInterpreter_LoadStore.cpp */; };
 		148DCE1B0F1A4D4A148DEB33 /* d_hyperpac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 350AC98FC655B2DD6CABE58B /* d_hyperpac.cpp */; };
 		14945839D0D50A1A34975C44 /* d_decocass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F14DDD05CFB25A245E40CDA /* d_decocass.cpp */; };
+		14A004196CBCDBEBE5C3C05A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0093AF815DC7E0214495E1BD /* PrivacyInfo.xcprivacy */; };
 		14DE8A3CED2EED5C0169FDCD /* d_namcos2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0C332E94689A50B823C23EBC /* d_namcos2.cpp */; };
 		15077B884D7F2444E535A66D /* 493.c in Sources */ = {isa = PBXBuildFile; fileRef = ABF28EDCEB00F3BD04FC26F7 /* 493.c */; };
 		152193FC5CF90B8B78BE893A /* d_millipede.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C12FEA751CF5DFFCBFCEF73 /* d_millipede.cpp */; };
@@ -2460,6 +2461,7 @@
 /* Begin PBXFileReference section */
 		001D583B9747AF9F280579CC /* cps3snd.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cps3snd.cpp; sourceTree = "<group>"; };
 		005900967FA5E7677964C850 /* ZSort.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ZSort.cpp; sourceTree = "<group>"; };
+		0093AF815DC7E0214495E1BD /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		00A03E75C51C95A50628B2AE /* d_astrocde.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_astrocde.cpp; sourceTree = "<group>"; };
 		00A124F3DE70EF788980EEF8 /* d_tsamurai.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_tsamurai.cpp; sourceTree = "<group>"; };
 		00ABD72A15D98B79A5E81E67 /* features_cpu.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = features_cpu.c; sourceTree = "<group>"; };
@@ -5729,6 +5731,7 @@
 		1E8EC37248CBFB1F284FC2F0 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				0093AF815DC7E0214495E1BD /* PrivacyInfo.xcprivacy */,
 				8DAA8DFBB67B32F5E3CF44C6 /* Audio */,
 				F7A36594996E7CE47F89E42F /* Duo */,
 				0184B2DB695D3E6BADC5AFED /* Input */,
@@ -9891,6 +9894,7 @@
 				551BDB6517819A29BD25681B /* Mupen64Plus-Next.txt in Resources */,
 				9A54579282FEA7BE35AC8A4A /* PCSX ReARMed.txt in Resources */,
 				3BAA42C9857C0D64FD2C2FED /* PicoDrive.txt in Resources */,
+				14A004196CBCDBEBE5C3C05A /* PrivacyInfo.xcprivacy in Resources */,
 				A8E8BBC2610E28C1FE94A0E7 /* RSP (cxd4).txt in Resources */,
 				C578161E9327A21687B57DB5 /* RSP HLE.txt in Resources */,
 				C0E7B52FD953CAB1FD84E4CD /* dr_libs.txt in Resources */,
@@ -12390,6 +12394,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/Vendor/snes9x/libretro";
 				INFOPLIST_KEY_CFBundleDisplayName = Duomulator;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIFileSharingEnabled = YES;
@@ -12798,6 +12804,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/Vendor/snes9x/libretro";
 				INFOPLIST_KEY_CFBundleDisplayName = Duomulator;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIFileSharingEnabled = YES;

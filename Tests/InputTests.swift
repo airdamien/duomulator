@@ -254,3 +254,34 @@ final class ScreenCornerTests: XCTestCase {
         XCTAssertEqual(layout, before)
     }
 }
+
+/// Tall overlay (phone in portrait): the shoulder row sits above the clusters and nothing overlaps.
+final class PortraitOverlayTests: XCTestCase {
+    func testControlsDoNotOverlapOnAnyPad() {
+        let pads: [(GameSystem, GameSystem.PadStyle?)] = [(.snes, nil), (.nes, nil), (.genesis, .genesis3),
+                                                          (.genesis, .genesis6), (.psx, nil), (.n64, nil)]
+        for size in [CGSize(width: 393, height: 520), CGSize(width: 375, height: 380), CGSize(width: 466, height: 380)] {
+            for (system, pad) in pads {
+                let l = ControllerLayout(bounds: CGRect(origin: .zero, size: size), style: .overlay,
+                                         system: system, pad: pad)
+                let d = l.dpadRadius
+                var rects: [(String, CGRect)] = [
+                    ("dpad", CGRect(x: l.dpadCenter.x - d, y: l.dpadCenter.y - d, width: 2 * d, height: 2 * d)),
+                    ("L", l.lRect), ("R", l.rRect), ("Z", l.zRect), ("menu", l.menuRect),
+                    ("select", l.selectRect), ("start", l.startRect),
+                ]
+                for (button, c) in l.faceButtons {
+                    let r = l.radius(for: button)
+                    rects.append(("face\(button.rawValue)", CGRect(x: c.x - r, y: c.y - r, width: 2 * r, height: 2 * r)))
+                }
+                rects = rects.filter { !$0.1.isNull && !$0.1.isEmpty }
+                for i in rects.indices {
+                    for j in rects.indices where j > i && !(rects[i].0.hasPrefix("face") && rects[j].0.hasPrefix("face")) {
+                        XCTAssertFalse(rects[i].1.insetBy(dx: 1, dy: 1).intersects(rects[j].1),
+                                       "\(system) \(pad.map { "\($0)" } ?? "") \(size): \(rects[i].0) overlaps \(rects[j].0)")
+                    }
+                }
+            }
+        }
+    }
+}

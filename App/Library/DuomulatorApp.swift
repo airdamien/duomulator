@@ -28,6 +28,7 @@ struct DuomulatorApp: App {
     /// "<file in Documents/ROMs>"` opens that game straight away. Launch arguments land in
     /// UserDefaults' argument domain, so normal launches never see the key.
     private static func autolaunchIfRequested() {
+        #if DEBUG
         // `.task` re-runs whenever the library reappears (e.g. after quitting a game), so
         // only honor the argument once per launch.
         guard !didAutolaunch,
@@ -38,5 +39,6 @@ struct DuomulatorApp: App {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             GameLauncher.play(rom) {}
         }
+        #endif
     }
 }
