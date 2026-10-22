@@ -47,7 +47,7 @@ final class ROMLibrary: ObservableObject {
         var problemSummary: String? {
             var lines: [String] = []
             if !unsupported.isEmpty {
-                lines.append("Not SNES or NES ROMs (\(GamePaths.romExtensions.sorted().joined(separator: ", ")) only): "
+                lines.append("Not SNES, NES or DS ROMs (\(GamePaths.romExtensions.sorted().joined(separator: ", ")) only): "
                              + unsupported.joined(separator: ", "))
             }
             if !duplicates.isEmpty {
@@ -74,7 +74,7 @@ final class ROMLibrary: ObservableObject {
 
     @Published private(set) var entries: [ROMEntry] = []
 
-    /// Entries grouped by console, folders in alphabetical order (NES, SNES) and games
+    /// Entries grouped by console, folders in alphabetical order (DS, NES, SNES) and games
     /// alphabetical within each; ROMs whose system can't be told come last. Empty groups are
     /// omitted.
     var sections: [(title: String, entries: [ROMEntry])] {

@@ -239,6 +239,7 @@
 		5405C2EA3F391E545365DF3A /* tileimpl-h2x1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B99AD3F2571AAA1E4AF708 /* tileimpl-h2x1.cpp */; };
 		545BED25528EC95D4C9D8FA4 /* DSi_I2C.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EE12C9352D7007A15D9A180 /* DSi_I2C.cpp */; };
 		5554516296B2F9BB59A68E22 /* 564.c in Sources */ = {isa = PBXBuildFile; fileRef = 055626EF80F227FDA9A0D663 /* 564.c */; };
+		555A20B73A0E781C5DC0A77B /* DSLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309AD75CFC8514FB575B9E38 /* DSLayoutTests.swift */; };
 		5595446D06C5574607779865 /* 536.c in Sources */ = {isa = PBXBuildFile; fileRef = E01E4A4DA764CC6EC94E2199 /* 536.c */; };
 		563ECB59B782637D3960EDDA /* 389.c in Sources */ = {isa = PBXBuildFile; fileRef = ABA15536C9BC846B65A83609 /* 389.c */; };
 		56BB204B2F6CD48570C8C198 /* fscompat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA17380BA9312F3C47D3AEC5 /* fscompat.cpp */; };
@@ -648,6 +649,7 @@
 		ECB5348D03AB22455C2D2113 /* 830118C.c in Sources */ = {isa = PBXBuildFile; fileRef = 97C91BCC5A01628F5CFBB6D4 /* 830118C.c */; };
 		ECB9F5590AF34D0132B8AE5C /* 60.c in Sources */ = {isa = PBXBuildFile; fileRef = D69F220B131E092941B66B2A /* 60.c */; };
 		ECC73BBCCB595A928970BD7C /* 568.c in Sources */ = {isa = PBXBuildFile; fileRef = 845873F4751B3FAFA773E224 /* 568.c */; };
+		ED27D2CAEA1EC9B58D788D55 /* DSTouchScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C23C299BDF2B66D65647D8CA /* DSTouchScreenView.swift */; };
 		EDBCBC6C26F8125509CAE4B4 /* bonza.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C76B7A03B088B785306EB5A /* bonza.c */; };
 		EE2D62949D1FBCE12237F19C /* clip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCA0D057E590ED24B2BE4EC2 /* clip.cpp */; };
 		EE604F74C3EBE10D189D6BEF /* ARM.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 481C2B0F3543F2F86BC778C2 /* ARM.cpp */; };
@@ -908,6 +910,7 @@
 		2F82A686651FE6EAE2FCC0A5 /* ffunicode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ffunicode.c; sourceTree = "<group>"; };
 		2FBE71E22BB588782EB6317F /* kof97.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = kof97.c; sourceTree = "<group>"; };
 		308A9AC8B3B008EE414C11A0 /* libSNESCore.a */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = archive.ar; path = libSNESCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		309AD75CFC8514FB575B9E38 /* DSLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSLayoutTests.swift; sourceTree = "<group>"; };
 		30DDF51F2BE335B9E743A49B /* 456.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 456.c; sourceTree = "<group>"; };
 		316DB5ABEF4C4CBD75B10F08 /* 246.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 246.c; sourceTree = "<group>"; };
 		317A6815965D4A0ED0EFA3D5 /* 190.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 190.c; sourceTree = "<group>"; };
@@ -1291,6 +1294,7 @@
 		C0CF5B95EE6962F02A47D79E /* 368.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 368.c; sourceTree = "<group>"; };
 		C1EA59AB3640747687B05C34 /* KS7032.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = KS7032.c; sourceTree = "<group>"; };
 		C2000182F5BD99932CC9BF61 /* bmc830425C4391t.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bmc830425C4391t.c; sourceTree = "<group>"; };
+		C23C299BDF2B66D65647D8CA /* DSTouchScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSTouchScreenView.swift; sourceTree = "<group>"; };
 		C2C850FE39FD612FD05C0685 /* 372.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 372.c; sourceTree = "<group>"; };
 		C35FBBD9A5D7A7219C66CE70 /* fceu.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fceu.c; sourceTree = "<group>"; };
 		C3A4E69A831B9E53799C428A /* 595.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 595.c; sourceTree = "<group>"; };
@@ -1486,6 +1490,7 @@
 			isa = PBXGroup;
 			children = (
 				BFA375F4CE055B8B9BB27BA8 /* ControllerLayout.swift */,
+				C23C299BDF2B66D65647D8CA /* DSTouchScreenView.swift */,
 				0B5EF58BAC94F1B5DE144A98 /* GameControllerManager.swift */,
 				A1C5D50EF9351E7A4D0F7913 /* TouchControllerView.swift */,
 			);
@@ -2064,6 +2069,7 @@
 			children = (
 				A1DEC6F42D67928D9EA4E3A4 /* CoreTests.swift */,
 				94A3B60EDEEF9898928E6545 /* DSCoreTests.swift */,
+				309AD75CFC8514FB575B9E38 /* DSLayoutTests.swift */,
 				F0916E4BFAEA5E1423D6E1D5 /* InputTests.swift */,
 				CD4C58AB1C6E55F7A4477A38 /* NESCoreTests.swift */,
 				C45DC49D966A5C094609BEC2 /* NESInputTests.swift */,
@@ -2772,6 +2778,7 @@
 			files = (
 				B6D5260A0ACDAB38100C2811 /* CoreTests.swift in Sources */,
 				2D94C3853418FF56924A03F2 /* DSCoreTests.swift in Sources */,
+				555A20B73A0E781C5DC0A77B /* DSLayoutTests.swift in Sources */,
 				6EF68BC0D306076B2DD50E91 /* InputTests.swift in Sources */,
 				F5D641430DC261BF06385D8D /* NESCoreTests.swift in Sources */,
 				D55F46CD40008120C994A05B /* NESInputTests.swift in Sources */,
@@ -2871,6 +2878,7 @@
 				66FA23C698CB1C97062011CB /* CoreAPI.c in Sources */,
 				0CCDA7D14E768D8A06C8EE73 /* CoreShim.c in Sources */,
 				C2915338B542BCAA19F6F049 /* CxxRuntime.cpp in Sources */,
+				ED27D2CAEA1EC9B58D788D55 /* DSTouchScreenView.swift in Sources */,
 				D0A098E327207FE8347D9A2C /* DuomulatorApp.swift in Sources */,
 				672D517C048373089EA88ED7 /* EmulatorCore.swift in Sources */,
 				DAF697A8649CFE85572AD013 /* GameControllerManager.swift in Sources */,

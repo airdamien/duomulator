@@ -25,6 +25,8 @@ struct ControllerLayout: Equatable, Sendable {
 
     let style: Style
     let system: GameSystem
+    /// Kept clear of controls (the DS touch screen); `.null` when there is none.
+    let reserved: CGRect
     /// Center and outer radius of the d-pad cross.
     let dpadCenter: CGPoint
     let dpadRadius: CGFloat
@@ -57,9 +59,13 @@ struct ControllerLayout: Equatable, Sendable {
 
     /// Lays out controls inside `bounds` minus `safeArea`. Control sizes scale with the
     /// available space, clamped so they stay thumb-sized on both small and large areas.
-    init(bounds: CGRect, safeArea: UIEdgeInsets = .zero, style: Style, system: GameSystem = .snes) {
+    /// `reserved` (in the same coordinates as `bounds`) is kept clear of controls: the DS
+    /// touch screen sits there, and the controls flank it the way they do on the handheld.
+    init(bounds: CGRect, safeArea: UIEdgeInsets = .zero, style: Style, system: GameSystem = .snes,
+         reserved: CGRect? = nil) {
         self.style = style
         self.system = system
+        self.reserved = reserved ?? .null
         let isPanel = style == .panel
         let margin: CGFloat = isPanel ? 14 : 10
         let area = bounds.inset(by: safeArea).insetBy(dx: margin, dy: margin)
@@ -82,6 +88,40 @@ struct ControllerLayout: Equatable, Sendable {
         let ssH: CGFloat = isPanel ? 28 : 24
         let ssGap: CGFloat = 20
         let topReserved = shoulderH + gap
+
+        if let reserved, !reserved.isNull, !reserved.isEmpty {
+            // Flanking layout: d-pad (with L and Select) left of the reserved rect, face
+            // buttons (with R and Start) right of it. No menu button; the quick bar has one.
+            let left = CGRect(x: area.minX, y: area.minY,
+                              width: max(0, reserved.minX - gap - area.minX), height: area.height)
+            let right = CGRect(x: reserved.maxX + gap, y: area.minY,
+                               width: max(0, area.maxX - reserved.maxX - gap), height: area.height)
+            let gutter = min(left.width, right.width)
+            let usable = area.height - topReserved - (ssH + gap)
+            let cluster = min(gutter, usable, isPanel ? 210 : 190)
+            guard cluster >= 60 else {
+                let c = CGPoint(x: bounds.midX, y: bounds.midY)
+                dpadCenter = c; dpadRadius = 0
+                faceCenter = c; faceSpacing = 0; faceRadius = 0
+                lRect = .null; rRect = .null; selectRect = .null; startRect = .null; menuRect = .null
+                return
+            }
+            let clusterY = area.minY + topReserved + usable / 2
+            dpadCenter = CGPoint(x: left.midX, y: clusterY)
+            dpadRadius = cluster / 2
+            faceCenter = CGPoint(x: right.midX, y: clusterY)
+            faceSpacing = cluster * 0.32
+            faceRadius = cluster * (system == .nes ? 0.21 : 0.18)
+            lRect = system.hasShoulderButtons
+                ? CGRect(x: left.minX, y: area.minY, width: left.width, height: shoulderH) : .null
+            rRect = system.hasShoulderButtons
+                ? CGRect(x: right.minX, y: area.minY, width: right.width, height: shoulderH) : .null
+            let w = min(ssW, gutter)
+            selectRect = CGRect(x: left.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
+            startRect = CGRect(x: right.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
+            menuRect = .null
+            return
+        }
 
         // Cluster size S: the d-pad's diameter and the face diamond's outer extent.
         var size = isPanel ? Self.clamp(min(area.width * 0.44, area.height * 0.7), 140, 210)
@@ -156,6 +196,8 @@ struct ControllerLayout: Equatable, Sendable {
 
     /// The control a finger landing at `point` attaches to, or nil for empty space.
     func control(at point: CGPoint) -> TouchControl? {
+        // Touch slop never reaches into the reserved area: those touches belong to the screen.
+        if reserved.contains(point) { return nil }
         if isOnMenu(point) { return .menu }
         if dpadRadius > 0, Self.distance(point, dpadCenter) <= dpadRadius * Self.dpadGrabScale {
             return .dpad

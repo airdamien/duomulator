@@ -1,7 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Home screen: one folder per console (NES, SNES); each opens that console's games with
+/// Home screen: one folder per console (DS, NES, SNES); each opens that console's games with
 /// import, delete, rename and launch.
 struct LibraryView: View {
     @EnvironmentObject private var library: ROMLibrary
@@ -153,7 +153,7 @@ struct LibraryView: View {
         ContentUnavailableView {
             Label("No Games Yet", systemImage: "gamecontroller")
         } description: {
-            Text("Add ROMs with +, from the Files app (On My iPhone ▸ Duomulator ▸ ROMs), or via Finder over USB.\n\nSNES: .sfc .smc .swc .fig .bs .st\nNES: .nes .unf\nZipped ROMs (.zip) work too.")
+            Text("Add ROMs with +, from the Files app (On My iPhone ▸ Duomulator ▸ ROMs), or via Finder over USB.\n\nSNES: .sfc .smc .swc .fig .bs .st\nNES: .nes .unf\nDS: .nds\nZipped ROMs (.zip) work too.")
         } actions: {
             Button { showingImporter = true } label: {
                 Label("Add ROMs", systemImage: "plus")

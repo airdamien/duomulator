@@ -24,6 +24,14 @@ final class TouchControllerView: UIView {
             setNeedsLayout()
         }
     }
+    /// Area (in this view's coordinates) to keep clear of controls: the DS touch screen.
+    var reservedRect: CGRect? {
+        didSet {
+            guard reservedRect != oldValue else { return }
+            releaseAllTouches()
+            setNeedsLayout()
+        }
+    }
     /// Called when the on-screen menu button is tapped.
     var onMenu: (() -> Void)?
 
@@ -61,7 +69,8 @@ final class TouchControllerView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         let newLayout = ControllerLayout(bounds: bounds, safeArea: safeAreaInsets,
-                                         style: style.layoutStyle, system: system)
+                                         style: style.layoutStyle, system: system,
+                                         reserved: reservedRect)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         skin.frame = bounds

@@ -11,12 +11,22 @@ import QuartzCore
 final class GameRenderView: UIView {
     enum Scaling { case aspectFit, integer }
     enum Filter { case nearest, linear }
+    /// Which part of the frame to show. Dual-screen (DS) frames stack the top screen above
+    /// the touch screen; two views can show one screen each, e.g. on either side of the fold.
+    enum Region { case full, topHalf, bottomHalf }
 
     var scaling: Scaling = .aspectFit {
         didSet { if scaling != oldValue { updateContentRect(); needsRedraw = true } }
     }
     var filter: Filter = .nearest {
         didSet { if filter != oldValue { needsRedraw = true } }
+    }
+    var region: Region = .full {
+        didSet { if region != oldValue { updateContentRect(); needsRedraw = true } }
+    }
+    /// Square pixels (DS) instead of the SNES/NES 8:7 pixel aspect.
+    var squarePixels = false {
+        didSet { if squarePixels != oldValue { updateContentRect(); needsRedraw = true } }
     }
 
     /// Where the game image is drawn, in this view's coordinates. Black letterbox elsewhere.
@@ -40,6 +50,11 @@ final class GameRenderView: UIView {
     private var needsRedraw = true
     /// Size of the last frame uploaded (drives aspect and integer steps).
     private var frameSize = (width: 256, height: 224)
+
+    /// Size of the part of the frame `region` shows.
+    private var visibleFrameSize: (width: Int, height: Int) {
+        region == .full ? frameSize : (frameSize.width, frameSize.height / 2)
+    }
     /// Texture slot holding the last uploaded frame; nil until the first upload.
     private var currentSlot: Int?
 
@@ -147,8 +162,10 @@ final class GameRenderView: UIView {
     /// Recomputes `contentRect` from the current bounds, scaling mode and frame shape.
     private func updateContentRect() {
         let scale = metalLayer.contentsScale
-        let pixelRect = Self.displayRect(frameWidth: frameSize.width, frameHeight: frameSize.height,
-                                         drawableSize: metalLayer.drawableSize, scaling: scaling)
+        let visible = visibleFrameSize
+        let pixelRect = Self.displayRect(frameWidth: visible.width, frameHeight: visible.height,
+                                         drawableSize: metalLayer.drawableSize, scaling: scaling,
+                                         squarePixels: squarePixels)
         let rect = CGRect(x: pixelRect.minX / scale, y: pixelRect.minY / scale,
                           width: pixelRect.width / scale, height: pixelRect.height / scale)
         if rect != contentRect {
@@ -162,15 +179,22 @@ final class GameRenderView: UIView {
     /// - integer: largest whole multiple of the (de-interlaced) line count that fits, keeping
     ///   the same aspect; falls back to aspectFit when not even 1x fits.
     static func displayRect(frameWidth: Int, frameHeight: Int, drawableSize: CGSize,
-                            scaling: Scaling) -> CGRect {
+                            scaling: Scaling, squarePixels: Bool = false) -> CGRect {
         let W = drawableSize.width.rounded(.down), H = drawableSize.height.rounded(.down)
         guard W > 0, H > 0, frameWidth > 0, frameHeight > 0 else { return .zero }
-        // Hi-res (512 wide) and interlaced (448/478 tall) frames cover the same screen area as
-        // their 256 x 224/239 counterparts.
-        let baseW = CGFloat(frameWidth > 256 ? frameWidth / 2 : frameWidth)
-        let baseH = CGFloat(frameHeight > 240 ? frameHeight / 2 : frameHeight)
-        // 256x224 → exactly 4:3; other shapes scale from there (8:7 pixel aspect).
-        let aspect = (4.0 / 3.0) * (baseW / 256) * (224 / baseH)
+        let baseW: CGFloat, baseH: CGFloat, aspect: CGFloat
+        if squarePixels {
+            baseW = CGFloat(frameWidth)
+            baseH = CGFloat(frameHeight)
+            aspect = baseW / baseH
+        } else {
+            // Hi-res (512 wide) and interlaced (448/478 tall) frames cover the same screen
+            // area as their 256 x 224/239 counterparts.
+            baseW = CGFloat(frameWidth > 256 ? frameWidth / 2 : frameWidth)
+            baseH = CGFloat(frameHeight > 240 ? frameHeight / 2 : frameHeight)
+            // 256x224 → exactly 4:3; other shapes scale from there (8:7 pixel aspect).
+            aspect = (4.0 / 3.0) * (baseW / 256) * (224 / baseH)
+        }
 
         var w: CGFloat = 0, h: CGFloat = 0
         if scaling == .integer {
@@ -247,8 +271,10 @@ final class GameRenderView: UIView {
         pass.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
 
         if let encoder = commands.makeRenderCommandEncoder(descriptor: pass) {
-            let rect = Self.displayRect(frameWidth: frameSize.width, frameHeight: frameSize.height,
-                                        drawableSize: drawableSize, scaling: scaling)
+            let visible = visibleFrameSize
+            let rect = Self.displayRect(frameWidth: visible.width, frameHeight: visible.height,
+                                        drawableSize: drawableSize, scaling: scaling,
+                                        squarePixels: squarePixels)
             if rect.width > 0, rect.height > 0 {
                 encoder.setViewport(MTLViewport(originX: Double(rect.minX), originY: Double(rect.minY),
                                                 width: Double(rect.width), height: Double(rect.height),
@@ -257,10 +283,13 @@ final class GameRenderView: UIView {
                 encoder.setFragmentTexture(gpu.textures[slot], index: 0)
                 encoder.setFragmentSamplerState(filter == .linear ? gpu.linearSampler : gpu.nearestSampler,
                                                 index: 0)
+                // The visible rows of the frame, in texture coordinates.
+                let texW = Float(FrameBuffer.maxWidth), texH = Float(FrameBuffer.maxHeight)
+                let top: Float = region == .bottomHalf ? Float(frameSize.height - visible.height) : 0
                 var uniforms = Uniforms(
-                    uvMax: SIMD2(Float(frameSize.width) / Float(FrameBuffer.maxWidth),
-                                 Float(frameSize.height) / Float(FrameBuffer.maxHeight)),
-                    texel: SIMD2(1 / Float(FrameBuffer.maxWidth), 1 / Float(FrameBuffer.maxHeight)))
+                    uvMin: SIMD2(0, top / texH),
+                    uvMax: SIMD2(Float(frameSize.width) / texW, (top + Float(visible.height)) / texH),
+                    texel: SIMD2(1 / texW, 1 / texH))
                 encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 0)
                 encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
             }
@@ -275,6 +304,7 @@ final class GameRenderView: UIView {
 
     /// Mirrors `GameUniforms` in GameShaders.metal.
     private struct Uniforms {
+        var uvMin: SIMD2<Float>
         var uvMax: SIMD2<Float>
         var texel: SIMD2<Float>
     }

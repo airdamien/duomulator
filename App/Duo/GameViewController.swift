@@ -16,7 +16,13 @@ final class GameViewController: UIViewController {
     static let quickSlot = 1
 
     private let core = EmulatorCore.shared
+    /// Console of `rom`, known before loading so the first layout is already right.
+    private lazy var system = GameSystem.of(rom: rom) ?? .snes
+    /// The game (for DS: the top screen).
     private var renderView: GameRenderView!
+    /// DS only: the touch screen (bottom half of the same frame) and its touch input.
+    private var bottomScreenView: GameRenderView?
+    private var touchScreen: DSTouchScreenView?
     private var touchView: TouchControllerView!
     private let quickBar = QuickActionBar()
     private let menuView = GameMenuView()
@@ -65,9 +71,26 @@ final class GameViewController: UIViewController {
         view.addSubview(renderView)
 
         touchView = TouchControllerView(style: .overlay)
-        touchView.system = GameSystem.of(rom: rom) ?? .snes
+        touchView.system = system
         touchView.onMenu = { [weak self] in self?.openMenu() }
         view.addSubview(touchView)
+
+        if system.isDualScreen {
+            // Both views read the same stacked frame; each shows one screen, square pixels.
+            renderView.region = .topHalf
+            renderView.squarePixels = true
+            let bottom = GameRenderView(frameBuffer: core.frameBuffer)
+            bottom.region = .bottomHalf
+            bottom.squarePixels = true
+            bottom.scaling = GameSettings.scaling
+            bottom.filter = GameSettings.filter
+            let touch = DSTouchScreenView()
+            touch.screenRect = { [weak bottom] in bottom?.contentRect ?? .zero }
+            bottom.addSubview(touch)
+            view.addSubview(bottom)   // above the control panel, which flanks it
+            bottomScreenView = bottom
+            touchScreen = touch
+        }
 
         quickBar.onSave = { [weak self] in self?.quickSave() }
         quickBar.onLoad = { [weak self] in self?.quickLoad() }
@@ -145,6 +168,7 @@ final class GameViewController: UIViewController {
         savedIdleTimerDisabled = UIApplication.shared.isIdleTimerDisabled
         UIApplication.shared.isIdleTimerDisabled = true
         renderView.startRendering()
+        bottomScreenView?.startRendering()
 
         guard core.hasState(slot: 0) else {
             beginPlaying()
@@ -204,6 +228,7 @@ final class GameViewController: UIViewController {
         audio?.stop()
         audio = nil
         renderView.stopRendering()
+        bottomScreenView?.stopRendering()
         let controllers = GameControllerManager.shared
         controllers.stop()
         controllers.onMenu = nil
@@ -254,7 +279,10 @@ final class GameViewController: UIViewController {
     private func sceneDidWake(_ note: Notification) {
         guard isOurScene(note), isSuspended, !hasExited else { return }
         isSuspended = false
-        if hasStarted && core.loadedROM != nil { renderView.startRendering() }
+        if hasStarted && core.loadedROM != nil {
+            renderView.startRendering()
+            bottomScreenView?.startRendering()
+        }
         resumeIfAllowed()
     }
 
@@ -333,10 +361,12 @@ final class GameViewController: UIViewController {
         menuView.onScaling = { [weak self] scaling in
             GameSettings.scaling = scaling
             self?.renderView.scaling = scaling
+            self?.bottomScreenView?.scaling = scaling
         }
         menuView.onFilter = { [weak self] filter in
             GameSettings.filter = filter
             self?.renderView.filter = filter
+            self?.bottomScreenView?.filter = filter
         }
         menuView.onReset = { [weak self] in self?.confirmReset() }
         menuView.onQuit = { [weak self] in self?.exit(unloadCore: true) }
@@ -432,6 +462,7 @@ final class GameViewController: UIViewController {
         guard renderView != nil else { return }
         let posture = postureMonitor.posture
         let frames = GameLayout.frames(
+            system: system,
             posture: posture,
             bounds: view.bounds,
             safeArea: view.safeAreaInsets,
@@ -447,9 +478,14 @@ final class GameViewController: UIViewController {
         lastFrames = frames
 
         renderView.frame = frames.game
+        if let bottom = frames.secondScreen {
+            bottomScreenView?.frame = bottom
+            touchScreen?.frame = bottomScreenView?.bounds ?? .zero
+        }
         if let controls = frames.controls {
             if touchView.style != frames.controlStyle { touchView.style = frames.controlStyle }
             touchView.frame = controls
+            touchView.reservedRect = frames.secondScreen.map { view.convert($0, to: touchView) }
             touchView.alpha = 1
             touchView.isUserInteractionEnabled = true
         } else {
@@ -491,12 +527,18 @@ enum GameLayout {
         var quickBar: CGRect?
         /// Where the pause menu card may go.
         var menuArea: CGRect
+        /// Dual-screen systems: where the touch screen goes (controls flank it).
+        var secondScreen: CGRect? = nil
     }
 
-    static func frames(posture: Posture, bounds: CGRect, safeArea: UIEdgeInsets,
-                                   occlusions: [CGRect], controllerConnected: Bool)
+    static func frames(system: GameSystem = .snes, posture: Posture, bounds: CGRect,
+                       safeArea: UIEdgeInsets, occlusions: [CGRect], controllerConnected: Bool)
         -> Frames {
         let safe = bounds.inset(by: safeArea)
+        if system.isDualScreen {
+            return dualScreen(posture: posture, bounds: bounds, safe: safe, occlusions: occlusions,
+                              controllerConnected: controllerConnected)
+        }
         switch posture {
         case .tent(let division):
             return tent(division: division, bounds: bounds, safe: safe, occlusions: occlusions,
@@ -579,6 +621,53 @@ enum GameLayout {
             below.origin.y = r.maxY + 4
         }
         return .init(game: game, controls: below, controlStyle: .overlay, quickBar: bar, menuArea: safe)
+    }
+
+    /// DS: top screen on the upper side of the fold (or of the screen's middle when flat or
+    /// closed); below it the quick bar, then the touch screen flanked by the controls. With a
+    /// gamepad connected the touch screen takes the whole lower area instead.
+    private static func dualScreen(posture: Posture, bounds: CGRect, safe: CGRect,
+                                   occlusions: [CGRect], controllerConnected: Bool) -> Frames {
+        var upper: CGRect
+        var lower: CGRect
+        if case .tent(let division) = posture, division.width >= division.height {
+            upper = CGRect(x: safe.minX, y: safe.minY,
+                           width: safe.width, height: max(0, division.minY - safe.minY))
+            lower = CGRect(x: bounds.minX, y: division.maxY,
+                           width: bounds.width, height: max(0, bounds.maxY - division.maxY))
+        } else {
+            let gap: CGFloat = 6
+            upper = CGRect(x: safe.minX, y: safe.minY,
+                           width: safe.width, height: max(0, safe.height / 2 - gap))
+            lower = CGRect(x: bounds.minX, y: upper.maxY + gap * 2,
+                           width: bounds.width, height: max(0, bounds.maxY - upper.maxY - gap * 2))
+        }
+        upper = upper.avoiding(occlusions)
+        lower = lower.avoiding(occlusions)
+        let top = aspectFit(in: upper.insetBy(dx: 4, dy: 4))   // a DS screen is 256x192 = 4:3
+
+        let row = lower.intersection(safe).isNull ? lower : lower.intersection(safe)
+        let barWidth = min(row.width - barInset * 2, barMaxWidth)
+        let bar = CGRect(x: row.midX - barWidth / 2, y: row.minY + 6,
+                         width: max(0, barWidth), height: QuickActionBar.preferredHeight).integral
+        var panel = lower
+        panel.origin.y = bar.maxY + 4
+        panel.size.height = max(0, lower.maxY - panel.minY)
+        let screenArea = panel.intersection(safe).isNull ? panel : panel.intersection(safe)
+
+        let bottom: CGRect
+        if controllerConnected {
+            bottom = aspectFit(in: screenArea.insetBy(dx: 4, dy: 4))
+        } else {
+            // Leave thumb-sized gutters for the d-pad and face buttons on either side.
+            let gutter = min(max(screenArea.width * 0.21, 110), 170)
+            let fit = CGRect(x: screenArea.minX + gutter, y: screenArea.minY + 4,
+                             width: max(0, screenArea.width - gutter * 2),
+                             height: max(0, screenArea.height - 8))
+            bottom = aspectFit(in: fit)
+        }
+        return .init(game: top, controls: controllerConnected ? nil : panel, controlStyle: .panel,
+                     quickBar: bar, menuArea: safe, secondScreen: bottom)
     }
 
     /// Largest 4:3 rect centered in `rect`, snapped to whole points.

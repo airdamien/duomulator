@@ -4,9 +4,11 @@ using namespace metal;
 // Shaders for GameRenderView. The frame is drawn as one full-viewport quad; the viewport is
 // set to the letterboxed content rect on the CPU side, and the clear color provides the bars.
 
-/// Must match `GameRenderView.Uniforms` in Swift (two float2s, 16 bytes).
+/// Must match `GameRenderView.Uniforms` in Swift (three float2s, 24 bytes).
 struct GameUniforms {
-    /// Frame size / texture size: the frame occupies the top-left of a max-size texture.
+    /// The shown part of the frame in texture coordinates: the frame occupies the top-left of
+    /// a max-size texture, and a dual-screen view may show only its top or bottom half.
+    float2 uvMin;
     float2 uvMax;
     /// 1 / texture size, used to keep samples half a texel inside the frame.
     float2 texel;
@@ -26,10 +28,10 @@ vertex GameVertexOut game_vertex(uint vid [[vertex_id]]) {
     return out;
 }
 
-/// Maps the quad's 0...1 uv onto the frame's sub-rect, clamped half a texel inside it so linear
-/// filtering never blends in stale pixels from beyond the frame's right/bottom edge.
+/// Maps the quad's 0...1 uv onto the shown sub-rect, clamped half a texel inside it so linear
+/// filtering never blends in pixels from beyond its edges (stale texture or the other screen).
 static float2 frame_uv(float2 uv, constant GameUniforms &u) {
-    return clamp(uv * u.uvMax, u.texel * 0.5, u.uvMax - u.texel * 0.5);
+    return clamp(mix(u.uvMin, u.uvMax, uv), u.uvMin + u.texel * 0.5, u.uvMax - u.texel * 0.5);
 }
 
 /// Samples the BGRA8 frame texture (expanded from libretro RGB565 on upload) with the sampler
