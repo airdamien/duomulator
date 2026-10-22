@@ -86,7 +86,41 @@ final class InputHub: Sendable {
 
     func clearAll() {
         for slot in slots { slot.bits.store(0, ordering: .relaxed) }
+        for slot in sticks { slot.bits.store(0, ordering: .relaxed) }
         setPointer(x: 0, y: 0, pressed: false)
+    }
+
+    // MARK: Analog sticks (PlayStation DualShock)
+
+    /// Per player, per source (touch, gamepad), per stick (left, right): x and y packed into
+    /// one atomic so a reader never mixes two updates. -0x7FFF...0x7FFF, +y is down.
+    private final class StickSlot: Sendable { let bits = Atomic<UInt32>(0) }
+    private let sticks: [StickSlot] = (0..<(InputHub.maxPlayers * 2 * 2)).map { _ in StickSlot() }
+
+    private func stickIndex(_ stick: Int, _ source: InputSource, _ player: Int) -> Int? {
+        guard stick < 2, player < Self.maxPlayers, source != .keyboard else { return nil }
+        return (player * 2 + (source == .touch ? 0 : 1)) * 2 + stick
+    }
+
+    func setStick(_ stick: Int, x: Int16, y: Int16, source: InputSource, player: Int = 0) {
+        guard let i = stickIndex(stick, source, player) else { return }
+        sticks[i].bits.store(UInt32(UInt16(bitPattern: x)) | UInt32(UInt16(bitPattern: y)) << 16,
+                             ordering: .relaxed)
+    }
+
+    /// The stick as the core sees it: whichever source is pushed further.
+    func stick(_ stick: Int, player: Int = 0) -> (x: Int16, y: Int16) {
+        var best: (x: Int16, y: Int16) = (0, 0)
+        var bestMagnitude = 0
+        for source in [InputSource.touch, .gamepad] {
+            guard let i = stickIndex(stick, source, player) else { continue }
+            let packed = sticks[i].bits.load(ordering: .relaxed)
+            let value = (Int16(bitPattern: UInt16(truncatingIfNeeded: packed)),
+                         Int16(bitPattern: UInt16(truncatingIfNeeded: packed >> 16)))
+            let magnitude = Int(value.0) * Int(value.0) + Int(value.1) * Int(value.1)
+            if magnitude > bestMagnitude { best = value; bestMagnitude = magnitude }
+        }
+        return best
     }
 
     // MARK: Touch screen (DS)

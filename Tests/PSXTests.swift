@@ -93,4 +93,67 @@ final class PSXTests: XCTestCase {
         XCTAssertEqual(labels[SNESButtons.b.rawValue], "✕")   // bottom
         XCTAssertEqual(labels[SNESButtons.y.rawValue], "□")   // left
     }
+
+    // MARK: Analog sticks
+
+    func testVirtualSticksFitBetweenTheClusters() {
+        let sizes = [CGSize(width: 669, height: 401), CGSize(width: 466, height: 330), CGSize(width: 382, height: 334)]
+        for size in sizes {
+            for style in [ControllerLayout.Style.panel, .overlay] {
+                let l = ControllerLayout(bounds: CGRect(origin: .zero, size: size), style: style, system: .psx)
+                XCTAssertGreaterThanOrEqual(l.stickRadius, 30, "\(size) \(style)")
+                let sticks = [l.leftStickCenter, l.rightStickCenter]
+                XCTAssertGreaterThanOrEqual(hypot(sticks[0].x - sticks[1].x, sticks[0].y - sticks[1].y), 2 * l.stickRadius)
+                for c in sticks {
+                    let stick = CGRect(x: c.x - l.stickRadius, y: c.y - l.stickRadius,
+                                       width: 2 * l.stickRadius, height: 2 * l.stickRadius)
+                    XCTAssertGreaterThanOrEqual(hypot(c.x - l.dpadCenter.x, c.y - l.dpadCenter.y),
+                                                l.stickRadius + l.dpadRadius, "stick overlaps d-pad at \(size)")
+                    for (_, center) in l.faceButtons {
+                        XCTAssertGreaterThanOrEqual(hypot(c.x - center.x, c.y - center.y),
+                                                    l.stickRadius + l.faceRadius, "stick overlaps a face button at \(size)")
+                    }
+                    XCTAssertFalse(stick.intersects(l.selectRect), "stick overlaps Select at \(size) \(style)")
+                    XCTAssertFalse(stick.intersects(l.startRect), "stick overlaps Start at \(size) \(style)")
+                    XCTAssertEqual(l.control(at: c), .stick(sticks.firstIndex(of: c)!))
+                }
+            }
+        }
+        XCTAssertEqual(ControllerLayout(bounds: CGRect(x: 0, y: 0, width: 669, height: 401), style: .panel,
+                                        system: .snes).stickRadius, 0, "only PlayStation has sticks")
+    }
+
+    func testStickValues() {
+        let l = ControllerLayout(bounds: CGRect(x: 0, y: 0, width: 669, height: 401), style: .panel, system: .psx)
+        let c = l.rightStickCenter, r = l.stickRadius
+        XCTAssertEqual(l.stickValue(1, at: c).x, 0)
+        XCTAssertEqual(l.stickValue(1, at: CGPoint(x: c.x + r, y: c.y)).x, 32767)
+        XCTAssertEqual(l.stickValue(1, at: CGPoint(x: c.x + 3 * r, y: c.y)).x, 32767, "clamped")
+        XCTAssertEqual(l.stickValue(1, at: CGPoint(x: c.x, y: c.y + r)).y, 32767, "down is positive")
+        XCTAssertEqual(l.stickValue(1, at: CGPoint(x: c.x + r * 0.05, y: c.y)).x, 0, "dead zone")
+    }
+
+    func testHubMergesTouchAndGamepadSticks() {
+        let hub = InputHub()
+        hub.setStick(0, x: 1000, y: 0, source: .touch)
+        hub.setStick(0, x: -20000, y: 0, source: .gamepad)
+        XCTAssertEqual(hub.stick(0).x, -20000, "the stick pushed further wins")
+        hub.setStick(0, x: 0, y: 0, source: .gamepad)
+        XCTAssertEqual(hub.stick(0).x, 1000)
+        hub.clearAll()
+        XCTAssertEqual(hub.stick(0).x, 0)
+    }
+
+    func testGamepadSticksDriveAnalogOnPlayStation() {
+        var s = GamepadSnapshot()
+        s.stickX = 1; s.stickY = 1          // up-right on the pad
+        s.rightStickY = -0.5
+        XCTAssertEqual(s.analog(0).x, 32767)
+        XCTAssertEqual(s.analog(0).y, -32767, "libretro y is down-positive")
+        XCTAssertEqual(s.analog(1).y, 16384)
+        let psx = ControllerMapping.defaults(for: .psx)
+        XCTAssertTrue(psx.usesAnalogSticks)
+        XCTAssertEqual(psx.buttons(for: s), [], "the left stick isn't the d-pad on PlayStation")
+        XCTAssertEqual(ControllerMapping.defaults(for: .snes).buttons(for: s), [.up, .right])
+    }
 }

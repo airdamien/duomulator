@@ -78,8 +78,12 @@ struct ControllerMapping: Equatable, Sendable {
 
     /// Emulated buttons held for a controller state: directions from the d-pad / left stick,
     /// plus whatever each pressed physical button is bound to.
+    /// The pad has analog sticks of its own (PlayStation DualShock): the gamepad's sticks
+    /// drive them instead of the d-pad.
+    var usesAnalogSticks: Bool { system.padStyle == .playstation }
+
     func buttons(for s: GamepadSnapshot) -> SNESButtons {
-        var m = s.directions
+        var m = s.directions(includingStick: !usesAnalogSticks)
         let pressed: [(PhysicalButton, Bool)] = [
             (.south, s.south), (.east, s.east), (.west, s.west), (.north, s.north),
             (.leftShoulder, s.leftShoulder), (.rightShoulder, s.rightShoulder),

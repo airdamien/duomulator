@@ -121,7 +121,10 @@ final class GameControllerManager {
 
     /// Re-numbers players after a connect/disconnect and rewrites every gamepad slot.
     private func republishPads() {
-        for player in 0..<InputHub.maxPlayers { hub.set([], source: .gamepad, player: player) }
+        for player in 0..<InputHub.maxPlayers {
+            hub.set([], source: .gamepad, player: player)
+            for stick in 0..<2 { hub.setStick(stick, x: 0, y: 0, source: .gamepad, player: player) }
+        }
         for (i, pad) in pads.enumerated() {
             pad.controller.playerIndex = i < InputHub.maxPlayers
                 ? GCControllerPlayerIndex(rawValue: i) ?? .indexUnset : .indexUnset
@@ -153,7 +156,15 @@ final class GameControllerManager {
         if snapshot.home && !pad.homeDown { onMenu?() }
         pad.homeDown = snapshot.home
 
-        if player < InputHub.maxPlayers { hub.set(mask, source: .gamepad, player: player) }
+        if player < InputHub.maxPlayers {
+            hub.set(mask, source: .gamepad, player: player)
+            if mapping.usesAnalogSticks {
+                for stick in 0..<2 {
+                    let value = snapshot.analog(stick)
+                    hub.setStick(stick, x: value.x, y: value.y, source: .gamepad, player: player)
+                }
+            }
+        }
     }
 
     // MARK: Keyboard
@@ -179,6 +190,7 @@ final class GameControllerManager {
 
     private func clearHub() {
         for player in 0..<InputHub.maxPlayers {
+            for stick in 0..<2 { hub.setStick(stick, x: 0, y: 0, source: .gamepad, player: player) }
             hub.set([], source: .gamepad, player: player)
             hub.set([], source: .keyboard, player: player)
         }
@@ -201,8 +213,9 @@ final class GameControllerManager {
 /// Raw state of one extended gamepad, decoupled from GameController so the mapping is testable.
 struct GamepadSnapshot: Equatable {
     var up = false, down = false, left = false, right = false
-    /// Left stick axes, -1...1 (y up positive).
+    /// Left and right stick axes, -1...1 (y up positive).
     var stickX: Float = 0, stickY: Float = 0
+    var rightStickX: Float = 0, rightStickY: Float = 0
     /// Positional face buttons as GameController names them: south, east, west, north.
     var south = false, east = false, west = false, north = false
     var leftShoulder = false, leftTrigger = false, rightShoulder = false, rightTrigger = false
@@ -218,6 +231,7 @@ struct GamepadSnapshot: Equatable {
         up = g.dpad.up.isPressed; down = g.dpad.down.isPressed
         left = g.dpad.left.isPressed; right = g.dpad.right.isPressed
         stickX = g.leftThumbstick.xAxis.value; stickY = g.leftThumbstick.yAxis.value
+        rightStickX = g.rightThumbstick.xAxis.value; rightStickY = g.rightThumbstick.yAxis.value
         south = g.buttonA.isPressed; east = g.buttonB.isPressed
         west = g.buttonX.isPressed; north = g.buttonY.isPressed
         leftShoulder = g.leftShoulder.isPressed; leftTrigger = g.leftTrigger.isPressed
@@ -230,14 +244,25 @@ struct GamepadSnapshot: Equatable {
     }
 
     /// Directions from the d-pad and left stick (never remapped).
-    var directions: SNESButtons {
+    var directions: SNESButtons { directions(includingStick: true) }
+
+    /// Directions from the d-pad, plus the left stick unless it's an analog stick of its own
+    /// (PlayStation).
+    func directions(includingStick: Bool) -> SNESButtons {
         var m: SNESButtons = []
-        let t = Self.stickThreshold
+        let t = includingStick ? Self.stickThreshold : .infinity
         if up || stickY >= t { m.insert(.up) }
         if down || stickY <= -t { m.insert(.down) }
         if left || stickX <= -t { m.insert(.left) }
         if right || stickX >= t { m.insert(.right) }
         return m
+    }
+
+    /// Libretro analog values (-0x7FFF...0x7FFF, +y down) for stick 0 (left) or 1 (right).
+    func analog(_ stick: Int) -> (x: Int16, y: Int16) {
+        let (x, y) = stick == 0 ? (stickX, stickY) : (rightStickX, rightStickY)
+        func scale(_ v: Float) -> Int16 { Int16((max(-1, min(1, v)) * 32767).rounded()) }
+        return (scale(x), scale(-y))
     }
 
     /// The default (SNES) mapping: Nintendo-style positional, the button where SNES B sits

@@ -13,6 +13,9 @@ enum TouchControl: Equatable, Sendable {
     case buttons
     /// The small menu button; fires on lift if the finger is still on it.
     case menu
+    /// A DualShock analog stick (0 = left, 1 = right), tilted by the finger's offset from its
+    /// center until lifted.
+    case stick(Int)
 }
 
 // MARK: - Geometry
@@ -42,6 +45,10 @@ struct ControllerLayout: Equatable, Sendable {
     let selectRect: CGRect
     let startRect: CGRect
     let menuRect: CGRect
+    /// PlayStation analog sticks (radius 0 = none): lower center, between the clusters.
+    let stickRadius: CGFloat
+    let leftStickCenter: CGPoint
+    let rightStickCenter: CGPoint
 
     // MARK: Tuning
 
@@ -82,6 +89,7 @@ struct ControllerLayout: Equatable, Sendable {
             dpadCenter = c; dpadRadius = 0
             faceCenter = c; faceSpacing = 0; faceRadius = 0
             lRect = .null; rRect = .null; selectRect = .null; startRect = .null; menuRect = .null
+            stickRadius = 0; leftStickCenter = c; rightStickCenter = c
             return
         }
 
@@ -109,6 +117,7 @@ struct ControllerLayout: Equatable, Sendable {
                 dpadCenter = c; dpadRadius = 0
                 faceCenter = c; faceSpacing = 0; faceRadius = 0
                 lRect = .null; rRect = .null; selectRect = .null; startRect = .null; menuRect = .null
+                stickRadius = 0; leftStickCenter = c; rightStickCenter = c
                 return
             }
             let clusterY = area.minY + topReserved + usable / 2
@@ -126,6 +135,7 @@ struct ControllerLayout: Equatable, Sendable {
                 ? .null : CGRect(x: left.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
             startRect = CGRect(x: right.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
             menuRect = .null
+            stickRadius = 0; leftStickCenter = .zero; rightStickCenter = .zero
             return
         }
 
@@ -138,6 +148,13 @@ struct ControllerLayout: Equatable, Sendable {
         if needed > area.height {
             size = max(60, size - (needed - area.height))
             ssBetween = area.width - 2 * size - 2 * gap >= 2 * ssW + ssGap
+        }
+
+        // PlayStation: leave the middle for two analog sticks side by side.
+        let wantsSticks = pad == .playstation
+        let stickR: CGFloat = wantsSticks ? Self.clamp(area.width * 0.075, 30, 50) : 0
+        if wantsSticks {
+            size = max(60, min(size, (area.width - 2 * gap - (4 * stickR + 3 * gap)) / 2))
         }
 
         // Vertical placement: overlay hugs the bottom edge; the panel centers the clusters in
@@ -166,7 +183,7 @@ struct ControllerLayout: Equatable, Sendable {
         menuRect = CGRect(x: area.midX - menuSize / 2, y: area.minY + (shoulderH - menuSize) / 2,
                           width: menuSize, height: menuSize)
 
-        let ssY: CGFloat
+        var ssY: CGFloat
         if !ssBetween {
             ssY = area.maxY - ssH
         } else if isPanel {
@@ -174,6 +191,20 @@ struct ControllerLayout: Equatable, Sendable {
         } else {
             ssY = area.maxY - ssH
         }
+
+        if wantsSticks {
+            // Sticks level with the bottom of the clusters, Select/Start just above them.
+            let y = min(clusterY + size / 2 - stickR, area.maxY - stickR)
+            stickRadius = stickR
+            leftStickCenter = CGPoint(x: area.midX - stickR - gap / 2, y: y)
+            rightStickCenter = CGPoint(x: area.midX + stickR + gap / 2, y: y)
+            ssY = max(area.minY + topReserved, y - stickR - gap - ssH)
+        } else {
+            stickRadius = 0
+            leftStickCenter = .zero
+            rightStickCenter = .zero
+        }
+
         if pad.isGenesis {
             // Start only, centered.
             selectRect = .null
@@ -259,6 +290,12 @@ struct ControllerLayout: Equatable, Sendable {
         // Touch slop never reaches into the reserved area: those touches belong to the screen.
         if reserved.contains(point) { return nil }
         if isOnMenu(point) { return .menu }
+        if stickRadius > 0 {
+            for (i, center) in [leftStickCenter, rightStickCenter].enumerated()
+            where Self.distance(point, center) <= stickRadius * 1.25 {
+                return .stick(i)
+            }
+        }
         if dpadRadius > 0, Self.distance(point, dpadCenter) <= dpadRadius * Self.dpadGrabScale {
             return .dpad
         }
@@ -276,8 +313,21 @@ struct ControllerLayout: Equatable, Sendable {
         switch control {
         case .dpad: return dpadDirection(at: point)
         case .buttons: return faceButtons(at: point).union(buttonsOutsideFace(at: point))
-        case .menu: return []
+        case .menu, .stick: return []
         }
+    }
+
+    /// Analog value of stick `index` for a finger at `point`: offset from the stick's center
+    /// over its radius, clamped to the unit circle, in libretro units (-0x7FFF...0x7FFF,
+    /// +y down). A small dead zone keeps a resting thumb at zero.
+    func stickValue(_ index: Int, at point: CGPoint) -> (x: Int16, y: Int16) {
+        guard stickRadius > 0 else { return (0, 0) }
+        let center = index == 0 ? leftStickCenter : rightStickCenter
+        var dx = (point.x - center.x) / stickRadius, dy = (point.y - center.y) / stickRadius
+        let length = hypot(dx, dy)
+        if length < 0.12 { return (0, 0) }
+        if length > 1 { dx /= length; dy /= length }
+        return (Int16((dx * 32767).rounded()), Int16((dy * 32767).rounded()))
     }
 
     /// 8-way direction from the d-pad center: eight equal 45° sectors, nothing inside the

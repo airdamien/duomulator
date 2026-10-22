@@ -265,6 +265,12 @@ private func inputStateCallback(_ port: UInt32, _ device: UInt32, _ index: UInt3
         default: return 0
         }
     }
+    if device & 0xFF == UInt32(RETRO_DEVICE_ANALOG) {
+        // index 0/1 = left/right stick, id 0/1 = x/y. Analog button pressure isn't emulated.
+        guard port < UInt32(InputHub.maxPlayers), index < 2, id < 2 else { return 0 }
+        let stick = InputHub.shared.stick(Int(index), player: Int(port))
+        return id == 0 ? stick.x : stick.y
+    }
     guard let host = activeHost,
           device & 0xFF == UInt32(RETRO_DEVICE_JOYPAD), // RETRO_DEVICE_MASK: base type, ignoring subclass
           port < UInt32(InputHub.maxPlayers) else { return 0 }
@@ -376,8 +382,11 @@ final class EmulatorCore: @unchecked Sendable {
                     ? EmulatorError.arcadeSetRejected(rom.lastPathComponent)
                     : EmulatorError.coreRejectedROM
             }
+            // PlayStation: a DualShock (RETRO_DEVICE_SUBCLASS(ANALOG, 1) in PCSX), so games
+            // read the sticks; everything else: a plain joypad.
+            let device = content.system == .psx ? UInt32(RETRO_DEVICE_ANALOG) | (2 << 8) : UInt32(RETRO_DEVICE_JOYPAD)
             for port in 0..<UInt32(InputHub.maxPlayers) {
-                api.set_controller_port_device(port, UInt32(RETRO_DEVICE_JOYPAD))
+                api.set_controller_port_device(port, device)
             }
 
             var av = retro_system_av_info()

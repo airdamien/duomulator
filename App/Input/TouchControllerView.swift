@@ -152,12 +152,21 @@ final class TouchControllerView: UIView {
     private func update(firingMenuFor tappedMenu: Set<UITouch>) {
         var mask: SNESButtons = []
         var menuDown = false
+        var sticks: [(x: Int16, y: Int16)] = [(0, 0), (0, 0)]
         for (touch, control) in activeTouches {
             let p = touch.location(in: self)
-            if control == .menu {
+            switch control {
+            case .menu:
                 menuDown = menuDown || layout.isOnMenu(p)
-            } else {
+            case .stick(let i):
+                sticks[i] = layout.stickValue(i, at: p)
+            default:
                 mask.formUnion(layout.buttons(at: p, for: control))
+            }
+        }
+        if layout.stickRadius > 0 {
+            for (i, value) in sticks.enumerated() {
+                hub.setStick(i, x: value.x, y: value.y, source: .touch)
             }
         }
 
@@ -174,6 +183,12 @@ final class TouchControllerView: UIView {
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             skin.show(pressed: mask, menu: menuDown)
+            CATransaction.commit()
+        }
+        if layout.stickRadius > 0 {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            skin.show(sticks: sticks, radius: layout.stickRadius)
             CATransaction.commit()
         }
         if !tappedMenu.isEmpty { onMenu?() }
@@ -330,6 +345,25 @@ private final class ControllerSkin: CALayer {
                               pressedLabelColor: labelPressed.cgColor, isMenu: false))
         }
 
+        // Analog sticks: a base ring and a knob that follows the thumb.
+        stickKnobs.removeAll()
+        if layout.stickRadius > 0 {
+            for center in [layout.leftStickCenter, layout.rightStickCenter] {
+                let r = layout.stickRadius
+                let ring = Self.shape(UIBezierPath(ovalIn: CGRect(x: center.x - r, y: center.y - r,
+                                                                   width: r * 2, height: r * 2)),
+                                      fill: neutral, stroke: stroke)
+                ring.lineWidth = 1.5
+                addSublayer(ring)
+                let k = r * 0.55
+                let knob = Self.shape(UIBezierPath(ovalIn: CGRect(x: -k, y: -k, width: k * 2, height: k * 2)),
+                                      fill: neutralPressed, stroke: stroke)
+                knob.position = center
+                addSublayer(knob)
+                stickKnobs.append((knob, center))
+            }
+        }
+
         // Menu: small circle with a three-line glyph.
         let m = layout.menuRect
         let menu = Self.shape(UIBezierPath(ovalIn: m), fill: neutral, stroke: stroke)
@@ -347,6 +381,19 @@ private final class ControllerSkin: CALayer {
         parts.append(Part(shape: menu, label: nil, buttons: [], fill: neutral.cgColor,
                           pressedFill: neutralPressed.cgColor, labelColor: labelColor.cgColor,
                           pressedLabelColor: labelPressed.cgColor, isMenu: true))
+    }
+
+    /// Knob layers and their rest positions (left, right).
+    private var stickKnobs: [(layer: CAShapeLayer, center: CGPoint)] = []
+
+    /// Moves the stick knobs to match the analog values. Call inside a CATransaction with
+    /// actions disabled.
+    func show(sticks: [(x: Int16, y: Int16)], radius: CGFloat) {
+        for (i, knob) in stickKnobs.enumerated() where i < sticks.count {
+            let travel = radius * 0.55
+            knob.layer.position = CGPoint(x: knob.center.x + CGFloat(sticks[i].x) / 32767 * travel,
+                                          y: knob.center.y + CGFloat(sticks[i].y) / 32767 * travel)
+        }
     }
 
     /// Applies pressed colors. Call inside a CATransaction with actions disabled.
