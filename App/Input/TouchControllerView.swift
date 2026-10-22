@@ -32,7 +32,8 @@ final class TouchControllerView: UIView {
     /// Last mask written to the hub; used to detect new presses for haptics and visuals.
     private(set) var pressedButtons: SNESButtons = []
     private var menuHighlighted = false
-    private let haptics = UIImpactFeedbackGenerator(style: .light)
+    /// Bound to this view so the system can route feedback to the right display/scene.
+    private lazy var haptics = UIImpactFeedbackGenerator(style: .light, view: self)
     private let skin = ControllerSkin()
 
     init(style: Style, hub: InputHub = .shared) {
@@ -73,7 +74,7 @@ final class TouchControllerView: UIView {
     private func applyStyle() {
         backgroundColor = style == .panel ? ControllerSkin.panelBackground : .clear
         isOpaque = style == .panel
-        skin.style = style.layoutStyle
+        skin.skinStyle = style.layoutStyle
         skin.needsRebuild = true
     }
 
@@ -197,7 +198,7 @@ private final class ControllerSkin: CALayer {
         SNESButtons.x.rawValue: "X", SNESButtons.y.rawValue: "Y",
     ]
 
-    var style: ControllerLayout.Style = .overlay
+    var skinStyle: ControllerLayout.Style = .overlay
     var needsRebuild = true
 
     /// A drawable control: its shape, optional label, colors, and which buttons light it.
@@ -221,7 +222,7 @@ private final class ControllerSkin: CALayer {
         needsRebuild = false
         guard layout.dpadRadius > 0 else { return }
 
-        let panel = style == .panel
+        let panel = skinStyle == .panel
         let neutral = panel ? UIColor(white: 0.19, alpha: 1) : UIColor(white: 1, alpha: 0.13)
         let neutralPressed = panel ? UIColor(white: 0.36, alpha: 1) : UIColor(white: 1, alpha: 0.40)
         let stroke = panel ? UIColor(white: 0.30, alpha: 1) : UIColor(white: 1, alpha: 0.32)
