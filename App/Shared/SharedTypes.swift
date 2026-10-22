@@ -287,14 +287,19 @@ enum GameSystem: String, CaseIterable, Sendable {
     var isDualScreen: Bool { self == .nds }
 
     /// Shape of the on-screen pad: SNES-style (SNES, DS: d-pad, A/B/X/Y, L/R, Select/Start),
-    /// NES (A/B, Select/Start) or Genesis 3-button (A/B/C, Start).
-    enum PadStyle { case snes, nes, genesis }
+    /// NES (A/B, Select/Start), or the Genesis 3-button (A/B/C) / 6-button (also X/Y/Z) pad
+    /// with Start. Sega games pick 3 or 6 per game (`GenesisPad`).
+    enum PadStyle: Equatable, Sendable {
+        case snes, nes, genesis3, genesis6
+        var isGenesis: Bool { self == .genesis3 || self == .genesis6 }
+    }
 
+    /// Default pad for the system; Sega systems default to the 6-button pad.
     var padStyle: PadStyle {
         switch self {
         case .snes, .nds: .snes
         case .nes: .nes
-        case .genesis, .sega32x, .segaCD: .genesis
+        case .genesis, .sega32x, .segaCD: .genesis6
         }
     }
 
@@ -342,6 +347,7 @@ enum GameSystem: String, CaseIterable, Sendable {
     /// zip's central directory lists entry names, and matches the first ROM-looking name.
     static func of(rom: URL) -> GameSystem? {
         let ext = rom.pathExtension.lowercased()
+        if ext == "bin" { return isSega32XCartridge(rom) ? .sega32x : .genesis }
         if ext != "zip" { return GameSystem(romExtension: ext) }
         guard let handle = try? FileHandle(forReadingFrom: rom) else { return nil }
         defer { try? handle.close() }
@@ -354,6 +360,16 @@ enum GameSystem: String, CaseIterable, Sendable {
             guard !name.hasPrefix("__MACOSX/"), !file.hasPrefix("._") else { return nil }
             return GameSystem(romExtension: (file as NSString).pathExtension)
         }.first
+    }
+
+    /// GoodGen-style sets name 32X cartridges ".bin" too; their header (0x100) reads
+    /// "SEGA 32X" where Genesis carts have "SEGA GENESIS" / "SEGA MEGA DRIVE".
+    private static func isSega32XCartridge(_ rom: URL) -> Bool {
+        guard let handle = try? FileHandle(forReadingFrom: rom) else { return false }
+        defer { try? handle.close() }
+        guard (try? handle.seek(toOffset: 0x100)) != nil,
+              let header = try? handle.read(upToCount: 16) else { return false }
+        return String(decoding: header, as: UTF8.self).uppercased().contains("32X")
     }
 
     /// Names from zip central-directory headers (signature PK\1\2) found in `bytes`.

@@ -18,6 +18,8 @@ final class GameViewController: UIViewController {
     private let core = EmulatorCore.shared
     /// Console of `rom`, known before loading so the first layout is already right.
     private lazy var system = GameSystem.of(rom: rom) ?? .snes
+    /// Sega games: 3- or 6-button pad (lookup table or the player's per-game choice).
+    private lazy var genesisPad: GenesisPad? = system.padStyle.isGenesis ? GenesisPad.effective(for: rom) : nil
     /// The game (for DS: the top screen).
     private var renderView: GameRenderView!
     /// DS only: the touch screen (bottom half of the same frame) and its touch input.
@@ -73,6 +75,7 @@ final class GameViewController: UIViewController {
 
         touchView = TouchControllerView(style: .overlay)
         touchView.system = system
+        touchView.pad = genesisPad?.padStyle
         touchView.onMenu = { [weak self] in self?.openMenu() }
         view.addSubview(touchView)
 
@@ -147,6 +150,7 @@ final class GameViewController: UIViewController {
 
     private func loadGame() {
         do {
+            if let genesisPad { core.setCoreOption("picodrive_input1", genesisPad.coreOptionValue) }
             try core.load(rom: rom)
         } catch {
             log.error("load failed: \(error.localizedDescription, privacy: .public)")
@@ -369,6 +373,15 @@ final class GameViewController: UIViewController {
             self?.renderView.filter = filter
             self?.bottomScreenView?.filter = filter
         }
+        menuView.onGenesisPad = { [weak self] choice in
+            guard let self else { return }
+            GenesisPad.setOverride(choice, for: rom)
+            let pad = GenesisPad.effective(for: rom)
+            genesisPad = pad
+            touchView.pad = pad.padStyle
+            core.setCoreOption("picodrive_input1", pad.coreOptionValue)
+            menuView.update(menuState())
+        }
         menuView.onReset = { [weak self] in self?.confirmReset() }
         menuView.onQuit = { [weak self] in self?.exit(unloadCore: true) }
     }
@@ -387,7 +400,10 @@ final class GameViewController: UIViewController {
             muted: GameSettings.muted,
             layout: postureMonitor.override,
             scaling: renderView.scaling,
-            filter: renderView.filter)
+            filter: renderView.filter,
+            genesisPad: genesisPad.map { _ in
+                (GenesisPad.override(for: rom), GenesisPad.automatic(for: rom))
+            })
     }
 
     private func toggleMenu() {

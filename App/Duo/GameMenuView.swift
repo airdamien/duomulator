@@ -13,6 +13,9 @@ final class GameMenuView: UIView {
         var layout: PostureOverride
         var scaling: GameRenderView.Scaling
         var filter: GameRenderView.Filter
+        /// Sega games only (nil hides the row): the per-game pad choice (nil = automatic)
+        /// and what automatic resolves to for this game.
+        var genesisPad: (choice: GenesisPad?, automatic: GenesisPad)? = nil
     }
 
     static let slots = 1...3
@@ -25,6 +28,8 @@ final class GameMenuView: UIView {
     var onLayout: ((PostureOverride) -> Void)?
     var onScaling: ((GameRenderView.Scaling) -> Void)?
     var onFilter: ((GameRenderView.Filter) -> Void)?
+    /// Per-game Genesis pad choice; nil = automatic.
+    var onGenesisPad: ((GenesisPad?) -> Void)?
     var onReset: (() -> Void)?
     var onQuit: (() -> Void)?
 
@@ -43,6 +48,9 @@ final class GameMenuView: UIView {
     private let layoutControl = UISegmentedControl(items: ["Auto", "DS (tent)", "Flat"])
     private let scalingControl = UISegmentedControl(items: ["Aspect", "Integer"])
     private let filterControl = UISegmentedControl(items: ["Sharp", "Smooth"])
+    private let padControl = UISegmentedControl(items: ["Auto", "3-button", "6-button"])
+    private var padRow: UIView?
+    private static let padOrder: [GenesisPad?] = [nil, .three, .six]
 
     private static let layoutOrder: [PostureOverride] = [.auto, .forceTent, .forceFlat]
 
@@ -142,6 +150,14 @@ final class GameMenuView: UIView {
         stack.addArrangedSubview(segmentRow("Layout", layoutControl))
         stack.addArrangedSubview(segmentRow("Scaling", scalingControl))
         stack.addArrangedSubview(segmentRow("Filter", filterControl))
+        padControl.addAction(UIAction { [weak self] _ in
+            guard let self else { return }
+            self.onGenesisPad?(Self.padOrder[max(0, self.padControl.selectedSegmentIndex)])
+        }, for: .valueChanged)
+        let padRow = segmentRow("Controller", padControl)
+        padRow.isHidden = true
+        stack.addArrangedSubview(padRow)
+        self.padRow = padRow
 
         var reset = UIButton.Configuration.gray()
         reset.title = "Reset"
@@ -238,6 +254,11 @@ final class GameMenuView: UIView {
         layoutControl.selectedSegmentIndex = Self.layoutOrder.firstIndex(of: state.layout) ?? 0
         scalingControl.selectedSegmentIndex = state.scaling == .integer ? 1 : 0
         filterControl.selectedSegmentIndex = state.filter == .linear ? 1 : 0
+        padRow?.isHidden = state.genesisPad == nil
+        if let pad = state.genesisPad {
+            padControl.setTitle("Auto (\(pad.automatic == .six ? 6 : 3))", forSegmentAt: 0)
+            padControl.selectedSegmentIndex = Self.padOrder.firstIndex(of: pad.choice) ?? 0
+        }
         setNeedsLayout()
     }
 

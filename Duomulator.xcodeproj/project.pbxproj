@@ -565,6 +565,7 @@
 		AF4465E3BF539C851C016801 /* asic_vrc2and4.c in Sources */ = {isa = PBXBuildFile; fileRef = 701BE7EED8208685E222596C /* asic_vrc2and4.c */; };
 		AF95E0B9198A65A579CA7956 /* 495.c in Sources */ = {isa = PBXBuildFile; fileRef = 01879922A97B9823117044EC /* 495.c */; };
 		B06C37A329F3D1C2338E6A0A /* 12in1.c in Sources */ = {isa = PBXBuildFile; fileRef = AE9330A180FC691B0A705E9B /* 12in1.c */; };
+		B070AB661034499D86A4EFDD /* GenesisPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D5B37F0FEC830369F32FA7 /* GenesisPad.swift */; };
 		B08B197DA4DB9AFD58BBFEB3 /* 559.c in Sources */ = {isa = PBXBuildFile; fileRef = 0C6DFEB9D88CE2D539FC184B /* 559.c */; };
 		B0DC868E7998E7C0300B9648 /* 544.c in Sources */ = {isa = PBXBuildFile; fileRef = 46C2F3C77919C4D9410C2A12 /* 544.c */; };
 		B11B71A90DD0B6A65535F4E9 /* bworld.c in Sources */ = {isa = PBXBuildFile; fileRef = 402FF36F4AEF8019D7222F7C /* bworld.c */; };
@@ -1280,6 +1281,7 @@
 		735C0366F2467FD10A4A87AC /* 208.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 208.c; sourceTree = "<group>"; };
 		7361A44F90AF871E0FFFA2FF /* encoding_utf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = encoding_utf.c; sourceTree = "<group>"; };
 		7384830DD5E9C937E72AFF3E /* __dummy_mapper.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = __dummy_mapper.c; sourceTree = "<group>"; };
+		73D5B37F0FEC830369F32FA7 /* GenesisPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenesisPad.swift; sourceTree = "<group>"; };
 		741E5319DBCD142E5F2BB3E2 /* NDSCart_SRAMManager.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = NDSCart_SRAMManager.cpp; sourceTree = "<group>"; };
 		74638B38D4A2F2ACE9D72208 /* t-262.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "t-262.c"; sourceTree = "<group>"; };
 		749BA3F39350618D3E2AF802 /* transformer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = transformer.c; sourceTree = "<group>"; };
@@ -2967,6 +2969,7 @@
 		BA0F6C8A12594652418B99C3 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				73D5B37F0FEC830369F32FA7 /* GenesisPad.swift */,
 				770BD6BE223A7151537A2743 /* SharedTypes.swift */,
 			);
 			path = Shared;
@@ -3623,6 +3626,7 @@
 				F4F44B09B4D82EF3DA9DA903 /* GameSettings.swift in Sources */,
 				0B32EDDCE799A22361FB92DD /* GameShaders.metal in Sources */,
 				C54CDD2860E853849CCA2F63 /* GameViewController.swift in Sources */,
+				B070AB661034499D86A4EFDD /* GenesisPad.swift in Sources */,
 				C65DC708935FAFAE2A47D630 /* LibraryView.swift in Sources */,
 				7068C60E3CB0DBC81DEBBE20 /* PostureMonitor.swift in Sources */,
 				3A8A9DD2F9C8445236115017 /* QuickActionBar.swift in Sources */,

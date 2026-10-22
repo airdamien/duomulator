@@ -24,6 +24,14 @@ final class TouchControllerView: UIView {
             setNeedsLayout()
         }
     }
+    /// Pad to draw when it isn't the system's default (Sega games: 3 or 6 buttons).
+    var pad: GameSystem.PadStyle? {
+        didSet {
+            guard pad != oldValue else { return }
+            releaseAllTouches()
+            setNeedsLayout()
+        }
+    }
     /// Area (in this view's coordinates) to keep clear of controls: the DS touch screen.
     var reservedRect: CGRect? {
         didSet {
@@ -70,7 +78,7 @@ final class TouchControllerView: UIView {
         super.layoutSubviews()
         let newLayout = ControllerLayout(bounds: bounds, safeArea: safeAreaInsets,
                                          style: style.layoutStyle, system: system,
-                                         reserved: reservedRect)
+                                         pad: pad, reserved: reservedRect)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         skin.frame = bounds
@@ -274,9 +282,9 @@ private final class ControllerSkin: CALayer {
         // Face buttons: tinted fill, colored ring, label in a lighter shade of the button color.
         let fontSize = max(13, layout.faceRadius * 0.85)
         for (button, center) in layout.faceButtons {
-            let color: UIColor = switch layout.system.padStyle {
+            let color: UIColor = switch layout.pad {
             case .nes: Self.nesFaceColor
-            case .genesis: Self.genesisFaceColor
+            case .genesis3, .genesis6: Self.genesisFaceColor
             case .snes: Self.faceColors[button.rawValue] ?? .white
             }
             let rect = CGRect(x: center.x - layout.faceRadius, y: center.y - layout.faceRadius,

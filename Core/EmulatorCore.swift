@@ -71,6 +71,12 @@ private enum CoreEnvironment {
     /// table serves all of them; `overrides` replaces the few defaults we don't want.
     nonisolated(unsafe) static var variables: [String: UnsafeMutablePointer<CChar>] = [:]
 
+    /// Per-game values set by the app (`EmulatorCore.setCoreOption`); win over everything.
+    nonisolated(unsafe) static var gameOptions: [String: UnsafeMutablePointer<CChar>] = [:]
+    /// Set when `gameOptions` changes; answered (and cleared) by GET_VARIABLE_UPDATE so cores
+    /// that poll it (PicoDrive) apply the change on the next frame.
+    nonisolated(unsafe) static var optionsChanged = false
+
     static let overrides: [String: String] = [
         // The DS touch screen is driven by RETRO_DEVICE_POINTER (absolute touches), not a mouse.
         "melonds_touch_mode": "Touch",
@@ -119,7 +125,8 @@ private func environmentCallback(_ cmd: UInt32, _ data: UnsafeMutableRawPointer?
         guard let data else { return false }
         let variable = data.assumingMemoryBound(to: retro_variable.self)
         guard let key = variable.pointee.key,
-              let value = CoreEnvironment.variables[String(cString: key)] else {
+              let value = CoreEnvironment.gameOptions[String(cString: key)]
+                ?? CoreEnvironment.variables[String(cString: key)] else {
             variable.pointee.value = nil
             return false
         }
@@ -127,8 +134,10 @@ private func environmentCallback(_ cmd: UInt32, _ data: UnsafeMutableRawPointer?
         return true
 
     case UInt32(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE):
-        data?.assumingMemoryBound(to: Bool.self).pointee = false
-        return data != nil
+        guard let data else { return false }
+        data.assumingMemoryBound(to: Bool.self).pointee = CoreEnvironment.optionsChanged
+        CoreEnvironment.optionsChanged = false
+        return true
 
     case UInt32(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION):
         // Legacy options only: the core then describes its options with SET_VARIABLES.
@@ -433,7 +442,8 @@ final class EmulatorCore: @unchecked Sendable {
         var info = retro_system_info()
         api.get_system_info(&info)
         if info.need_fullpath {
-            log.error("\(system.displayName) core unexpectedly requires need_fullpath; in-memory loading may fail")
+            // PicoDrive says so but takes in-memory data offered via GET_GAME_INFO_EXT.
+            log.info("\(system.coreName, privacy: .public) reports need_fullpath; ROM data is offered through GET_GAME_INFO_EXT")
         }
 
         api.set_environment(environmentCallback)
@@ -493,6 +503,19 @@ final class EmulatorCore: @unchecked Sendable {
         loadedROM = nil
         isRunning = false
         fastForward = false
+    }
+
+    /// Sets a core option for the current or next game (e.g. PicoDrive's controller type).
+    /// Read at load, and applied on the next frame by cores that poll for option changes.
+    func setCoreOption(_ key: String, _ value: String) {
+        coreLock.withLock {
+            if let old = CoreEnvironment.gameOptions[key] {
+                if String(cString: old) == value { return }
+                free(old)
+            }
+            CoreEnvironment.gameOptions[key] = strdup(value)
+            CoreEnvironment.optionsChanged = true
+        }
     }
 
     func reset() {

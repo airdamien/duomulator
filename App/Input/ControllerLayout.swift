@@ -26,6 +26,8 @@ struct ControllerLayout: Equatable, Sendable {
 
     let style: Style
     let system: GameSystem
+    /// Which pad to draw; usually `system.padStyle`, but Sega games choose 3 or 6 buttons.
+    let pad: GameSystem.PadStyle
     /// Kept clear of controls (the DS touch screen); `.null` when there is none.
     let reserved: CGRect
     /// Center and outer radius of the d-pad cross.
@@ -63,7 +65,9 @@ struct ControllerLayout: Equatable, Sendable {
     /// `reserved` (in the same coordinates as `bounds`) is kept clear of controls: the DS
     /// touch screen sits there, and the controls flank it the way they do on the handheld.
     init(bounds: CGRect, safeArea: UIEdgeInsets = .zero, style: Style, system: GameSystem = .snes,
-         reserved: CGRect? = nil) {
+         pad: GameSystem.PadStyle? = nil, reserved: CGRect? = nil) {
+        let pad = pad ?? system.padStyle
+        self.pad = pad
         self.style = style
         self.system = system
         self.reserved = reserved ?? .null
@@ -111,14 +115,14 @@ struct ControllerLayout: Equatable, Sendable {
             dpadCenter = CGPoint(x: left.midX, y: clusterY)
             dpadRadius = cluster / 2
             faceCenter = CGPoint(x: right.midX, y: clusterY)
-            faceSpacing = cluster * 0.32
-            faceRadius = cluster * Self.faceRadiusScale(system)
-            lRect = system.hasShoulderButtons
+            faceSpacing = cluster * Self.faceSpacingScale(pad)
+            faceRadius = cluster * Self.faceRadiusScale(pad)
+            lRect = pad == .snes
                 ? CGRect(x: left.minX, y: area.minY, width: left.width, height: shoulderH) : .null
-            rRect = system.hasShoulderButtons
+            rRect = pad == .snes
                 ? CGRect(x: right.minX, y: area.minY, width: right.width, height: shoulderH) : .null
             let w = min(ssW, gutter)
-            selectRect = system.padStyle == .genesis
+            selectRect = pad.isGenesis
                 ? .null : CGRect(x: left.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
             startRect = CGRect(x: right.midX - w / 2, y: area.maxY - ssH, width: w, height: ssH)
             menuRect = .null
@@ -149,11 +153,10 @@ struct ControllerLayout: Equatable, Sendable {
         dpadCenter = CGPoint(x: area.minX + size / 2, y: clusterY)
         dpadRadius = size / 2
         faceCenter = CGPoint(x: area.maxX - size / 2, y: clusterY)
-        faceSpacing = size * 0.32
-        // NES: two buttons, so each can be bigger.
-        faceRadius = size * Self.faceRadiusScale(system)
+        faceSpacing = size * Self.faceSpacingScale(pad)
+        faceRadius = size * Self.faceRadiusScale(pad)
 
-        if system.hasShoulderButtons {
+        if pad == .snes {
             lRect = CGRect(x: area.minX, y: area.minY, width: shoulderW, height: shoulderH)
             rRect = CGRect(x: area.maxX - shoulderW, y: area.minY, width: shoulderW, height: shoulderH)
         } else {
@@ -171,7 +174,7 @@ struct ControllerLayout: Equatable, Sendable {
         } else {
             ssY = area.maxY - ssH
         }
-        if system.padStyle == .genesis {
+        if pad.isGenesis {
             // Start only, centered.
             selectRect = .null
             startRect = CGRect(x: area.midX - ssW / 2, y: ssY, width: ssW, height: ssH)
@@ -186,45 +189,74 @@ struct ControllerLayout: Equatable, Sendable {
     /// both hit radii, so a thumb there presses B+A (run + jump).
     var faceButtons: [(button: SNESButtons, center: CGPoint)] {
         let c = faceCenter, d = faceSpacing
-        if system.padStyle == .genesis {
-            // A B C left to right, rising slightly like the 3-button pad. PicoDrive reads the
-            // Genesis A/B/C from libretro's Y/B/A.
-            return [
-                (.y, CGPoint(x: c.x - d, y: c.y + d * 0.3)),
-                (.b, CGPoint(x: c.x, y: c.y)),
-                (.a, CGPoint(x: c.x + d, y: c.y - d * 0.3)),
-            ]
+        // Genesis rows rise to the right like the real pad. PicoDrive reads A/B/C from
+        // libretro Y/B/A and X/Y/Z from L/X/R.
+        func row(_ buttons: [SNESButtons], y: CGFloat) -> [(button: SNESButtons, center: CGPoint)] {
+            buttons.enumerated().map { i, button in
+                let k = CGFloat(i - 1)
+                return (button, CGPoint(x: c.x + k * d, y: y - k * d * 0.2))
+            }
         }
-        if system.padStyle == .nes {
+        switch pad {
+        case .genesis3:
+            return row([.y, .b, .a], y: c.y)
+        case .genesis6:
+            return row([.l, .x, .r], y: c.y - d * 0.56) + row([.y, .b, .a], y: c.y + d * 0.56)
+        case .nes:
             return [
                 (.b, CGPoint(x: c.x - d * 0.75, y: c.y + d * 0.3)),
                 (.a, CGPoint(x: c.x + d * 0.75, y: c.y - d * 0.3)),
             ]
+        case .snes:
+            return [
+                (.x, CGPoint(x: c.x, y: c.y - d)),
+                (.a, CGPoint(x: c.x + d, y: c.y)),
+                (.b, CGPoint(x: c.x, y: c.y + d)),
+                (.y, CGPoint(x: c.x - d, y: c.y)),
+            ]
         }
-        return [
-            (.x, CGPoint(x: c.x, y: c.y - d)),
-            (.a, CGPoint(x: c.x + d, y: c.y)),
-            (.b, CGPoint(x: c.x, y: c.y + d)),
-            (.y, CGPoint(x: c.x - d, y: c.y)),
-        ]
+    }
+
+    /// Center-to-center button distance as a fraction of the cluster size.
+    private static func faceSpacingScale(_ pad: GameSystem.PadStyle) -> CGFloat {
+        switch pad {
+        case .snes, .nes: 0.32
+        case .genesis3: 0.355
+        case .genesis6: 0.34
+        }
     }
 
     /// Face-button radius as a fraction of the cluster size: fewer buttons can be bigger.
-    private static func faceRadiusScale(_ system: GameSystem) -> CGFloat {
-        switch system.padStyle {
+    /// Genesis buttons sit in rows, so they're kept small enough to leave a visible gap.
+    private static func faceRadiusScale(_ pad: GameSystem.PadStyle) -> CGFloat {
+        switch pad {
         case .snes: 0.18
         case .nes: 0.21
-        case .genesis: 0.17
+        case .genesis3: 0.135
+        case .genesis6: 0.125
         }
+    }
+
+    /// A face button is pressed within this distance of its center.
+    var faceHitRadius: CGFloat { Self.faceHitRadius(pad: pad, spacing: faceSpacing) }
+
+    /// SNES/NES: 0.85 x spacing, so the gap between two adjacent buttons presses both while
+    /// opposite buttons never can. Genesis rows are tighter: 0.6 x the neighbor distance
+    /// only overlaps in a thin band halfway between two buttons.
+    private static func faceHitRadius(pad: GameSystem.PadStyle, spacing: CGFloat) -> CGFloat {
+        pad.isGenesis ? spacing * 1.02 * 0.6 : spacing * faceHitScale
     }
 
     /// Text printed on a face button, as on that console's pad.
     func label(for button: SNESButtons) -> String {
-        if system.padStyle == .genesis {
+        if pad.isGenesis {
             switch button {
             case .y: return "A"
             case .b: return "B"
             case .a: return "C"
+            case .l: return "X"
+            case .x: return "Y"
+            case .r: return "Z"
             default: return ""
             }
         }
@@ -247,8 +279,11 @@ struct ControllerLayout: Equatable, Sendable {
         if dpadRadius > 0, Self.distance(point, dpadCenter) <= dpadRadius * Self.dpadGrabScale {
             return .dpad
         }
-        if faceRadius > 0,
-           Self.distance(point, faceCenter) <= faceSpacing + faceRadius * 1.4 { return .buttons }
+        if faceRadius > 0 {
+            // Grab radius: the farthest button's far edge plus a little slop.
+            let reach = faceButtons.map { Self.distance($0.center, faceCenter) }.max() ?? 0
+            if Self.distance(point, faceCenter) <= reach + faceRadius * 1.4 { return .buttons }
+        }
         if !buttonsOutsideFace(at: point).isEmpty { return .buttons }
         return nil
     }
@@ -281,7 +316,7 @@ struct ControllerLayout: Equatable, Sendable {
     /// Face buttons whose centers are within the hit radius; up to two adjacent ones at once.
     func faceButtons(at point: CGPoint) -> SNESButtons {
         guard faceRadius > 0 else { return [] }
-        let hit = faceSpacing * Self.faceHitScale
+        let hit = faceHitRadius
         var result: SNESButtons = []
         for (button, center) in faceButtons where Self.distance(point, center) <= hit {
             result.insert(button)
