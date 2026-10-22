@@ -8,6 +8,8 @@ enum EmulatorError: Error, LocalizedError {
     case unsupportedArchive(String)
     /// The system needs a BIOS dumped from the user's console (Sega CD).
     case missingBIOS(GameSystem)
+    /// FinalBurn Neo couldn't start an arcade set.
+    case arcadeSetRejected(String)
 
     var errorDescription: String? {
         switch self {
@@ -19,6 +21,8 @@ enum EmulatorError: Error, LocalizedError {
         case .noGameLoaded: "No game is loaded."
         case .stateFailed(let detail): "Save state failed: \(detail)"
         case .unsupportedArchive(let detail): detail
+        case .arcadeSetRejected(let set):
+            "FinalBurn Neo couldn't start \(set). Arcade sets have to match FinalBurn Neo's ROM set versions, and their parent and BIOS sets (such as neogeo.zip) must be in the ROMs folder too."
         }
     }
 }
@@ -47,6 +51,7 @@ extension GameSystem {
         case .nes: duo_core_fceumm
         case .nds: duo_core_melonds
         case .genesis, .sega32x, .segaCD: duo_core_picodrive
+        case .neoGeo, .cps, .arcade: duo_core_fbneo
         }
     }
 }
@@ -286,6 +291,9 @@ final class EmulatorCore: @unchecked Sendable {
     /// Valid after `load`. snes9x reports 32040 Hz.
     private(set) var sampleRate: Double = 32040
     private(set) var loadedROM: URL?
+    /// Picture aspect the core reports (arcade games vary, and some are vertical); nil when
+    /// the core leaves it to the frontend. Valid after `load`.
+    private(set) var displayAspect: Double?
     /// System of the loaded game (valid after `load`).
     private(set) var system: GameSystem = .snes
     private(set) var isRunning = false
@@ -353,7 +361,9 @@ final class EmulatorCore: @unchecked Sendable {
             }
             guard loaded else {
                 activeHost = nil
-                throw EmulatorError.coreRejectedROM
+                throw content.system.isArcade
+                    ? EmulatorError.arcadeSetRejected(rom.lastPathComponent)
+                    : EmulatorError.coreRejectedROM
             }
             for port in 0..<UInt32(InputHub.maxPlayers) {
                 api.set_controller_port_device(port, UInt32(RETRO_DEVICE_JOYPAD))
@@ -363,6 +373,7 @@ final class EmulatorCore: @unchecked Sendable {
             api.get_system_av_info(&av)
             frameRate = av.timing.fps > 1 ? av.timing.fps : 60.0988
             sampleRate = av.timing.sample_rate > 1 ? av.timing.sample_rate : 32040
+            displayAspect = av.geometry.aspect_ratio > 0.1 ? Double(av.geometry.aspect_ratio) : nil
 
             polledButtons = [0, 0]
             framesSinceLoad = 0
@@ -394,7 +405,7 @@ final class EmulatorCore: @unchecked Sendable {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
 
-        if let system = GameSystem(romExtension: url.pathExtension), system.loadsFromPath {
+        if let system = GameSystem.of(rom: url), system.loadsFromPath {
             guard FileManager.default.isReadableFile(atPath: url.path) else {
                 throw EmulatorError.romUnreadable(url)
             }

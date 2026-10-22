@@ -172,6 +172,9 @@ final class GameViewController: UIViewController {
         controllerConnectionDidChange(GameControllerManager.shared.isControllerConnected, announce: false)
         savedIdleTimerDisabled = UIApplication.shared.isIdleTimerDisabled
         UIApplication.shared.isIdleTimerDisabled = true
+        if system.isArcade, let aspect = core.displayAspect {
+            renderView.fixedAspect = CGFloat(aspect)
+        }
         renderView.startRendering()
         bottomScreenView?.startRendering()
 
@@ -286,7 +289,8 @@ final class GameViewController: UIViewController {
     /// Library thumbnail of where the player left off.
     private func saveResumeArtwork() {
         guard hasStarted, core.loadedROM == rom,
-              let image = FrameSnapshot.image(from: core.frameBuffer, system: system) else { return }
+              let image = FrameSnapshot.image(from: core.frameBuffer, system: system,
+                                              aspect: core.displayAspect.map { CGFloat($0) }) else { return }
         ArtworkStore.shared.save(image, .resume, for: rom)
     }
 

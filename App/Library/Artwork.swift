@@ -98,7 +98,8 @@ final class ArtworkStore: @unchecked Sendable {
 enum FrameSnapshot {
     /// The current frame as an image at the system's display shape (DS: top screen only),
     /// or nil before the first frame or when the picture is a single flat color.
-    static func image(from frameBuffer: FrameBuffer, system: GameSystem) -> UIImage? {
+    /// `aspect` overrides the system's display shape (arcade games report their own).
+    static func image(from frameBuffer: FrameBuffer, system: GameSystem, aspect fixed: CGFloat? = nil) -> UIImage? {
         frameBuffer.withLatestFrame { frame, base -> UIImage? in
             guard frame.sequence > 0, frame.width > 0, frame.height > 0 else { return nil }
             let width = frame.width
@@ -119,7 +120,7 @@ enum FrameSnapshot {
             // Stretch to the display aspect, as the game view does.
             let shown = GameRenderView.displayRect(
                 frameWidth: width, frameHeight: height, drawableSize: CGSize(width: 4096, height: 4096),
-                scaling: .aspectFit, squarePixels: system.isDualScreen, fixedAspect: system.displayAspect)
+                scaling: .aspectFit, squarePixels: system.isDualScreen, fixedAspect: fixed ?? system.displayAspect)
             let aspect = shown.height > 0 ? shown.width / shown.height : 4.0 / 3.0
             let outHeight = CGFloat(height)
             let size = CGSize(width: (outHeight * aspect).rounded(), height: outHeight)
@@ -299,6 +300,7 @@ actor BoxArtDownloader {
         case .genesis: "Sega - Mega Drive - Genesis"
         case .sega32x: "Sega - 32X"
         case .segaCD: "Sega - Mega-CD - Sega CD"
+        case .neoGeo, .cps, .arcade: "FBNeo - Arcade Games"
         }
     }
 
@@ -311,7 +313,7 @@ actor BoxArtDownloader {
 
         let systemURL = base.appending(path: Self.folder(for: system)).appending(path: "Named_Boxarts/")
         guard let names = await listing(for: system, at: systemURL),
-              let match = Self.bestMatch(for: rom.deletingPathExtension().lastPathComponent, in: names) else {
+              let match = Self.bestMatch(for: Self.matchName(for: rom, system: system), in: names) else {
             unmatched.insert(rom)
             return
         }
@@ -353,6 +355,13 @@ actor BoxArtDownloader {
         try? names.joined(separator: "\n").write(to: cacheFile, atomically: true, encoding: .utf8)
         listings[system] = names
         return names
+    }
+
+    /// Name to match against the listing: arcade sets go by their full title ("mslug" ->
+    /// "Metal Slug - Super Vehicle-001"), everything else by file name.
+    static func matchName(for rom: URL, system: GameSystem) -> String {
+        if system.isArcade, let entry = ArcadeCatalog.entry(forSet: rom) { return entry.title }
+        return rom.deletingPathExtension().lastPathComponent
     }
 
     /// Image names (without ".png") from an Apache/nginx-style directory listing.

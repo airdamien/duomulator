@@ -307,7 +307,7 @@ private final class ControllerSkin: CALayer {
         let small: [(SNESButtons, CGRect, String, CGFloat)] = [
             (.l, layout.lRect, "L", panel ? 17 : 15),
             (.r, layout.rRect, "R", panel ? 17 : 15),
-            (.select, layout.selectRect, "SELECT", 10),
+            (.select, layout.selectRect, layout.system.isArcade ? "COIN" : "SELECT", 10),
             (.start, layout.startRect, "START", 10),
         ]
         for (button, rect, title, size) in small where !rect.isNull {

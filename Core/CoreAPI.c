@@ -105,6 +105,32 @@ unsigned picodrive_retro_get_region(void);
 void * picodrive_retro_get_memory_data(unsigned id);
 size_t picodrive_retro_get_memory_size(unsigned id);
 
+void fbneo_retro_set_environment(retro_environment_t);
+void fbneo_retro_set_video_refresh(retro_video_refresh_t);
+void fbneo_retro_set_audio_sample(retro_audio_sample_t);
+void fbneo_retro_set_audio_sample_batch(retro_audio_sample_batch_t);
+void fbneo_retro_set_input_poll(retro_input_poll_t);
+void fbneo_retro_set_input_state(retro_input_state_t);
+void fbneo_retro_init(void);
+void fbneo_retro_deinit(void);
+unsigned fbneo_retro_api_version(void);
+void fbneo_retro_get_system_info(struct retro_system_info *info);
+void fbneo_retro_get_system_av_info(struct retro_system_av_info *info);
+void fbneo_retro_set_controller_port_device(unsigned port, unsigned device);
+void fbneo_retro_reset(void);
+void fbneo_retro_run(void);
+size_t fbneo_retro_serialize_size(void);
+bool fbneo_retro_serialize(void *data, size_t size);
+bool fbneo_retro_unserialize(const void *data, size_t size);
+void fbneo_retro_cheat_reset(void);
+void fbneo_retro_cheat_set(unsigned index, bool enabled, const char *code);
+bool fbneo_retro_load_game(const struct retro_game_info *game);
+bool fbneo_retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info);
+void fbneo_retro_unload_game(void);
+unsigned fbneo_retro_get_region(void);
+void * fbneo_retro_get_memory_data(unsigned id);
+size_t fbneo_retro_get_memory_size(unsigned id);
+
 const DuoCoreAPI duo_core_snes9x = {
     .set_environment = snes9x_retro_set_environment,
     .set_video_refresh = snes9x_retro_set_video_refresh,
@@ -215,4 +241,32 @@ const DuoCoreAPI duo_core_picodrive = {
     .get_region = picodrive_retro_get_region,
     .get_memory_data = picodrive_retro_get_memory_data,
     .get_memory_size = picodrive_retro_get_memory_size,
+};
+
+const DuoCoreAPI duo_core_fbneo = {
+    .set_environment = fbneo_retro_set_environment,
+    .set_video_refresh = fbneo_retro_set_video_refresh,
+    .set_audio_sample = fbneo_retro_set_audio_sample,
+    .set_audio_sample_batch = fbneo_retro_set_audio_sample_batch,
+    .set_input_poll = fbneo_retro_set_input_poll,
+    .set_input_state = fbneo_retro_set_input_state,
+    .init = fbneo_retro_init,
+    .deinit = fbneo_retro_deinit,
+    .api_version = fbneo_retro_api_version,
+    .get_system_info = fbneo_retro_get_system_info,
+    .get_system_av_info = fbneo_retro_get_system_av_info,
+    .set_controller_port_device = fbneo_retro_set_controller_port_device,
+    .reset = fbneo_retro_reset,
+    .run = fbneo_retro_run,
+    .serialize_size = fbneo_retro_serialize_size,
+    .serialize = fbneo_retro_serialize,
+    .unserialize = fbneo_retro_unserialize,
+    .cheat_reset = fbneo_retro_cheat_reset,
+    .cheat_set = fbneo_retro_cheat_set,
+    .load_game = fbneo_retro_load_game,
+    .load_game_special = fbneo_retro_load_game_special,
+    .unload_game = fbneo_retro_unload_game,
+    .get_region = fbneo_retro_get_region,
+    .get_memory_data = fbneo_retro_get_memory_data,
+    .get_memory_size = fbneo_retro_get_memory_size,
 };

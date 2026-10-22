@@ -1,0 +1,28 @@
+// Generated from libretro.h: renames the libretro entry points of the fbneo core so several
+// cores can link into one app. Force-included into every fbneo source file (see project.yml).
+#pragma once
+#define retro_api_version fbneo_retro_api_version
+#define retro_cheat_reset fbneo_retro_cheat_reset
+#define retro_cheat_set fbneo_retro_cheat_set
+#define retro_deinit fbneo_retro_deinit
+#define retro_get_memory_data fbneo_retro_get_memory_data
+#define retro_get_memory_size fbneo_retro_get_memory_size
+#define retro_get_region fbneo_retro_get_region
+#define retro_get_system_av_info fbneo_retro_get_system_av_info
+#define retro_get_system_info fbneo_retro_get_system_info
+#define retro_init fbneo_retro_init
+#define retro_load_game fbneo_retro_load_game
+#define retro_load_game_special fbneo_retro_load_game_special
+#define retro_reset fbneo_retro_reset
+#define retro_run fbneo_retro_run
+#define retro_serialize fbneo_retro_serialize
+#define retro_serialize_size fbneo_retro_serialize_size
+#define retro_set_audio_sample fbneo_retro_set_audio_sample
+#define retro_set_audio_sample_batch fbneo_retro_set_audio_sample_batch
+#define retro_set_controller_port_device fbneo_retro_set_controller_port_device
+#define retro_set_environment fbneo_retro_set_environment
+#define retro_set_input_poll fbneo_retro_set_input_poll
+#define retro_set_input_state fbneo_retro_set_input_state
+#define retro_set_video_refresh fbneo_retro_set_video_refresh
+#define retro_unload_game fbneo_retro_unload_game
+#define retro_unserialize fbneo_retro_unserialize

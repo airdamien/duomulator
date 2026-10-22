@@ -60,7 +60,12 @@ final class ArtworkTests: XCTestCase {
 
     func testFolderNamesForEverySystem() {
         for system in GameSystem.allCases {
-            XCTAssertTrue(BoxArtDownloader.folder(for: system).hasPrefix(system.manufacturer))
+            let folder = BoxArtDownloader.folder(for: system)
+            if system.isArcade {
+                XCTAssertEqual(folder, "FBNeo - Arcade Games")
+            } else {
+                XCTAssertTrue(folder.hasPrefix(system.manufacturer), folder)
+            }
         }
     }
 

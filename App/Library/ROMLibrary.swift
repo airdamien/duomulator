@@ -21,7 +21,10 @@ struct ROMEntry: Identifiable, Hashable {
     /// isn't two rows with one id.
     var recentID: String { "recent:" + url.path }
     var fileName: String { url.lastPathComponent }
-    var title: String { ROMEntry.cleanTitle(for: url) }
+    var title: String {
+        if system?.isArcade == true, let entry = ArcadeCatalog.entry(forSet: url) { return entry.title }
+        return ROMEntry.cleanTitle(for: url)
+    }
     var fileExtension: String { url.pathExtension.uppercased() }
 
     /// File name without extension and without GoodTools-style dump tags such as "[!]" or
@@ -151,7 +154,8 @@ final class ROMLibrary: ObservableObject {
         let tracks = Set(urls.filter { $0.pathExtension.lowercased() == "cue" }
             .flatMap { CueSheet.trackFiles(of: $0) }.map { $0.lowercased() })
         let found = urls.compactMap { url -> ROMEntry? in
-            guard ROMLibrary.isROM(url), !tracks.contains(url.lastPathComponent.lowercased()) else { return nil }
+            guard ROMLibrary.isROM(url), !tracks.contains(url.lastPathComponent.lowercased()),
+                  ArcadeCatalog.entry(forSet: url)?.isBIOS != true else { return nil }
             let values = try? url.resourceValues(forKeys: Set(keys))
             guard values?.isRegularFile ?? true else { return nil }
             // Detected once here: for zips this reads the archive's directory.

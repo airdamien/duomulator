@@ -36,3 +36,4 @@ extern const DuoCoreAPI duo_core_snes9x;
 extern const DuoCoreAPI duo_core_fceumm;
 extern const DuoCoreAPI duo_core_melonds;
 extern const DuoCoreAPI duo_core_picodrive;
+extern const DuoCoreAPI duo_core_fbneo;

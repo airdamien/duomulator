@@ -110,7 +110,8 @@ final class InputHub: Sendable {
 /// Latest-frame mailbox between the emulation thread (producer) and the renderer (consumer).
 /// Pixels are RGB565, tightly packed (`width * 2` bytes per row) after `submit`.
 final class FrameBuffer: @unchecked Sendable {
-    static let maxWidth = 512
+    /// Arcade boards go up to 640 wide (SNES hi-res is 512).
+    static let maxWidth = 640
     static let maxHeight = 480
 
     struct Frame {
@@ -236,7 +237,7 @@ enum Posture: Equatable, Sendable {
 
 /// A console the app can emulate. Each maps to one statically linked libretro core.
 enum GameSystem: String, CaseIterable, Sendable {
-    case snes, nes, nds, genesis, sega32x, segaCD
+    case snes, nes, nds, genesis, sega32x, segaCD, neoGeo, cps, arcade
 
     var displayName: String {
         switch self {
@@ -246,14 +247,21 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .genesis: "Genesis"
         case .sega32x: "32X"
         case .segaCD: "Sega CD"
+        case .neoGeo: "Neo Geo"
+        case .cps: "Capcom CPS"
+        case .arcade: "Arcade"
         }
     }
+
+    /// Arcade boards run by FinalBurn Neo, recognized by set name (`ArcadeCatalog`).
+    var isArcade: Bool { coreName == "fbneo" }
 
     /// Who made the console; the library's top-level folders.
     var manufacturer: String {
         switch self {
         case .nes, .snes, .nds: "Nintendo"
         case .genesis, .sega32x, .segaCD: "Sega"
+        case .neoGeo, .cps, .arcade: "Arcade"
         }
     }
 
@@ -266,6 +274,10 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .segaCD: 1992
         case .sega32x: 1994
         case .nds: 2004
+        case .cps: 1988
+        case .neoGeo: 1990
+        // "Arcade" (every other board) is listed last.
+        case .arcade: 9999
         }
     }
 
@@ -277,12 +289,14 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .nes: "fceumm"
         case .nds: "melonds"
         case .genesis, .sega32x, .segaCD: "picodrive"
+        case .neoGeo, .cps, .arcade: "fbneo"
         }
     }
 
-    /// Disc images: the core opens the file itself (a .cue names its .bin tracks), so the
-    /// app passes the path instead of reading hundreds of MB into memory.
-    var loadsFromPath: Bool { self == .segaCD }
+    /// The core opens the file itself: disc images (a .cue names its .bin tracks) and arcade
+    /// sets (FinalBurn Neo reads the zip and finds BIOS sets such as neogeo.zip beside it),
+    /// so the app passes the path instead of reading hundreds of MB into memory.
+    var loadsFromPath: Bool { self == .segaCD || isArcade }
 
     /// Sega's consoles output 256- or 320-pixel-wide frames that a TV showed at 4:3 either
     /// way; nil means derive the shape from the frame (SNES/NES 8:7 pixels, DS square).
@@ -317,7 +331,7 @@ enum GameSystem: String, CaseIterable, Sendable {
     /// Default pad for the system; Sega systems default to the 6-button pad.
     var padStyle: PadStyle {
         switch self {
-        case .snes, .nds: .snes
+        case .snes, .nds, .neoGeo, .cps, .arcade: .snes
         case .nes: .nes
         case .genesis, .sega32x, .segaCD: .genesis6
         }
@@ -336,6 +350,8 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .genesis: ["md", "gen", "smd", "sgd", "bin"]
         case .sega32x: ["32x"]
         case .segaCD: ["cue", "chd"]
+        // Arcade sets are .zip / .7z named after the set; see `GameSystem.of(rom:)`.
+        case .neoGeo, .cps, .arcade: []
         }
     }
 
@@ -350,6 +366,7 @@ enum GameSystem: String, CaseIterable, Sendable {
         case .genesis: "Genesis"
         case .sega32x: "32X"
         case .segaCD: "SegaCD"
+        case .neoGeo, .cps, .arcade: "Arcade"
         }
     }
 
@@ -368,6 +385,7 @@ enum GameSystem: String, CaseIterable, Sendable {
     static func of(rom: URL) -> GameSystem? {
         let ext = rom.pathExtension.lowercased()
         if ext == "bin" { return isSega32XCartridge(rom) ? .sega32x : .genesis }
+        if ext == "7z" { return ArcadeCatalog.system(forSet: rom) }
         if ext != "zip" { return GameSystem(romExtension: ext) }
         guard let handle = try? FileHandle(forReadingFrom: rom) else { return nil }
         defer { try? handle.close() }
@@ -375,11 +393,19 @@ enum GameSystem: String, CaseIterable, Sendable {
         let tailLength = min(size, 256 * 1024)
         try? handle.seek(toOffset: size - tailLength)
         guard let tail = try? handle.read(upToCount: Int(tailLength)) else { return nil }
-        return zipEntryNames(inTail: [UInt8](tail)).lazy.compactMap { name -> GameSystem? in
+        // Strongest evidence first: a distinctive cartridge extension inside (.sfc, .nes,
+        // .md...), then an arcade set name (mslug.zip, whose files are all .bin), and only
+        // then a lone .bin, which arcade sets and Genesis dumps both use.
+        let systems = zipEntryNames(inTail: [UInt8](tail)).compactMap { name -> GameSystem? in
             let file = name.split(separator: "/").last.map(String.init) ?? name
             guard !name.hasPrefix("__MACOSX/"), !file.hasPrefix("._") else { return nil }
-            return GameSystem(romExtension: (file as NSString).pathExtension)
-        }.first
+            let ext = (file as NSString).pathExtension.lowercased()
+            return ext == "bin" ? nil : GameSystem(romExtension: ext)
+        }
+        if let cartridge = systems.first { return cartridge }
+        if let arcade = ArcadeCatalog.system(forSet: rom) { return arcade }
+        let hasBin = zipEntryNames(inTail: [UInt8](tail)).contains { $0.lowercased().hasSuffix(".bin") }
+        return hasBin ? .genesis : nil
     }
 
     /// GoodGen-style sets name 32X cartridges ".bin" too; their header (0x100) reads
@@ -456,5 +482,5 @@ enum GamePaths {
 
     /// Every importable extension: all systems' ROMs plus `.zip`.
     static let romExtensions: Set<String> = GameSystem.allCases
-        .reduce(into: ["zip"]) { $0.formUnion($1.romExtensions) }
+        .reduce(into: ["zip", "7z"]) { $0.formUnion($1.romExtensions) }
 }

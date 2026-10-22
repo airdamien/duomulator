@@ -440,6 +440,9 @@ private struct FallbackTile: View {
         case .snes: Color(red: 0.42, green: 0.32, blue: 0.70)
         case .nds: Color(red: 0.25, green: 0.45, blue: 0.70)
         case .genesis, .sega32x, .segaCD: Color(red: 0.12, green: 0.35, blue: 0.75)
+        case .neoGeo: Color(red: 0.80, green: 0.55, blue: 0.10)
+        case .cps: Color(red: 0.70, green: 0.20, blue: 0.45)
+        case .arcade: Color(red: 0.20, green: 0.55, blue: 0.45)
         case nil: .gray
         }
     }
