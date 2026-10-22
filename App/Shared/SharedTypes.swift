@@ -249,6 +249,26 @@ enum GameSystem: String, CaseIterable, Sendable {
         }
     }
 
+    /// Who made the console; the library's top-level folders.
+    var manufacturer: String {
+        switch self {
+        case .nes, .snes, .nds: "Nintendo"
+        case .genesis, .sega32x, .segaCD: "Sega"
+        }
+    }
+
+    /// North American release year, used to order systems within a manufacturer.
+    var releaseYear: Int {
+        switch self {
+        case .nes: 1985
+        case .genesis: 1989
+        case .snes: 1991
+        case .segaCD: 1992
+        case .sega32x: 1994
+        case .nds: 2004
+        }
+    }
+
     /// The libretro core that runs this system. Several systems can share one core
     /// (PicoDrive runs Genesis, 32X and Sega CD), so per-core state is keyed by this.
     var coreName: String {

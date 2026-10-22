@@ -1,8 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Home screen: one folder per console (DS, Genesis, NES, …); each opens that console's games with
-/// import, delete, rename and launch.
+/// Home screen: one folder per manufacturer (Nintendo, Sega), each holding its consoles, each
+/// holding that console's games with import, delete, rename and launch.
 struct LibraryView: View {
     @EnvironmentObject private var library: ROMLibrary
     @Environment(\.scenePhase) private var scenePhase
@@ -40,7 +40,7 @@ struct LibraryView: View {
                 }
             }
             .navigationTitle("Duomulator")
-            .navigationDestination(for: String.self) { folder in gameList(in: folder) }
+            .navigationDestination(for: Route.self) { route in destination(route) }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { showingSettings = true } label: {
@@ -95,13 +95,28 @@ struct LibraryView: View {
 
     // MARK: Subviews
 
-    /// Top level: one row per console folder.
+    /// A screen in the library hierarchy. Routes carry identifiers, not snapshots, so open
+    /// screens follow the library as files are added or removed.
+    enum Route: Hashable {
+        case maker(String)
+        case system(GameSystem)
+        /// ROMs whose console can't be told.
+        case other
+    }
+
+    /// Top level: one row per manufacturer.
     private var folderList: some View {
         List {
             Section {
-                ForEach(library.sections, id: \.title) { section in
-                    NavigationLink(value: section.title) {
-                        FolderRow(title: section.title, entries: section.entries)
+                ForEach(library.makers, id: \.name) { maker in
+                    NavigationLink(value: Route.maker(maker.name)) {
+                        FolderRow(title: maker.name, entries: maker.systems.flatMap(\.entries),
+                                  detail: maker.systems.map(\.system.displayName).joined(separator: ", "))
+                    }
+                }
+                if !library.unknownEntries.isEmpty {
+                    NavigationLink(value: Route.other) {
+                        FolderRow(title: "Other", entries: library.unknownEntries)
                     }
                 }
             } footer: {
@@ -112,10 +127,43 @@ struct LibraryView: View {
         .refreshable { library.refresh() }
     }
 
-    /// One console's games, alphabetical.
-    private func gameList(in folder: String) -> some View {
-        let entries = library.sections.first { $0.title == folder }?.entries ?? []
+    @ViewBuilder
+    private func destination(_ route: Route) -> some View {
+        switch route {
+        case .maker(let name):
+            makerList(name)
+        case .system(let system):
+            gameList(library.makers.flatMap(\.systems).first { $0.system == system }?.entries ?? [],
+                     title: system.displayName)
+        case .other:
+            gameList(library.unknownEntries, title: "Other")
+        }
+    }
+
+    /// A manufacturer's consoles, in release order.
+    private func makerList(_ name: String) -> some View {
+        let systems = library.makers.first { $0.name == name }?.systems ?? []
         return List {
+            ForEach(systems, id: \.system) { folder in
+                NavigationLink(value: Route.system(folder.system)) {
+                    FolderRow(title: folder.system.displayName, entries: folder.entries)
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .refreshable { library.refresh() }
+        .overlay {
+            if systems.isEmpty {
+                ContentUnavailableView("No \(name) Games", systemImage: "folder",
+                                       description: Text("Add ROMs with +."))
+            }
+        }
+        .navigationTitle(name)
+    }
+
+    /// One folder's games, alphabetical.
+    private func gameList(_ entries: [ROMEntry], title folder: String) -> some View {
+        List {
             ForEach(entries) { entry in
                 Button { play(entry) } label: { ROMRow(entry: entry) }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -274,10 +322,12 @@ private struct ROMRow: View {
     }
 }
 
-/// A console folder on the home screen: name, game count, and how many have a resume point.
+/// A folder row: name, game count, how many have a resume point, and an optional detail
+/// (a manufacturer's consoles).
 private struct FolderRow: View {
     let title: String
     let entries: [ROMEntry]
+    var detail: String? = nil
 
     var body: some View {
         let resumable = entries.filter(\.hasSuspendState).count
@@ -290,8 +340,9 @@ private struct FolderRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.headline)
-                Text("\(entries.count) game\(entries.count == 1 ? "" : "s")"
-                     + (resumable > 0 ? " · \(resumable) to resume" : ""))
+                Text([detail, "\(entries.count) game\(entries.count == 1 ? "" : "s")",
+                      resumable > 0 ? "\(resumable) to resume" : nil]
+                    .compactMap { $0 }.joined(separator: " · "))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

@@ -80,17 +80,34 @@ final class ROMLibrary: ObservableObject {
 
     @Published private(set) var entries: [ROMEntry] = []
 
-    /// Entries grouped by console, folders in alphabetical order (DS, Genesis, NES, …) and games
-    /// alphabetical within each; ROMs whose system can't be told come last. Empty groups are
-    /// omitted.
-    var sections: [(title: String, entries: [ROMEntry])] {
-        let systems = GameSystem.allCases.sorted { $0.displayName < $1.displayName }
-        var groups = systems.map { system in
-            (title: system.displayName, entries: entries.filter { $0.system == system })
-        }
-        groups.append((title: "Other", entries: entries.filter { $0.system == nil }))
-        return groups.filter { !$0.entries.isEmpty }
+    /// One console's games, alphabetical.
+    struct SystemFolder: Hashable {
+        var system: GameSystem
+        var entries: [ROMEntry]
     }
+
+    /// A manufacturer's consoles, in release order; empty consoles are omitted.
+    struct MakerFolder: Hashable {
+        var name: String
+        var systems: [SystemFolder]
+        var gameCount: Int { systems.reduce(0) { $0 + $1.entries.count } }
+    }
+
+    /// Manufacturers alphabetically (Nintendo, Sega), each with its consoles.
+    var makers: [MakerFolder] {
+        let bySystem = Dictionary(grouping: entries.filter { $0.system != nil }) { $0.system! }
+        let systems = GameSystem.allCases
+            .filter { bySystem[$0] != nil }
+            .sorted { $0.releaseYear < $1.releaseYear }
+        return Dictionary(grouping: systems, by: \.manufacturer)
+            .map { name, systems in
+                MakerFolder(name: name, systems: systems.map { SystemFolder(system: $0, entries: bySystem[$0] ?? []) })
+            }
+            .sorted { $0.name < $1.name }
+    }
+
+    /// ROMs whose console can't be told (e.g. a zip without a known ROM inside).
+    var unknownEntries: [ROMEntry] { entries.filter { $0.system == nil } }
 
     private var watcher: DispatchSourceFileSystemObject?
     private var pendingRefresh: DispatchWorkItem?
