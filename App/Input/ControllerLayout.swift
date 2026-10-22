@@ -196,12 +196,12 @@ struct ControllerLayout: Equatable, Sendable {
         }
 
         if wantsSticks {
-            // Sticks level with the bottom of the clusters, Select/Start just above them.
-            let y = min(clusterY + size / 2 - stickR, area.maxY - stickR)
+            // Sticks as low as the area allows, with a thumb's clearance up to Select/Start.
+            let y = area.maxY - stickR
             stickRadius = stickR
             leftStickCenter = CGPoint(x: area.midX - stickR - stickGap / 2, y: y)
             rightStickCenter = CGPoint(x: area.midX + stickR + stickGap / 2, y: y)
-            ssY = max(area.minY + topReserved, y - stickR - gap - ssH)
+            ssY = max(area.minY + topReserved, y - stickR - max(24, stickR * 0.6) - ssH)
         } else {
             stickRadius = 0
             leftStickCenter = .zero

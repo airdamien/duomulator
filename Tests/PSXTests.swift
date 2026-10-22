@@ -114,6 +114,8 @@ final class PSXTests: XCTestCase {
                         XCTAssertGreaterThanOrEqual(hypot(c.x - center.x, c.y - center.y),
                                                     l.stickRadius + l.faceRadius, "stick overlaps a face button at \(size)")
                     }
+                    XCTAssertGreaterThanOrEqual(stick.minY - l.selectRect.maxY, 20,
+                                                "stick crowds Select/Start at \(size) \(style)")
                     XCTAssertFalse(stick.intersects(l.selectRect), "stick overlaps Select at \(size) \(style)")
                     XCTAssertFalse(stick.intersects(l.startRect), "stick overlaps Start at \(size) \(style)")
                     XCTAssertEqual(l.control(at: c), .stick(sticks.firstIndex(of: c)!))
