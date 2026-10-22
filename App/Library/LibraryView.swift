@@ -161,29 +161,17 @@ struct LibraryView: View {
         .navigationTitle(name)
     }
 
-    /// One folder's games, alphabetical.
+    /// One folder's games: Recently Played (most recent first) above the full alphabetical list.
     private func gameList(_ entries: [ROMEntry], title folder: String) -> some View {
-        List {
-            ForEach(entries) { entry in
-                Button { play(entry) } label: { ROMRow(entry: entry) }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) { pendingDelete = entry } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                        Button { beginRename(entry) } label: {
-                            Label("Rename", systemImage: "pencil")
-                        }
-                        .tint(.indigo)
-                    }
-                    .contextMenu {
-                        Button { play(entry) } label: {
-                            Label(entry.hasSuspendState ? "Resume" : "Play", systemImage: "play.fill")
-                        }
-                        Button { beginRename(entry) } label: { Label("Rename", systemImage: "pencil") }
-                        Button(role: .destructive) { pendingDelete = entry } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
+        let recent = ROMLibrary.recent(entries)
+        return List {
+            if !recent.isEmpty {
+                Section("Recently Played") {
+                    ForEach(recent, id: \.recentID) { entry in gameRow(entry) }
+                }
+            }
+            Section(recent.isEmpty ? "" : "All Games") {
+                ForEach(entries) { entry in gameRow(entry) }
             }
         }
         .listStyle(.insetGrouped)
@@ -212,6 +200,28 @@ struct LibraryView: View {
 
     // MARK: Actions
 
+    private func gameRow(_ entry: ROMEntry) -> some View {
+        Button { play(entry) } label: { ROMRow(entry: entry) }
+            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                Button(role: .destructive) { pendingDelete = entry } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+                Button { beginRename(entry) } label: {
+                    Label("Rename", systemImage: "pencil")
+                }
+                .tint(.indigo)
+            }
+            .contextMenu {
+                Button { play(entry) } label: {
+                    Label(entry.hasSuspendState ? "Resume" : "Play", systemImage: "play.fill")
+                }
+                Button { beginRename(entry) } label: { Label("Rename", systemImage: "pencil") }
+                Button(role: .destructive) { pendingDelete = entry } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+    }
+
     private func play(_ entry: ROMEntry) {
         guard FileManager.default.fileExists(atPath: entry.url.path) else {
             library.refresh()
@@ -219,6 +229,7 @@ struct LibraryView: View {
                                         message: "\(entry.fileName) is no longer in the ROMs folder.")
             return
         }
+        library.markPlayed(entry)
         GameLauncher.play(entry.url) { [library] in library.refresh() }
     }
 

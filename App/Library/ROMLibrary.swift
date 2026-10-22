@@ -13,8 +13,13 @@ struct ROMEntry: Identifiable, Hashable {
     let hasSRAM: Bool
     /// Console the ROM is for; nil if it can't be told (e.g. a zip with no known ROM inside).
     let system: GameSystem?
+    /// When the game was last started from the library, if ever.
+    var lastPlayed: Date? = nil
 
     var id: URL { url }
+    /// Identity for the Recently Played section, so a game listed there and in the full list
+    /// isn't two rows with one id.
+    var recentID: String { "recent:" + url.path }
     var fileName: String { url.lastPathComponent }
     var title: String { ROMEntry.cleanTitle(for: url) }
     var fileExtension: String { url.pathExtension.uppercased() }
@@ -106,6 +111,19 @@ final class ROMLibrary: ObservableObject {
             .sorted { $0.name < $1.name }
     }
 
+    /// Up to `limit` of `entries` that have been played, most recent first.
+    static func recent(_ entries: [ROMEntry], limit: Int = 5) -> [ROMEntry] {
+        entries.filter { $0.lastPlayed != nil }
+            .sorted { $0.lastPlayed! > $1.lastPlayed! }
+            .prefix(limit).map { $0 }
+    }
+
+    /// Records a launch and refreshes so the game moves to the top of Recently Played.
+    func markPlayed(_ entry: ROMEntry) {
+        RecentlyPlayed.mark(entry.fileName)
+        refresh()
+    }
+
     /// ROMs whose console can't be told (e.g. a zip without a known ROM inside).
     var unknownEntries: [ROMEntry] { entries.filter { $0.system == nil } }
 
@@ -128,6 +146,7 @@ final class ROMLibrary: ObservableObject {
         let keys: [URLResourceKey] = [.fileSizeKey, .isRegularFileKey]
         let urls = (try? fm.contentsOfDirectory(at: GamePaths.roms, includingPropertiesForKeys: keys,
                                                 options: [.skipsHiddenFiles])) ?? []
+        let played = RecentlyPlayed.dates()
         // .bin files a cue sheet points at are CD tracks, not Genesis cartridges.
         let tracks = Set(urls.filter { $0.pathExtension.lowercased() == "cue" }
             .flatMap { CueSheet.trackFiles(of: $0) }.map { $0.lowercased() })
@@ -137,11 +156,17 @@ final class ROMLibrary: ObservableObject {
             guard values?.isRegularFile ?? true else { return nil }
             // Detected once here: for zips this reads the archive's directory.
             let system = GameSystem.of(rom: url)
+            let suspendState = GamePaths.state(for: url, slot: 0, system: system).path
+            // Games played before launches were recorded: the auto-resume save is written
+            // when leaving a game, so its date stands in.
+            let lastPlayed = played[url.lastPathComponent]
+                ?? (try? fm.attributesOfItem(atPath: suspendState))?[.modificationDate] as? Date
             return ROMEntry(url: url.standardizedFileURL,
                             fileSize: Int64(values?.fileSize ?? 0),
-                            hasSuspendState: fm.fileExists(atPath: GamePaths.state(for: url, slot: 0, system: system).path),
+                            hasSuspendState: fm.fileExists(atPath: suspendState),
                             hasSRAM: fm.fileExists(atPath: GamePaths.sram(for: url, system: system).path),
-                            system: system)
+                            system: system,
+                            lastPlayed: lastPlayed)
         }
         .sorted { lhs, rhs in
             let order = lhs.title.localizedStandardCompare(rhs.title)
@@ -304,6 +329,7 @@ final class ROMLibrary: ObservableObject {
             .map { entry.url.deletingLastPathComponent().appending(path: $0) }
         try fm.removeItem(at: entry.url)
         for file in saves + tracks { try? fm.removeItem(at: file) }
+        RecentlyPlayed.forget(entry.fileName)
         refresh()
     }
 
@@ -324,6 +350,7 @@ final class ROMLibrary: ObservableObject {
         }
         let saves = ROMLibrary.saveFiles(for: entry.url)
         try fm.moveItem(at: entry.url, to: target)
+        RecentlyPlayed.move(entry.fileName, to: target.lastPathComponent)
 
         let oldBase = entry.url.deletingPathExtension().lastPathComponent
         for file in saves {
@@ -358,5 +385,33 @@ enum CueSheet {
         }
         // Only plain names: a cue pointing elsewhere (../, absolute) isn't ours to manage.
         .filter { !$0.contains("/") && !$0.isEmpty }
+    }
+}
+
+/// When each game was last started, keyed by ROM file name (UserDefaults "lastPlayed").
+enum RecentlyPlayed {
+    static let key = "lastPlayed"
+
+    static func dates(defaults: UserDefaults = .standard) -> [String: Date] {
+        (defaults.dictionary(forKey: key) as? [String: Date]) ?? [:]
+    }
+
+    static func mark(_ fileName: String, at date: Date = Date(), defaults: UserDefaults = .standard) {
+        var all = dates(defaults: defaults)
+        all[fileName] = date
+        defaults.set(all, forKey: key)
+    }
+
+    static func forget(_ fileName: String, defaults: UserDefaults = .standard) {
+        var all = dates(defaults: defaults)
+        guard all.removeValue(forKey: fileName) != nil else { return }
+        defaults.set(all, forKey: key)
+    }
+
+    static func move(_ fileName: String, to newName: String, defaults: UserDefaults = .standard) {
+        var all = dates(defaults: defaults)
+        guard let date = all.removeValue(forKey: fileName) else { return }
+        all[newName] = date
+        defaults.set(all, forKey: key)
     }
 }
