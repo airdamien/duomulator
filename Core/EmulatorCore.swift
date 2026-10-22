@@ -290,6 +290,11 @@ final class EmulatorCore: @unchecked Sendable {
     private(set) var system: GameSystem = .snes
     private(set) var isRunning = false
     /// Runs the core as fast as possible (audio is dropped while true).
+    /// False for throwaway runs (title-screen artwork captures): battery saves are neither
+    /// loaded nor written and no auto-save state is made, so the player's progress is never
+    /// touched. Set before `load`.
+    var persistsSaves = true
+
     var fastForward: Bool {
         get { fastForwardFlag.load(ordering: .relaxed) }
         set { fastForwardFlag.store(newValue, ordering: .relaxed) }
@@ -489,7 +494,7 @@ final class EmulatorCore: @unchecked Sendable {
         stopThread()
         coreLock.withLock {
             flushSRAMLocked()
-            if framesSinceLoad > 0 {
+            if persistsSaves && framesSinceLoad > 0 {
                 do {
                     try Self.writeAtomically(try serializeLocked(), to: GamePaths.state(for: rom, slot: 0, system: system))
                 } catch {
@@ -589,7 +594,7 @@ final class EmulatorCore: @unchecked Sendable {
 
     /// Copies a saved .srm into the core (call after retro_load_game, which clears SRAM).
     private func loadSRAMLocked(for rom: URL) {
-        guard let region = sramRegionLocked() else { lastSavedSRAM = nil; return }
+        guard persistsSaves, let region = sramRegionLocked() else { lastSavedSRAM = nil; return }
         if let saved = try? Data(contentsOf: GamePaths.sram(for: rom, system: system)), !saved.isEmpty {
             let n = min(saved.count, region.count)
             saved.withUnsafeBytes { region.baseAddress!.copyMemory(from: $0.baseAddress!, byteCount: n) }
@@ -602,7 +607,7 @@ final class EmulatorCore: @unchecked Sendable {
 
     /// Writes battery RAM to disk if it changed since the last write. Caller holds `coreLock`.
     private func flushSRAMLocked() {
-        guard let rom = loadedROM, let region = sramRegionLocked() else { return }
+        guard persistsSaves, let rom = loadedROM, let region = sramRegionLocked() else { return }
         let current = Data(region)
         guard current != lastSavedSRAM else { return }
         do {

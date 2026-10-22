@@ -330,6 +330,7 @@ final class ROMLibrary: ObservableObject {
         try fm.removeItem(at: entry.url)
         for file in saves + tracks { try? fm.removeItem(at: file) }
         RecentlyPlayed.forget(entry.fileName)
+        ArtworkStore.shared.remove(for: entry.url)
         refresh()
     }
 
@@ -351,6 +352,7 @@ final class ROMLibrary: ObservableObject {
         let saves = ROMLibrary.saveFiles(for: entry.url)
         try fm.moveItem(at: entry.url, to: target)
         RecentlyPlayed.move(entry.fileName, to: target.lastPathComponent)
+        ArtworkStore.shared.move(from: entry.url, to: target)
 
         let oldBase = entry.url.deletingPathExtension().lastPathComponent
         for file in saves {

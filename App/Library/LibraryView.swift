@@ -13,6 +13,7 @@ struct LibraryView: View {
     @State private var renaming: ROMEntry?
     @State private var renameText = ""
     @State private var alertMessage: AlertMessage?
+    @State private var path: [Route] = []
 
     struct AlertMessage: Identifiable {
         let id = UUID()
@@ -31,7 +32,7 @@ struct LibraryView: View {
     }()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 if library.entries.isEmpty {
                     emptyState
@@ -41,6 +42,7 @@ struct LibraryView: View {
             }
             .navigationTitle("Duomulator")
             .navigationDestination(for: Route.self) { route in destination(route) }
+            .task { openFolderIfRequested() }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { showingSettings = true } label: {
@@ -167,7 +169,7 @@ struct LibraryView: View {
         return List {
             if !recent.isEmpty {
                 Section("Recently Played") {
-                    ForEach(recent, id: \.recentID) { entry in gameRow(entry) }
+                    ForEach(recent, id: \.recentID) { entry in gameRow(entry, recent: true) }
                 }
             }
             Section(recent.isEmpty ? "" : "All Games") {
@@ -200,8 +202,8 @@ struct LibraryView: View {
 
     // MARK: Actions
 
-    private func gameRow(_ entry: ROMEntry) -> some View {
-        Button { play(entry) } label: { ROMRow(entry: entry) }
+    private func gameRow(_ entry: ROMEntry, recent: Bool = false) -> some View {
+        Button { play(entry) } label: { ROMRow(entry: entry, preferResumeArt: recent) }
             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                 Button(role: .destructive) { pendingDelete = entry } label: {
                     Label("Delete", systemImage: "trash")
@@ -222,6 +224,14 @@ struct LibraryView: View {
             }
     }
 
+    /// Testing hook: `-openLibraryFolder snes` (a GameSystem raw value) opens that console's
+    /// game list at launch. Launch arguments live in UserDefaults' argument domain only.
+    private func openFolderIfRequested() {
+        guard path.isEmpty, let raw = UserDefaults.standard.string(forKey: "openLibraryFolder"),
+              let system = GameSystem(rawValue: raw) else { return }
+        path = [.maker(system.manufacturer), .system(system)]
+    }
+
     private func play(_ entry: ROMEntry) {
         guard FileManager.default.fileExists(atPath: entry.url.path) else {
             library.refresh()
@@ -230,7 +240,11 @@ struct LibraryView: View {
             return
         }
         library.markPlayed(entry)
-        GameLauncher.play(entry.url) { [library] in library.refresh() }
+        TitleCapturer.shared.pause()   // the game gets the emulator to itself
+        GameLauncher.play(entry.url) { [library] in
+            library.refresh()
+            TitleCapturer.shared.resume()
+        }
     }
 
     private func beginRename(_ entry: ROMEntry) {
@@ -281,6 +295,8 @@ struct LibraryView: View {
 
 private struct ROMRow: View {
     let entry: ROMEntry
+    /// Recently Played rows show where the player left off rather than box art.
+    var preferResumeArt = false
 
     private static let sizeFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter()
@@ -291,11 +307,7 @@ private struct ROMRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Image(systemName: "gamecontroller.fill")
-                .font(.title3)
-                .foregroundStyle(.tint)
-                .frame(width: 40, height: 40)
-                .background(.tint.opacity(0.15), in: RoundedRectangle(cornerRadius: 10))
+            ArtworkThumbnail(entry: entry, preferResume: preferResumeArt)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(entry.title)
@@ -359,5 +371,76 @@ private struct FolderRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+/// A game's thumbnail: box art, title screen or last-played frame from `ArtworkStore`, or a
+/// generated tile. Appearing on screen asks for a title capture / box art download.
+private struct ArtworkThumbnail: View {
+    let entry: ROMEntry
+    var preferResume = false
+    @State private var art: (image: UIImage, kind: ArtworkKind)?
+
+    var body: some View {
+        ZStack {
+            if let art {
+                Image(uiImage: art.image)
+                    // Captured frames are pixel art; box art is a photo.
+                    .interpolation(art.kind == .boxart ? .medium : .none)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } else {
+                FallbackTile(entry: entry)
+            }
+        }
+        .frame(width: 64, height: 48)
+        .background(Color.black.opacity(0.35))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .task(id: entry.url) {
+            load()
+            guard let system = entry.system else { return }
+            TitleCapturer.shared.request(entry.url, system: system)
+            await BoxArtDownloader.shared.request(entry.url, system: system)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: ArtworkStore.didChange)) { note in
+            if note.object == nil || note.object as? String == entry.fileName { load() }
+        }
+    }
+
+    private func load() {
+        art = ArtworkStore.shared.thumbnail(for: entry.url, preferResume: preferResume)
+    }
+}
+
+/// Placeholder art: the title's initials on the system's color.
+private struct FallbackTile: View {
+    let entry: ROMEntry
+
+    var body: some View {
+        let color = Self.color(for: entry.system)
+        ZStack {
+            LinearGradient(colors: [color.opacity(0.85), color.opacity(0.45)],
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            Text(Self.initials(entry.title))
+                .font(.system(size: 17, weight: .heavy, design: .rounded))
+                .foregroundStyle(.white.opacity(0.92))
+        }
+    }
+
+    static func initials(_ title: String) -> String {
+        let words = title.replacingOccurrences(of: #"\([^)]*\)"#, with: "", options: .regularExpression)
+            .split(whereSeparator: { !$0.isLetter && !$0.isNumber })
+            .filter { !["the", "of", "and", "a"].contains($0.lowercased()) }
+        return words.prefix(2).compactMap { $0.first.map { String($0).uppercased() } }.joined()
+    }
+
+    static func color(for system: GameSystem?) -> Color {
+        switch system {
+        case .nes: Color(red: 0.75, green: 0.15, blue: 0.18)
+        case .snes: Color(red: 0.42, green: 0.32, blue: 0.70)
+        case .nds: Color(red: 0.25, green: 0.45, blue: 0.70)
+        case .genesis, .sega32x, .segaCD: Color(red: 0.12, green: 0.35, blue: 0.75)
+        case nil: .gray
+        }
     }
 }

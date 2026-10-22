@@ -8,6 +8,10 @@ struct SettingsView: View {
     @AppStorage(AppSettings.postureOverrideKey) private var postureOverride = AppSettings.PostureOverride.auto.rawValue
     @AppStorage(AppSettings.scalingKey) private var scaling = AppSettings.Scaling.aspectFit.rawValue
     @AppStorage(AppSettings.filterKey) private var filter = AppSettings.Filter.nearest.rawValue
+    @AppStorage(ArtworkSettings.downloadsEnabledKey) private var artDownloads = false
+    @AppStorage(ArtworkSettings.sourceURLKey) private var artSource = ArtworkSettings.defaultSourceURL
+    @AppStorage(ArtworkSettings.wifiOnlyKey) private var artWiFiOnly = true
+    @State private var confirmClearArt = false
 
     var body: some View {
         NavigationStack {
@@ -41,6 +45,25 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Toggle("Download Box Art", isOn: $artDownloads)
+                    if artDownloads {
+                        TextField("Source", text: $artSource)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.URL)
+                            .font(.footnote.monospaced())
+                        Toggle("Wi-Fi Only", isOn: $artWiFiOnly)
+                    }
+                    Button("Clear Downloaded Artwork", role: .destructive) { confirmClearArt = true }
+                } header: {
+                    Text("Artwork")
+                } footer: {
+                    Text(artDownloads
+                         ? "Box art is fetched from the source above (libretro-thumbnails, a community collection) only for games in your library, and kept on this iPhone. The images belong to their respective owners; Duomulator doesn't host or include any."
+                         : "Games show a title screen captured on this iPhone from your own ROMs, and where you left off. Turn on Download Box Art to fetch covers from a community source.")
+                }
+
+                Section {
                     ControlRow(key: "Arrow keys", action: "D-Pad")
                     ControlRow(key: "Z", action: "B")
                     ControlRow(key: "X", action: "A")
@@ -71,6 +94,10 @@ struct SettingsView: View {
                 } footer: {
                     Text("Duomulator uses the snes9x emulation core (SNES), used under its non-commercial license, FCEUmm (NES), under the GPL-2.0, melonDS (DS), under the GPL-3.0, and PicoDrive (Genesis, 32X, Sega CD), under its non-commercial license. DS games run with melonDS's built-in replacement BIOS, so no BIOS files are needed. Duomulator includes no games: only play ROMs dumped from cartridges you own.")
                 }
+            }
+            .confirmationDialog("Delete all downloaded box art?", isPresented: $confirmClearArt,
+                                titleVisibility: .visible) {
+                Button("Delete Box Art", role: .destructive) { ArtworkStore.shared.removeAll(.boxart) }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)

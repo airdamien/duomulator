@@ -226,6 +226,7 @@ final class GameViewController: UIViewController {
     private func exit(unloadCore: Bool) {
         guard !hasExited else { return }
         hasExited = true
+        saveResumeArtwork()
         if unloadCore {
             core.fastForward = false
             core.unload()
@@ -273,12 +274,20 @@ final class GameViewController: UIViewController {
         // Before the resume prompt is answered the core holds a fresh boot; saving it would
         // overwrite the very state the user is being offered.
         guard hasStarted, firstTime else { return }
+        saveResumeArtwork()
         core.flushSRAM()
         do {
             try core.saveState(slot: 0)
         } catch {
             log.error("suspend save failed: \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    /// Library thumbnail of where the player left off.
+    private func saveResumeArtwork() {
+        guard hasStarted, core.loadedROM == rom,
+              let image = FrameSnapshot.image(from: core.frameBuffer, system: system) else { return }
+        ArtworkStore.shared.save(image, .resume, for: rom)
     }
 
     private func sceneDidWake(_ note: Notification) {

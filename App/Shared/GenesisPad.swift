@@ -36,11 +36,7 @@ enum GenesisPad: String, CaseIterable, Sendable {
     /// Title reduced for matching: no extension, no "(U)" / "[!]" style tags, no leading or
     /// trailing "The", letters and digits only. "Golden Axe II (U) [!].bin" -> "goldenaxeii".
     static func normalizedTitle(of rom: URL) -> String {
-        var name = rom.deletingPathExtension().lastPathComponent
-        name = name.replacingOccurrences(of: #"\([^)]*\)|\[[^\]]*\]"#, with: "", options: .regularExpression)
-        name = name.lowercased()
-            .replacingOccurrences(of: #"^the\s+|,\s*the\b"#, with: "", options: .regularExpression)
-        return name.filter { $0.isLetter || $0.isNumber }
+        TitleMatching.key(rom.deletingPathExtension().lastPathComponent)
     }
 
     /// Games commonly reported to malfunction with the 6-button pad (they read its extra
@@ -52,4 +48,25 @@ enum GenesisPad: String, CaseIterable, Sendable {
         "mspacman",
         "sunsetriders",
     ]
+}
+
+/// Comparable form of a game title across naming schemes (GoodTools "(U) [!]", No-Intro
+/// "(USA)"): no "(...)" / "[...]" tags, no leading or trailing "The", lowercase letters and
+/// digits only. "Legend of Zelda, The - A Link to the Past (U)" -> "legendofzeldaalinktothepast".
+enum TitleMatching {
+    static func key(_ name: String) -> String {
+        var name = name.replacingOccurrences(of: #"\([^)]*\)|\[[^\]]*\]"#, with: "", options: .regularExpression)
+        name = name.lowercased()
+            .replacingOccurrences(of: #"^the\s+|,\s*the\b"#, with: "", options: .regularExpression)
+        return name.filter { $0.isLetter || $0.isNumber }
+    }
+
+    /// The "(...)" tags of a name, e.g. ["USA", "Rev 1"].
+    static func tags(_ name: String) -> [String] {
+        let regex = try! NSRegularExpression(pattern: #"\(([^)]*)\)"#)
+        let range = NSRange(name.startIndex..., in: name)
+        return regex.matches(in: name, range: range).compactMap {
+            Range($0.range(at: 1), in: name).map { String(name[$0]) }
+        }
+    }
 }
