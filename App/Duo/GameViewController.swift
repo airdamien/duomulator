@@ -42,6 +42,9 @@ final class GameViewController: UIViewController {
     private var hasExited = false
     private var savedIdleTimerDisabled = false
     private var lastLayoutKind: Posture.Kind?
+    /// Set while half open: the screen holds the orientation that puts the fold across it,
+    /// game on the upper panel and controls on the lower one in the player's hands.
+    private var orientationLock: UIInterfaceOrientationMask?
     private var lastControllerConnected = false
     private var observers: [NSObjectProtocol] = []
     private let log = Logger(subsystem: "io.kurast.duomulator", category: "game")
@@ -59,6 +62,7 @@ final class GameViewController: UIViewController {
     override var prefersHomeIndicatorAutoHidden: Bool { true }
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge { .all }
     override var preferredStatusBarUpdateAnimation: UIStatusBarAnimation { .fade }
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { orientationLock ?? .all }
 
     // MARK: Lifecycle
 
@@ -139,7 +143,41 @@ final class GameViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         postureMonitor.refresh()
+        updateOrientationLock()
         applyLayout()
+    }
+
+    /// Locks rotation while half open (or forced to the half-fold layout); if the device is
+    /// half open sideways, turns the screen a quarter so the fold runs across it.
+    private func updateOrientationLock() {
+        let halfOpen = postureMonitor.posture.kind == .tent
+            || (postureMonitor.hingeState == .partiallyOpen && postureMonitor.override != .forceFlat)
+        guard halfOpen else {
+            if orientationLock != nil {
+                orientationLock = nil
+                setNeedsUpdateOfSupportedInterfaceOrientations()
+            }
+            return
+        }
+        guard orientationLock == nil, let scene = view.window?.windowScene else { return }
+        let current = scene.effectiveGeometry.interfaceOrientation
+        let sideways = postureMonitor.fold.map { $0.height > $0.width } ?? false
+        let target: UIInterfaceOrientation = sideways
+            ? (current.isLandscape ? .portrait : .landscapeRight)
+            : (current == .unknown ? .portrait : current)
+        let mask: UIInterfaceOrientationMask = switch target {
+        case .portraitUpsideDown: .portraitUpsideDown
+        case .landscapeLeft: .landscapeLeft
+        case .landscapeRight: .landscapeRight
+        default: .portrait
+        }
+        orientationLock = mask
+        setNeedsUpdateOfSupportedInterfaceOrientations()
+        if target != current {
+            scene.requestGeometryUpdate(.iOS(interfaceOrientations: mask)) { [weak self] error in
+                self?.log.error("rotating out of sideways half-fold failed: \(error.localizedDescription, privacy: .public)")
+            }
+        }
     }
 
     deinit {
@@ -587,24 +625,14 @@ enum GameLayout {
 
     private static func tent(division: CGRect, bounds: CGRect, safe: CGRect, occlusions: [CGRect],
                              controllerConnected: Bool) -> Frames {
-        // Game goes on the first side of the fold (top, or leading for a vertical fold),
-        // controls on the other. Nothing is placed inside the division frame itself.
-        let horizontalFold = division.width >= division.height
-        var gameSide: CGRect
-        var controlSide: CGRect
-        if horizontalFold {
-            gameSide = CGRect(x: safe.minX, y: safe.minY,
+        // Game above the fold, controls below (the fold always runs across the screen: the
+        // game screen doesn't play half open sideways). Nothing goes inside the division.
+        let gameSide = CGRect(x: safe.minX, y: safe.minY,
                               width: safe.width, height: max(0, division.minY - safe.minY))
-            controlSide = CGRect(x: bounds.minX, y: division.maxY,
+            .avoiding(occlusions)
+        let controlSide = CGRect(x: bounds.minX, y: division.maxY,
                                  width: bounds.width, height: max(0, bounds.maxY - division.maxY))
-        } else {
-            gameSide = CGRect(x: safe.minX, y: safe.minY,
-                              width: max(0, division.minX - safe.minX), height: safe.height)
-            controlSide = CGRect(x: division.maxX, y: bounds.minY,
-                                 width: max(0, bounds.maxX - division.maxX), height: bounds.height)
-        }
-        gameSide = gameSide.avoiding(occlusions)
-        controlSide = controlSide.avoiding(occlusions)
+            .avoiding(occlusions)
 
         let game = aspectFit(in: gameSide.insetBy(dx: 4, dy: 4))
         // The bar sits at the top of the control half, inside the horizontal safe area.

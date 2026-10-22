@@ -67,6 +67,9 @@ final class PostureMonitor {
     /// before iOS 27.1. Updated on every refresh.
     private(set) var occlusionFrames: [CGRect] = []
 
+    /// The fold's frame as last queried (active or not), whatever the posture.
+    private(set) var fold: CGRect?
+
     private weak var view: UIView?
     private var interaction: UIInteraction?
     private var pendingChange: Task<Void, Never>?
@@ -178,19 +181,23 @@ final class PostureMonitor {
     private func evaluate() -> Posture {
         guard let view else { return .flat }
         let division = queryRegions(in: view)
+        fold = division
+        // Only a fold across the screen splits it: half-open sideways (fold running top to
+        // bottom) isn't a way to play, and the game screen rotates out of it.
+        let crossFold = division.flatMap { $0.width >= $0.height ? $0 : nil }
 
         switch PostureOverride.current {
         case .forceFlat:
             return .flat
         case .forceTent:
-            if let division { return .tent(division: division) }
-            // No fold to use (regular phone, or the fold is inactive): split at the middle.
+            if let crossFold { return .tent(division: crossFold) }
+            // No fold across the screen to use (regular phone, or the fold is inactive): split at the middle.
             let b = view.bounds
             return .tent(division: CGRect(x: b.minX, y: b.midY, width: b.width, height: 0).integral)
         case .auto:
             switch hingeState {
             case .partiallyOpen:
-                if let division, isActiveDivision { return .tent(division: division) }
+                if let crossFold, isActiveDivision { return .tent(division: crossFold) }
                 return .flat
             case .closed:
                 return .closed
