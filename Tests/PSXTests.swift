@@ -103,12 +103,13 @@ final class PSXTests: XCTestCase {
                 let l = ControllerLayout(bounds: CGRect(origin: .zero, size: size), style: style, system: .psx)
                 XCTAssertGreaterThanOrEqual(l.stickRadius, 30, "\(size) \(style)")
                 let sticks = [l.leftStickCenter, l.rightStickCenter]
-                XCTAssertGreaterThanOrEqual(hypot(sticks[0].x - sticks[1].x, sticks[0].y - sticks[1].y), 2 * l.stickRadius)
+                XCTAssertGreaterThanOrEqual(hypot(sticks[0].x - sticks[1].x, sticks[0].y - sticks[1].y) - 2 * l.stickRadius,
+                                            24, "sticks need a thumb's gap between them at \(size)")
                 for c in sticks {
                     let stick = CGRect(x: c.x - l.stickRadius, y: c.y - l.stickRadius,
                                        width: 2 * l.stickRadius, height: 2 * l.stickRadius)
                     XCTAssertGreaterThanOrEqual(hypot(c.x - l.dpadCenter.x, c.y - l.dpadCenter.y),
-                                                l.stickRadius + l.dpadRadius, "stick overlaps d-pad at \(size)")
+                                                l.stickRadius + l.dpadRadius + 12, "stick crowds the d-pad at \(size)")
                     for (_, center) in l.faceButtons {
                         XCTAssertGreaterThanOrEqual(hypot(c.x - center.x, c.y - center.y),
                                                     l.stickRadius + l.faceRadius, "stick overlaps a face button at \(size)")

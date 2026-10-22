@@ -153,8 +153,11 @@ struct ControllerLayout: Equatable, Sendable {
         // PlayStation: leave the middle for two analog sticks side by side.
         let wantsSticks = pad == .playstation
         let stickR: CGFloat = wantsSticks ? Self.clamp(area.width * 0.075, 30, 50) : 0
+        // Room for thumbs: a clear gap between the two sticks, and between each stick and
+        // the cluster beside it.
+        let stickGap = max(24, stickR * 0.9), clusterGap: CGFloat = 16
         if wantsSticks {
-            size = max(60, min(size, (area.width - 2 * gap - (4 * stickR + 3 * gap)) / 2))
+            size = max(60, min(size, (area.width - 4 * stickR - stickGap - 2 * clusterGap) / 2))
         }
 
         // Vertical placement: overlay hugs the bottom edge; the panel centers the clusters in
@@ -196,8 +199,8 @@ struct ControllerLayout: Equatable, Sendable {
             // Sticks level with the bottom of the clusters, Select/Start just above them.
             let y = min(clusterY + size / 2 - stickR, area.maxY - stickR)
             stickRadius = stickR
-            leftStickCenter = CGPoint(x: area.midX - stickR - gap / 2, y: y)
-            rightStickCenter = CGPoint(x: area.midX + stickR + gap / 2, y: y)
+            leftStickCenter = CGPoint(x: area.midX - stickR - stickGap / 2, y: y)
+            rightStickCenter = CGPoint(x: area.midX + stickR + stickGap / 2, y: y)
             ssY = max(area.minY + topReserved, y - stickR - gap - ssH)
         } else {
             stickRadius = 0
