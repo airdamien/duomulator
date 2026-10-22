@@ -23,6 +23,7 @@ final class GameViewController: UIViewController {
     private let toast = ToastView()
     private var audio: AudioOutput?
     private var postureMonitor: PostureMonitor!
+    private var lastFrames: GameLayout.Frames?
 
     /// The game has been loaded and the resume/restart choice made; emulation may run.
     private var hasStarted = false
@@ -438,7 +439,11 @@ final class GameViewController: UIViewController {
             // forwards the Mac's paired gamepads, which would otherwise hide the touch controls.
             controllerConnected: lastControllerConnected
                 && !UserDefaults.standard.bool(forKey: "layoutIgnoresGamepads"))
+        if posture.kind != lastLayoutKind || frames != lastFrames {
+            log.notice("layout \(String(describing: posture), privacy: .public) bounds=\(NSCoder.string(for: self.view.bounds), privacy: .public) game=\(NSCoder.string(for: frames.game), privacy: .public) controls=\(frames.controls.map { NSCoder.string(for: $0) } ?? "hidden", privacy: .public)")
+        }
         lastLayoutKind = posture.kind
+        lastFrames = frames
 
         renderView.frame = frames.game
         if let controls = frames.controls {
@@ -535,7 +540,9 @@ enum GameLayout {
         let menuArea = controlSide.intersection(safe).height >= 280
             ? controlSide.intersection(safe)
             : safe
-        return .init(game: game, controls: controllerConnected ? nil : panel, controlStyle: .panel,
+        // The half below the fold exists for controls, so they stay even with a gamepad
+        // connected (both feed InputHub); hiding them would only leave that half empty.
+        return .init(game: game, controls: panel, controlStyle: .panel,
                      quickBar: bar, menuArea: menuArea)
     }
 
