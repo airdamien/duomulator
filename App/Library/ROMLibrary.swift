@@ -74,6 +74,25 @@ final class ROMLibrary: ObservableObject {
 
     @Published private(set) var entries: [ROMEntry] = []
 
+
+    /// Entries grouped by console in `GameSystem.allCases` order (SNES, then NES), each
+
+    /// alphabetical; ROMs whose system can't be told come last. Empty groups are omitted.
+
+    var sections: [(title: String, entries: [ROMEntry])] {
+
+        var groups = GameSystem.allCases.map { system in
+
+            (title: system.displayName, entries: entries.filter { $0.system == system })
+
+        }
+
+        groups.append((title: "Other", entries: entries.filter { $0.system == nil }))
+
+        return groups.filter { !$0.entries.isEmpty }
+
+    }
+
     private var watcher: DispatchSourceFileSystemObject?
     private var pendingRefresh: DispatchWorkItem?
 

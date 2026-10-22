@@ -94,31 +94,38 @@ struct LibraryView: View {
     // MARK: Subviews
 
     private var romList: some View {
-        List {
-            Section {
-                ForEach(library.entries) { entry in
-                    Button { play(entry) } label: { ROMRow(entry: entry) }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) { pendingDelete = entry } label: {
-                                Label("Delete", systemImage: "trash")
+        let sections = library.sections
+        return List {
+            ForEach(sections, id: \.title) { section in
+                Section {
+                    ForEach(section.entries) { entry in
+                        Button { play(entry) } label: { ROMRow(entry: entry) }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button(role: .destructive) { pendingDelete = entry } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                Button { beginRename(entry) } label: {
+                                    Label("Rename", systemImage: "pencil")
+                                }
+                                .tint(.indigo)
                             }
-                            Button { beginRename(entry) } label: {
-                                Label("Rename", systemImage: "pencil")
+                            .contextMenu {
+                                Button { play(entry) } label: {
+                                    Label(entry.hasSuspendState ? "Resume" : "Play", systemImage: "play.fill")
+                                }
+                                Button { beginRename(entry) } label: { Label("Rename", systemImage: "pencil") }
+                                Button(role: .destructive) { pendingDelete = entry } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
                             }
-                            .tint(.indigo)
-                        }
-                        .contextMenu {
-                            Button { play(entry) } label: {
-                                Label(entry.hasSuspendState ? "Resume" : "Play", systemImage: "play.fill")
-                            }
-                            Button { beginRename(entry) } label: { Label("Rename", systemImage: "pencil") }
-                            Button(role: .destructive) { pendingDelete = entry } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        }
+                    }
+                } header: {
+                    Text("\(section.title) · \(section.entries.count)")
+                } footer: {
+                    if section.title == sections.last?.title {
+                        Text("\(library.entries.count) game\(library.entries.count == 1 ? "" : "s") · Add more with +, the Files app, or Finder over USB.")
+                    }
                 }
-            } footer: {
-                Text("\(library.entries.count) game\(library.entries.count == 1 ? "" : "s") · Add more with +, the Files app, or Finder over USB.")
             }
         }
         .listStyle(.insetGrouped)
@@ -220,13 +227,6 @@ private struct ROMRow: View {
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                 HStack(spacing: 6) {
-                    if let system = entry.system {
-                        Text(system.displayName)
-                            .font(.caption.weight(.bold))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 1)
-                            .background(.secondary.opacity(0.2), in: Capsule())
-                    }
                     Text(entry.fileExtension)
                     Text("·")
                     Text(Self.sizeFormatter.string(fromByteCount: entry.fileSize))
