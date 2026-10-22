@@ -233,8 +233,13 @@ struct LibraryView: View {
 
     /// Testing hook: `-openLibraryFolder snes` (a GameSystem raw value) opens that console's
     /// game list at launch (`bios` opens BIOS Files). Launch arguments live in UserDefaults'
-    /// argument domain only.
+    /// argument domain only. Once per launch: `.task` reruns whenever the home screen
+    /// reappears, and going back must not reopen the folder.
+    private static var didOpenRequestedFolder = false
+
     private func openFolderIfRequested() {
+        guard !Self.didOpenRequestedFolder else { return }
+        Self.didOpenRequestedFolder = true
         guard path.isEmpty, let raw = UserDefaults.standard.string(forKey: "openLibraryFolder") else { return }
         if raw == "bios" { path = [.bios]; return }
         guard let system = GameSystem(rawValue: raw) else { return }
