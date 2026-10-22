@@ -2086,6 +2086,7 @@
 		E44E4E0C76C2B0A34CE06DF8 /* conc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 32C1C9D6ECEE63346E38F930 /* conc.cpp */; };
 		E465801D4BE74A8D468F976A /* 428.c in Sources */ = {isa = PBXBuildFile; fileRef = BDAF114B189234849040759C /* 428.c */; };
 		E482ADBF39062774BCE8971D /* teakra.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7EB77B183E2B88D947AD3176 /* teakra.cpp */; };
+		E491F34B61E05E5EB60E7F76 /* TouchWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4EB4B6490971F380A17F223 /* TouchWatcher.swift */; };
 		E4A1C4FD39FBE361812A5CE5 /* registers.c in Sources */ = {isa = PBXBuildFile; fileRef = 21A83A3E057C7EDAD97B47CE /* registers.c */; settings = {COMPILER_FLAGS = "-DUSE_ASYNC_SPU"; }; };
 		E4AFE94D287D0E141E11B94D /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 0240A7BC71AD5C8033D4DE53 /* main.c */; settings = {COMPILER_FLAGS = "-DHAVE_RTHREADS -DBUILTIN_GPU=neon"; }; };
 		E4D6088CC828685D919F07D1 /* screenlayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1DDABDE2F891CC08C90BC83 /* screenlayout.cpp */; };
@@ -3945,6 +3946,7 @@
 		A4CCFDF3118407BFB81D3E97 /* d_blueprnt.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_blueprnt.cpp; sourceTree = "<group>"; };
 		A4D2AEE65423EAEE9B695322 /* suborkb.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = suborkb.c; sourceTree = "<group>"; };
 		A4E8C2A706530A2718FAF9B3 /* opengl_ColorBufferReaderWithBufferStorage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = opengl_ColorBufferReaderWithBufferStorage.cpp; sourceTree = "<group>"; };
+		A4EB4B6490971F380A17F223 /* TouchWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchWatcher.swift; sourceTree = "<group>"; };
 		A4FCF889AF077256AFB7E917 /* 72.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 72.c; sourceTree = "<group>"; };
 		A51793EDCE894652DF7EF514 /* rtime.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rtime.c; sourceTree = "<group>"; };
 		A523A80C7124D4C5E255CE01 /* tileimpl-n2x1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "tileimpl-n2x1.cpp"; sourceTree = "<group>"; };
@@ -4822,6 +4824,7 @@
 				C23C299BDF2B66D65647D8CA /* DSTouchScreenView.swift */,
 				0B5EF58BAC94F1B5DE144A98 /* GameControllerManager.swift */,
 				A1C5D50EF9351E7A4D0F7913 /* TouchControllerView.swift */,
+				A4EB4B6490971F380A17F223 /* TouchWatcher.swift */,
 			);
 			path = Input;
 			sourceTree = "<group>";
@@ -10223,6 +10226,7 @@
 				DC02E95EF5D7B2E164DFBE43 /* SettingsView.swift in Sources */,
 				6F370D6DD68C61485CDDF20F /* SharedTypes.swift in Sources */,
 				28145FDD70D8BA9CBA20526F /* TouchControllerView.swift in Sources */,
+				E491F34B61E05E5EB60E7F76 /* TouchWatcher.swift in Sources */,
 				1D6CEAC6ABB8D6DD2A290DB4 /* ZipArchive.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

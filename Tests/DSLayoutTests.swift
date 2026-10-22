@@ -52,7 +52,7 @@ final class DSLayoutTests: XCTestCase {
         let bounds = CGRect(x: 0, y: 0, width: 669, height: 951)
         let division = CGRect(x: 0, y: 455.5, width: 669, height: 40)
         let frames = GameLayout.frames(system: .nds, posture: .tent(division: division), bounds: bounds,
-                                       safeArea: .zero, occlusions: [], controllerConnected: false)
+                                       safeArea: .zero, occlusions: [])
         let bottom = try XCTUnwrap(frames.secondScreen)
         XCTAssertLessThanOrEqual(frames.game.maxY, division.minY, "top screen above the crease")
         XCTAssertGreaterThanOrEqual(bottom.minY, division.maxY, "touch screen below it")
@@ -67,7 +67,7 @@ final class DSLayoutTests: XCTestCase {
         let bounds = CGRect(x: 0, y: 0, width: 669, height: 951)
         for posture in [Posture.tent(division: CGRect(x: 0, y: 455.5, width: 669, height: 40)), .flat, .closed] {
             let frames = GameLayout.frames(system: .nds, posture: posture, bounds: bounds,
-                                           safeArea: .zero, occlusions: [], controllerConnected: true)
+                                           safeArea: .zero, occlusions: [])
             XCTAssertNotNil(frames.controls, "\(posture)")
             XCTAssertNotNil(frames.secondScreen, "\(posture)")
         }

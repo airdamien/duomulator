@@ -43,6 +43,20 @@ final class TouchControllerView: UIView {
     /// Called when the on-screen menu button is tapped.
     var onMenu: (() -> Void)?
 
+    /// Hides the drawn controls but keeps them working, so a finger can still press a
+    /// button it can't see (the view itself stays hit-testable, unlike with `alpha` 0).
+    func setControlsVisible(_ visible: Bool, animated: Bool) {
+        let opacity: Float = visible ? 1 : 0
+        guard skin.opacity != opacity else { return }
+        if animated {
+            let fade = CABasicAnimation(keyPath: "opacity")
+            fade.fromValue = skin.presentation()?.opacity ?? skin.opacity
+            fade.duration = visible ? 0.15 : 0.6
+            skin.add(fade, forKey: "fade")
+        }
+        skin.opacity = opacity
+    }
+
     /// Global haptics toggle; mirrors `InputSettings.hapticsEnabled` (UserDefaults "hapticsEnabled").
     static var hapticsEnabled: Bool {
         get { InputSettings.hapticsEnabled }
@@ -274,9 +288,10 @@ private final class ControllerSkin: CALayer {
         guard layout.faceRadius > 0 else { return }
 
         let panel = skinStyle == .panel
-        let neutral = panel ? UIColor(white: 0.19, alpha: 1) : UIColor(white: 1, alpha: 0.13)
+        // Overlay controls sit on the game: mostly outline, so the picture shows through.
+        let neutral = panel ? UIColor(white: 0.19, alpha: 1) : UIColor(white: 1, alpha: 0.05)
         let neutralPressed = panel ? UIColor(white: 0.36, alpha: 1) : UIColor(white: 1, alpha: 0.40)
-        let stroke = panel ? UIColor(white: 0.30, alpha: 1) : UIColor(white: 1, alpha: 0.32)
+        let stroke = panel ? UIColor(white: 0.30, alpha: 1) : UIColor(white: 1, alpha: 0.55)
         let labelColor = panel ? UIColor(white: 0.72, alpha: 1) : UIColor(white: 1, alpha: 0.70)
         let labelPressed = UIColor(white: 1, alpha: 0.95)
 
@@ -319,10 +334,10 @@ private final class ControllerSkin: CALayer {
             }
             let radius = layout.radius(for: button)
             let rect = CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
-            let fill = color.withAlphaComponent(panel ? 0.22 : 0.20)
+            let fill = color.withAlphaComponent(panel ? 0.22 : 0.06)
             let pressed = color.withAlphaComponent(panel ? 0.80 : 0.62)
             let shape = Self.shape(UIBezierPath(ovalIn: rect), fill: fill,
-                                   stroke: color.withAlphaComponent(panel ? 0.75 : 0.55))
+                                   stroke: color.withAlphaComponent(panel ? 0.75 : 0.80))
             shape.lineWidth = 2
             addSublayer(shape)
             let label = Self.text(layout.label(for: button), in: rect,

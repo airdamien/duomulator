@@ -42,6 +42,13 @@ final class GameViewController: UIViewController {
     private var hasExited = false
     private var savedIdleTimerDisabled = false
     private var lastLayoutKind: Posture.Kind?
+    /// Overlay controls with a gamepad connected stay hidden until the screen is touched,
+    /// then fade a few seconds after the last finger lifts.
+    private var overlayRevealed = false
+    private var hideOverlay: DispatchWorkItem?
+    private lazy var touchWatcher = TouchWatcher { [weak self] fingersDown in
+        self?.screenTouched(fingersDown: fingersDown)
+    }
     /// Set while half open: the screen holds the orientation that puts the fold across it,
     /// game on the upper panel and controls on the lower one in the player's hands.
     private var orientationLock: UIInterfaceOrientationMask?
@@ -114,6 +121,8 @@ final class GameViewController: UIViewController {
         configureMenu()
         menuView.isHidden = true
         view.addSubview(menuView)
+
+        view.addGestureRecognizer(touchWatcher)
 
         postureMonitor = PostureMonitor(view: view)
         postureMonitor.onChange = { [weak self] _ in self?.postureDidChange() }
@@ -520,6 +529,35 @@ final class GameViewController: UIViewController {
 
     // MARK: Layout
 
+    /// Testing hook (launch argument `-layoutIgnoresGamepads YES`): the Simulator forwards
+    /// the Mac's paired gamepads, which would otherwise hide the overlay controls.
+    private var gamepadHidesOverlay: Bool {
+        lastControllerConnected && !UserDefaults.standard.bool(forKey: "layoutIgnoresGamepads")
+    }
+
+    private func updateOverlayVisibility(animated: Bool) {
+        let hidden = touchView.style == .overlay && gamepadHidesOverlay && !overlayRevealed
+        touchView.setControlsVisible(!hidden, animated: animated)
+    }
+
+    private func screenTouched(fingersDown: Bool) {
+        hideOverlay?.cancel()
+        hideOverlay = nil
+        if fingersDown {
+            guard !overlayRevealed else { return }
+            overlayRevealed = true
+            updateOverlayVisibility(animated: true)
+        } else {
+            let work = DispatchWorkItem { [weak self] in
+                guard let self else { return }
+                self.overlayRevealed = false
+                self.updateOverlayVisibility(animated: true)
+            }
+            hideOverlay = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: work)
+        }
+    }
+
     private func postureDidChange() {
         guard isViewLoaded else { return }
         let kind = postureMonitor.posture.kind
@@ -541,11 +579,7 @@ final class GameViewController: UIViewController {
             posture: posture,
             bounds: view.bounds,
             safeArea: view.safeAreaInsets,
-            occlusions: postureMonitor.occlusionFrames,
-            // Testing hook (launch argument `-layoutIgnoresGamepads YES`): the Simulator
-            // forwards the Mac's paired gamepads, which would otherwise hide the touch controls.
-            controllerConnected: lastControllerConnected
-                && !UserDefaults.standard.bool(forKey: "layoutIgnoresGamepads"))
+            occlusions: postureMonitor.occlusionFrames)
         if posture.kind != lastLayoutKind || frames != lastFrames {
             log.notice("layout \(String(describing: posture), privacy: .public) bounds=\(NSCoder.string(for: self.view.bounds), privacy: .public) game=\(NSCoder.string(for: frames.game), privacy: .public) controls=\(frames.controls.map { NSCoder.string(for: $0) } ?? "hidden", privacy: .public)")
         }
@@ -563,6 +597,7 @@ final class GameViewController: UIViewController {
             touchView.reservedRect = frames.secondScreen.map { view.convert($0, to: touchView) }
             touchView.alpha = 1
             touchView.isUserInteractionEnabled = true
+            updateOverlayVisibility(animated: true)
         } else {
             touchView.alpha = 0
             touchView.isUserInteractionEnabled = false
@@ -606,25 +641,23 @@ enum GameLayout {
         var secondScreen: CGRect? = nil
     }
 
+    /// Controls are always laid out; with a gamepad connected the game screen hides the
+    /// overlay ones until the screen is touched.
     static func frames(system: GameSystem = .snes, posture: Posture, bounds: CGRect,
-                       safeArea: UIEdgeInsets, occlusions: [CGRect], controllerConnected: Bool)
-        -> Frames {
+                       safeArea: UIEdgeInsets, occlusions: [CGRect]) -> Frames {
         let safe = bounds.inset(by: safeArea)
         if system.isDualScreen {
             return dualScreen(posture: posture, bounds: bounds, safe: safe, occlusions: occlusions)
         }
         switch posture {
         case .tent(let division):
-            return tent(division: division, bounds: bounds, safe: safe, occlusions: occlusions,
-                        controllerConnected: controllerConnected)
+            return tent(division: division, bounds: bounds, safe: safe, occlusions: occlusions)
         case .flat, .closed:
-            return flat(bounds: bounds, safe: safe, occlusions: occlusions,
-                        controllerConnected: controllerConnected)
+            return flat(bounds: bounds, safe: safe, occlusions: occlusions)
         }
     }
 
-    private static func tent(division: CGRect, bounds: CGRect, safe: CGRect, occlusions: [CGRect],
-                             controllerConnected: Bool) -> Frames {
+    private static func tent(division: CGRect, bounds: CGRect, safe: CGRect, occlusions: [CGRect]) -> Frames {
         // Game above the fold, controls below (the fold always runs across the screen: the
         // game screen doesn't play half open sideways). Nothing goes inside the division.
         let gameSide = CGRect(x: safe.minX, y: safe.minY,
@@ -653,13 +686,8 @@ enum GameLayout {
                      quickBar: bar, menuArea: menuArea)
     }
 
-    private static func flat(bounds: CGRect, safe: CGRect, occlusions: [CGRect],
-                             controllerConnected: Bool) -> Frames {
+    private static func flat(bounds: CGRect, safe: CGRect, occlusions: [CGRect]) -> Frames {
         let area = safe.avoiding(occlusions)
-        if controllerConnected {
-            return .init(game: aspectFit(in: area), controls: nil, controlStyle: .overlay,
-                         quickBar: nil, menuArea: safe)
-        }
         let portraitish = area.height >= area.width * 1.15
         guard portraitish else {
             // Landscape / squarish: game centered at full height, controls over the gutters.
