@@ -225,3 +225,32 @@ final class ControllerMappingTests: XCTestCase {
         }
     }
 }
+
+/// Controls never poke into the rounded screen corners.
+final class ScreenCornerTests: XCTestCase {
+    func testShouldersMoveInFromRoundedCorners() {
+        let bounds = CGRect(x: 0, y: 0, width: 874, height: 402)   // landscape phone
+        let plain = ControllerLayout(bounds: bounds, style: .overlay, system: .snes)
+        var cleared = plain
+        let r: CGFloat = 62
+        cleared.keepClear(of: .init(topLeft: r, topRight: r, bottomLeft: r, bottomRight: r), in: bounds)
+        XCTAssertGreaterThan(cleared.lRect.minX, plain.lRect.minX)
+        XCTAssertLessThan(cleared.rRect.maxX, plain.rRect.maxX)
+        // The rounded corner of R (radius 14) now sits inside the screen's corner curve.
+        let k = min(cleared.rRect.height / 2, 14)
+        let corner = CGPoint(x: cleared.rRect.maxX - k, y: cleared.rRect.minY + k)
+        let center = CGPoint(x: bounds.maxX - r, y: bounds.minY + r)
+        XCTAssertLessThanOrEqual(hypot(corner.x - center.x, corner.y - center.y), r - k + 0.5)
+        // Shoulders stay mirrored and the controls already clear of the corners don't move.
+        XCTAssertEqual(cleared.lRect.minX - bounds.minX, bounds.maxX - cleared.rRect.maxX, accuracy: 0.5)
+        XCTAssertEqual(cleared.dpadCenter, plain.dpadCenter)
+    }
+
+    func testSquareCornersChangeNothing() {
+        let bounds = CGRect(x: 0, y: 0, width: 874, height: 402)
+        var layout = ControllerLayout(bounds: bounds, style: .overlay, system: .snes)
+        let before = layout
+        layout.keepClear(of: .init(), in: bounds)
+        XCTAssertEqual(layout, before)
+    }
+}

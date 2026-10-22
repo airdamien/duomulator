@@ -34,23 +34,23 @@ struct ControllerLayout: Equatable, Sendable {
     /// Kept clear of controls (the DS touch screen); `.null` when there is none.
     let reserved: CGRect
     /// Center and outer radius of the d-pad cross.
-    let dpadCenter: CGPoint
-    let dpadRadius: CGFloat
+    private(set) var dpadCenter: CGPoint
+    private(set) var dpadRadius: CGFloat
     /// Center of the face-button cluster, center-to-button distance, and each button's radius.
-    let faceCenter: CGPoint
-    let faceSpacing: CGFloat
-    let faceRadius: CGFloat
-    let lRect: CGRect
-    let rRect: CGRect
-    let selectRect: CGRect
+    private(set) var faceCenter: CGPoint
+    private(set) var faceSpacing: CGFloat
+    private(set) var faceRadius: CGFloat
+    private(set) var lRect: CGRect
+    private(set) var rRect: CGRect
+    private(set) var selectRect: CGRect
     /// N64 Z trigger, beside L (`.null` on other pads).
-    let zRect: CGRect
-    let startRect: CGRect
-    let menuRect: CGRect
+    private(set) var zRect: CGRect
+    private(set) var startRect: CGRect
+    private(set) var menuRect: CGRect
     /// PlayStation analog sticks (radius 0 = none): lower center, between the clusters.
-    let stickRadius: CGFloat
-    let leftStickCenter: CGPoint
-    let rightStickCenter: CGPoint
+    private(set) var stickRadius: CGFloat
+    private(set) var leftStickCenter: CGPoint
+    private(set) var rightStickCenter: CGPoint
 
     // MARK: Tuning
 
@@ -244,6 +244,56 @@ struct ControllerLayout: Equatable, Sendable {
         } else {
             selectRect = CGRect(x: area.midX - ssGap / 2 - ssW, y: ssY, width: ssW, height: ssH)
             startRect = CGRect(x: area.midX + ssGap / 2, y: ssY, width: ssW, height: ssH)
+        }
+    }
+
+    /// Radii of the rounded screen corners at each corner of the layout's bounds (0 where a
+    /// bounds corner isn't a screen corner).
+    struct ScreenCorners: Equatable, Sendable {
+        var topLeft: CGFloat = 0, topRight: CGFloat = 0, bottomLeft: CGFloat = 0, bottomRight: CGFloat = 0
+    }
+
+    /// Slides controls that poke into a rounded screen corner sideways until they're fully on
+    /// screen (the R shoulder in the top-right corner of a landscape overlay, say).
+    mutating func keepClear(of corners: ScreenCorners, in bounds: CGRect) {
+        guard corners != ScreenCorners() else { return }
+        // Signed horizontal shift that brings a circle at `center` inside the corner's curve,
+        // with a little clearance for the outline stroke.
+        func shift(_ center: CGPoint, radius: CGFloat) -> CGFloat {
+            let r = radius + 4
+            let left = center.x < bounds.midX, top = center.y < bounds.midY
+            let big = left ? (top ? corners.topLeft : corners.bottomLeft)
+                           : (top ? corners.topRight : corners.bottomRight)
+            let u = left ? center.x - bounds.minX : bounds.maxX - center.x
+            let v = top ? center.y - bounds.minY : bounds.maxY - center.y
+            let dv = big - v
+            // Inside the curve: (R - u)^2 + (R - v)^2 <= (R - r)^2.
+            guard big > r, dv > 0, big - r > dv else { return 0 }
+            let s = max(0, big - ((big - r) * (big - r) - dv * dv).squareRoot() - u)
+            return left ? s : -s
+        }
+        // A rounded rect: check the circle that rounds its corner nearest the screen corner.
+        func shift(_ rect: CGRect, cornerRadius k: CGFloat) -> CGFloat {
+            guard !rect.isNull, !rect.isEmpty else { return 0 }
+            let left = rect.midX < bounds.midX, top = rect.midY < bounds.midY
+            return shift(CGPoint(x: left ? rect.minX + k : rect.maxX - k,
+                                 y: top ? rect.minY + k : rect.maxY - k), radius: k)
+        }
+        let shoulderRadius = { (r: CGRect) in min(r.height / 2, 14) }
+
+        let ls = shift(lRect, cornerRadius: shoulderRadius(lRect))
+        lRect = lRect.offsetBy(dx: ls, dy: 0)
+        zRect = zRect.offsetBy(dx: ls, dy: 0)   // Z sits beside L and moves with it
+        rRect = rRect.offsetBy(dx: shift(rRect, cornerRadius: shoulderRadius(rRect)), dy: 0)
+        menuRect = menuRect.offsetBy(dx: shift(menuRect, cornerRadius: menuRect.height / 2), dy: 0)
+        selectRect = selectRect.offsetBy(dx: shift(selectRect, cornerRadius: selectRect.height / 2), dy: 0)
+        startRect = startRect.offsetBy(dx: shift(startRect, cornerRadius: startRect.height / 2), dy: 0)
+        if dpadRadius > 0 { dpadCenter.x += shift(dpadCenter, radius: dpadRadius) }
+        let face = faceButtons.map { shift($0.center, radius: radius(for: $0.button)) }
+        if let most = face.max(by: { abs($0) < abs($1) }) { faceCenter.x += most }
+        if stickRadius > 0 {
+            leftStickCenter.x += shift(leftStickCenter, radius: stickRadius)
+            if stickCount > 1 { rightStickCenter.x += shift(rightStickCenter, radius: stickRadius) }
         }
     }
 

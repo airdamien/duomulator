@@ -73,6 +73,14 @@ final class TouchControllerView: UIView {
     /// Bound to this view so the system can route feedback to the right display/scene.
     private lazy var haptics = UIImpactFeedbackGenerator(style: .light, view: self)
     private let skin = ControllerSkin()
+    /// Invisible view filling the bounds whose concentric corners report the display's
+    /// rounded corners wherever this view's corners meet them.
+    private let cornerProbe: UIView = {
+        let probe = UIView()
+        probe.isUserInteractionEnabled = false
+        probe.cornerConfiguration = .corners(radius: .containerConcentric())
+        return probe
+    }()
 
     init(style: Style, hub: InputHub = .shared) {
         self.style = style
@@ -82,6 +90,7 @@ final class TouchControllerView: UIView {
         isMultipleTouchEnabled = true
         isExclusiveTouch = false
         layer.addSublayer(skin)
+        addSubview(cornerProbe)
         applyStyle()
     }
     required init?(coder: NSCoder) { fatalError() }
@@ -90,9 +99,15 @@ final class TouchControllerView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        let newLayout = ControllerLayout(bounds: bounds, safeArea: safeAreaInsets,
+        cornerProbe.frame = bounds
+        var newLayout = ControllerLayout(bounds: bounds, safeArea: safeAreaInsets,
                                          style: style.layoutStyle, system: system,
                                          pad: pad, reserved: reservedRect)
+        newLayout.keepClear(of: .init(topLeft: cornerProbe.effectiveRadius(corner: .topLeft),
+                                      topRight: cornerProbe.effectiveRadius(corner: .topRight),
+                                      bottomLeft: cornerProbe.effectiveRadius(corner: .bottomLeft),
+                                      bottomRight: cornerProbe.effectiveRadius(corner: .bottomRight)),
+                            in: bounds)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         skin.frame = bounds
