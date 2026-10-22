@@ -3916,8 +3916,10 @@ void retro_init(void)
    msg_interface_version = 0;
    environ_cb(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &msg_interface_version);
 
-#if defined(__MACH__) && !defined(TVOS)
+#if defined(__MACH__) && !defined(TVOS) && !defined(DRC_DISABLE)
    // magic sauce to make the dynarec work on iOS
+   // (Duomulator: skipped without the dynarec. PTRACE_TRACEME leaves the app traced by its
+   // parent, so termination requests stop it instead of ending it.)
    syscall(SYS_ptrace, 0 /*PTRACE_TRACEME*/, 0, 0, 0);
 #endif
 
