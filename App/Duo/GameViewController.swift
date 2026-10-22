@@ -536,8 +536,7 @@ enum GameLayout {
         -> Frames {
         let safe = bounds.inset(by: safeArea)
         if system.isDualScreen {
-            return dualScreen(posture: posture, bounds: bounds, safe: safe, occlusions: occlusions,
-                              controllerConnected: controllerConnected)
+            return dualScreen(posture: posture, bounds: bounds, safe: safe, occlusions: occlusions)
         }
         switch posture {
         case .tent(let division):
@@ -624,10 +623,10 @@ enum GameLayout {
     }
 
     /// DS: top screen on the upper side of the fold (or of the screen's middle when flat or
-    /// closed); below it the quick bar, then the touch screen flanked by the controls. With a
-    /// gamepad connected the touch screen takes the whole lower area instead.
+    /// closed); below it the quick bar, then the touch screen flanked by the controls. The
+    /// controls stay with a gamepad connected (both work), like the half-fold layout.
     private static func dualScreen(posture: Posture, bounds: CGRect, safe: CGRect,
-                                   occlusions: [CGRect], controllerConnected: Bool) -> Frames {
+                                   occlusions: [CGRect]) -> Frames {
         var upper: CGRect
         var lower: CGRect
         if case .tent(let division) = posture, division.width >= division.height {
@@ -655,18 +654,13 @@ enum GameLayout {
         panel.size.height = max(0, lower.maxY - panel.minY)
         let screenArea = panel.intersection(safe).isNull ? panel : panel.intersection(safe)
 
-        let bottom: CGRect
-        if controllerConnected {
-            bottom = aspectFit(in: screenArea.insetBy(dx: 4, dy: 4))
-        } else {
-            // Leave thumb-sized gutters for the d-pad and face buttons on either side.
-            let gutter = min(max(screenArea.width * 0.21, 110), 170)
-            let fit = CGRect(x: screenArea.minX + gutter, y: screenArea.minY + 4,
-                             width: max(0, screenArea.width - gutter * 2),
-                             height: max(0, screenArea.height - 8))
-            bottom = aspectFit(in: fit)
-        }
-        return .init(game: top, controls: controllerConnected ? nil : panel, controlStyle: .panel,
+        // Leave thumb-sized gutters for the d-pad and face buttons on either side.
+        let gutter = min(max(screenArea.width * 0.21, 110), 170)
+        let fit = CGRect(x: screenArea.minX + gutter, y: screenArea.minY + 4,
+                         width: max(0, screenArea.width - gutter * 2),
+                         height: max(0, screenArea.height - 8))
+        let bottom = aspectFit(in: fit)
+        return .init(game: top, controls: panel, controlStyle: .panel,
                      quickBar: bar, menuArea: safe, secondScreen: bottom)
     }
 

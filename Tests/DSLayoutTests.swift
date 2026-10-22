@@ -62,4 +62,14 @@ final class DSLayoutTests: XCTestCase {
         XCTAssertTrue(controls.contains(bottom), "controls panel surrounds the touch screen")
         XCTAssertGreaterThanOrEqual(bottom.minX - controls.minX, 110, "room for the d-pad")
     }
+
+    func testControlsStayWithAGamepadConnected() throws {
+        let bounds = CGRect(x: 0, y: 0, width: 669, height: 951)
+        for posture in [Posture.tent(division: CGRect(x: 0, y: 455.5, width: 669, height: 40)), .flat, .closed] {
+            let frames = GameLayout.frames(system: .nds, posture: posture, bounds: bounds,
+                                           safeArea: .zero, occlusions: [], controllerConnected: true)
+            XCTAssertNotNil(frames.controls, "\(posture)")
+            XCTAssertNotNil(frames.secondScreen, "\(posture)")
+        }
+    }
 }
