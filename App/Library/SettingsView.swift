@@ -85,15 +85,16 @@ struct SettingsView: View {
                 } header: {
                     Text("Game Controller")
                 } footer: {
-                    Text("By default buttons map by position, not label: the right face button is A and the bottom is B, as on a SNES pad. Change it per system in Controller Mapping. Touch controls hide while a controller is connected, except below the fold in DS mode. On DS games, tap the lower screen to use the touch screen.")
+                    Text("By default buttons map by position, not label: the right face button is A and the bottom is B, as on a SNES pad. Change it per system in Controller Mapping. With a controller connected, on-screen controls hide until you touch the screen; below the fold they always show. On DS games, tap the lower screen to use the touch screen.")
                 }
 
                 Section {
                     LabeledContent("Version", value: Self.versionString)
+                    NavigationLink("Acknowledgements") { AcknowledgementsView() }
                 } header: {
                     Text("About")
                 } footer: {
-                    Text("Duomulator uses the snes9x emulation core (SNES), used under its non-commercial license, FCEUmm (NES), under the GPL-2.0, melonDS (DS), under the GPL-3.0, PicoDrive (Genesis, 32X, Sega CD), under its non-commercial license, FinalBurn Neo (arcade), under its non-commercial license, and PCSX ReARMed (PlayStation), under the GPL-2.0. DS games run with melonDS's built-in replacement BIOS, so no BIOS files are needed. Duomulator includes no games: only play ROMs dumped from cartridges you own.")
+                    Text("Duomulator runs on open-source emulation cores: snes9x, FCEUmm, melonDS, PicoDrive, FinalBurn Neo, PCSX ReARMed and Mupen64Plus-Next with GLideN64; see Acknowledgements for their licenses. It includes no games or BIOS files: only play games and BIOS files dumped from hardware you own.")
                 }
             }
             .confirmationDialog("Delete all downloaded box art?", isPresented: $confirmClearArt,
