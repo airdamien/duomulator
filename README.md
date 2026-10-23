@@ -165,8 +165,9 @@ Every screenshot shows homebrew, never a commercial game:
 - **NES:** Damian Yerrick's GPL-licensed
   [240p Test Suite](https://github.com/pinobatch/240p-test-mini).
 
-Store-ready images live in `docs/app-store`: `iphone-6.9` holds the required 6.9" iPhone set
-(1320×2868), and `iphone-duo` holds the half-fold and outer-display shots.
+Store-ready images live in `docs/app-store`: `iphone-6.3` (1206×2622, Dynamic Island medium
+display), `iphone-6.9` (1320×2868, large display) and `iphone-duo` (half-fold and outer
+display).
 
 ## Privacy
 

@@ -6,7 +6,9 @@ Everything App Store Connect asks for, ready to paste, plus the steps in order.
 
 - **Build:** version 1.0 (1), bundle ID `io.kurast.duomulator`, team `8NX8ZBT9WD`, games
   category, privacy manifest, export compliance set to "no non-exempt encryption".
-- **Screenshots:** `docs/app-store/iphone-6.9/`, six 1320×2868 PNGs, the required iPhone size.
+- **Screenshots:** `docs/app-store/iphone-6.3/`, six 1206×2622 PNGs for the "iPhone with Dynamic
+  Island (medium display)" slot. A larger 1320×2868 set is in `iphone-6.9/` if the large slot
+  is requested.
 - **Demo games:** three public-domain games are added on first launch, so App Review has
   something to play.
 - **Privacy policy:** `https://airdamien.github.io/duomulator/privacy.html`. It goes live
@@ -121,8 +123,9 @@ emulator,retro,classic,console,handheld,foldable,arcade,gamepad,controller,8-bit
 web access, user-generated content, gambling and contests. The app itself has no
 objectionable content. Expect **4+**.
 
-**Screenshots:** upload all six files from `docs/app-store/iphone-6.9/` in numeric order
-under the 6.9" iPhone display. App Store Connect scales them down for smaller iPhones.
+**Screenshots:** upload all six files from `docs/app-store/iphone-6.3/` in numeric order
+under **iPhone with Dynamic Island (medium display)**. If App Store Connect also asks for the
+large display, use `docs/app-store/iphone-6.9/`.
 
 ## App Review information
 
