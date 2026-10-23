@@ -549,6 +549,7 @@ private struct ImportBanner: View {
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
         .padding(.horizontal)
         .padding(.top, 4)
+        .padding(.bottom, 12)   // clear of the BIOS Files row below
         .accessibilityElement(children: .combine)
     }
 
