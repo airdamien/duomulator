@@ -8,3 +8,4 @@ DerivedData/
 .claude/worktrees/
 build-release/
 !tools/showcase/*.sfc
+.DS_Store
