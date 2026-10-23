@@ -17,8 +17,9 @@ enum ZipArchive {
         var isDirectory: Bool { name.hasSuffix("/") }
     }
 
-    /// Larger than any SNES or NES cartridge (the biggest are 6–8 MB); guards against zip bombs.
-    static let maxEntrySize = 32 * 1024 * 1024
+    /// The largest cartridge any core takes (a 4 Gbit DS card; N64 tops out at 64 MB). Still
+    /// guards against zip bombs.
+    static let maxEntrySize = 512 * 1024 * 1024
 
     /// Extensions we treat as ROMs (any system) inside an archive.
     static let romExtensions: Set<String> = GamePaths.romExtensions.subtracting(["zip"])

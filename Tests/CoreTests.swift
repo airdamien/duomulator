@@ -60,6 +60,15 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: url).count, 256 * 1024)
     }
 
+    func testLargeROMsAreRead() throws {
+        // DS cartridges run to 512 MB; a 40 MB file must reach the core (which rejects this
+        // junk as a SNES game) instead of being refused as unreadable.
+        let rom = try makeROM { $0 = Data(count: 40 * 1024 * 1024) }
+        XCTAssertThrowsError(try core.load(rom: rom)) { error in
+            if case EmulatorError.romUnreadable = error { XCTFail("40 MB ROM was refused before the core saw it") }
+        }
+    }
+
     func testSmallROMLoadsWithoutReadingPastTheEnd() throws {
         // 32 KB homebrew: snes9x used to read a BS-X header at 0xFFC0, past the end.
         let rom = try makeROM { $0 = $0.prefix(0x8000) }
