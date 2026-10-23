@@ -9,3 +9,4 @@ DerivedData/
 build-release/
 !tools/showcase/*.sfc
 .DS_Store
+build-device/

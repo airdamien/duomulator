@@ -25,6 +25,8 @@ final class GameViewController: UIViewController {
     /// DS only: the touch screen (bottom half of the same frame) and its touch input.
     private var bottomScreenView: GameRenderView?
     private var touchScreen: DSTouchScreenView?
+    /// DS, screens swapped: the main screen's view also takes touch-screen input.
+    private var mirroredTouchScreen: DSTouchScreenView?
     private var touchView: TouchControllerView!
     private let quickBar = QuickActionBar()
     private let menuView = GameMenuView()
@@ -106,6 +108,14 @@ final class GameViewController: UIViewController {
             view.addSubview(bottom)   // above the control panel, which flanks it
             bottomScreenView = bottom
             touchScreen = touch
+            // With the screens swapped, the lower screen (where the touch screen usually is)
+            // takes touches too, mapped onto the touch screen.
+            let mirror = DSTouchScreenView()
+            mirror.screenRect = { [weak renderView] in renderView?.contentRect ?? .zero }
+            mirror.isHidden = true
+            renderView.isUserInteractionEnabled = true
+            renderView.addSubview(mirror)
+            mirroredTouchScreen = mirror
         }
 
         quickBar.onSave = { [weak self] in self?.quickSave() }
@@ -631,6 +641,8 @@ final class GameViewController: UIViewController {
                 view.insertSubview(renderView, belowSubview: touchView)
             }
             touchScreen?.frame = bottomScreenView?.bounds ?? .zero
+            mirroredTouchScreen?.frame = renderView.bounds
+            mirroredTouchScreen?.isHidden = !swapped
         } else {
             renderView.frame = frames.game
         }
