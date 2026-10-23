@@ -73,6 +73,8 @@ the libretro API.
 - **BIOS Files** sits at the top of the library. Import BIOS files there, or pick the file
   for a specific slot. Known dumps are recognized by checksum and filed under the name the
   core expects.
+- **Demo games:** three small public-domain games (SNES, Genesis and DS) are added on first
+  launch so there's something to play right away. Settings › Add Demo Games restores them.
 - **Multi-disc games:** an `.m3u` playlist is written automatically, and you swap discs
   from the menu.
 

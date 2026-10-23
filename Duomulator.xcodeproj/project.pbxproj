@@ -657,6 +657,7 @@
 		4359F865011CB911E06FDAAC /* 273.c in Sources */ = {isa = PBXBuildFile; fileRef = 843B70774233166F7296AA57 /* 273.c */; };
 		43608AF2C56B1677C8A47092 /* controls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F1E8AD0A4B9DE0486361ECCA /* controls.cpp */; };
 		439863F26F9CE5EFB3BE90AB /* d_lockon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CDD60F2E58F2BD5E971EEF8 /* d_lockon.cpp */; };
+		439884D665F0D5A42A9EBB58 /* ds-showcase.nds in Resources */ = {isa = PBXBuildFile; fileRef = 3F429C204910A580093AC802 /* ds-showcase.nds */; };
 		439E63A95313E3CBC9AE7642 /* ines.c in Sources */ = {isa = PBXBuildFile; fileRef = A26D49F2AC7FA48CCA1A7B1B /* ines.c */; };
 		43CA03542B64FC0E95D673FD /* fd1094.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E3E68AB228E104315582FDB /* fd1094.cpp */; };
 		43D816B2AFA302A5C817C059 /* taito.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BC17FDE52132D2A73CC3352E /* taito.cpp */; };
@@ -911,6 +912,7 @@
 		5DC579CB0A94D33E348AF7BB /* libNESCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA273559D9A24238B9FB41F2 /* libNESCore.a */; };
 		5DD03D5CF679DBD50E7FD003 /* d_spy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0D86CD5AFB3ED69E9FA23F9 /* d_spy.cpp */; };
 		5DFF5E1531B9F059AE158210 /* cheapocabra.c in Sources */ = {isa = PBXBuildFile; fileRef = A13099E2CBC9B63036BC38D2 /* cheapocabra.c */; };
+		5E03DC44B60203975367B850 /* snes-showcase.sfc in Resources */ = {isa = PBXBuildFile; fileRef = 86B601ECF12A22EF854EDA76 /* snes-showcase.sfc */; };
 		5E058728BC8E8E25D1E5E252 /* mode4.c in Sources */ = {isa = PBXBuildFile; fileRef = B99B83F0B4EDFF9058F06C4E /* mode4.c */; };
 		5E3787A32CF3073D84379D98 /* libSNESCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 308A9AC8B3B008EE414C11A0 /* libSNESCore.a */; };
 		5E5B550AC6ED91A707465EFD /* k007232.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9753A21B623964CD95033CE9 /* k007232.cpp */; };
@@ -928,6 +930,7 @@
 		605AE28785E732699F13C444 /* gfx.c in Sources */ = {isa = PBXBuildFile; fileRef = 00C6DB430BF87198EC3B9FF4 /* gfx.c */; };
 		6078EF2E96CEADF32EC2A463 /* cp0.c in Sources */ = {isa = PBXBuildFile; fileRef = DA9B2D3C6E8A8D700BD139D4 /* cp0.c */; };
 		6082E9608D78B59C9E3DB9FA /* d_canyon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA5DEBBF2E951C032F6243B3 /* d_canyon.cpp */; };
+		608380A6653BAEE967A9972F /* DemoGames.swift in Sources */ = {isa = PBXBuildFile; fileRef = 129C3C87260FA4FCE26DC46D /* DemoGames.swift */; };
 		6083F4AF65F1B4349CC79905 /* pgm2_crypt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD4D77B8E4ED07B541F929C3 /* pgm2_crypt.cpp */; };
 		609E76F6FB2153155AED686F /* atarirle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F79FC5CE7248A285C50E6380 /* atarirle.cpp */; };
 		60CA0AEC5056C3EBC1850ABC /* r4300_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 2331E7A0DFD451AAE9F826C9 /* r4300_core.c */; };
@@ -1634,6 +1637,7 @@
 		ADDB393CE6BA8F5BC90AC3CB /* d_akazukin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CAD4C7A2CD952DADC489E55A /* d_akazukin.cpp */; };
 		AE08C384B08474E897336F0C /* 372.c in Sources */ = {isa = PBXBuildFile; fileRef = C2C850FE39FD612FD05C0685 /* 372.c */; };
 		AE0E083E9660B4B3A060CF1E /* d_chanbara.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D85887EE863836B43A6C20EE /* d_chanbara.cpp */; };
+		AE2C5DF6F9EEC85EF771C090 /* genesis-showcase.md in Resources */ = {isa = PBXBuildFile; fileRef = 513389EFE1EE15058E339B76 /* genesis-showcase.md */; };
 		AE32C4F47E9B5050D3F651D9 /* Savestate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FD47C130DF829CCDF81593E0 /* Savestate.cpp */; };
 		AE3CEB28B8EC9B5BC47EB413 /* sn76496.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 801760DD28A1623CFFE30474 /* sn76496.cpp */; };
 		AE3E5EB08C41B08AEB84290C /* 368.c in Sources */ = {isa = PBXBuildFile; fileRef = C0CF5B95EE6962F02A47D79E /* 368.c */; };
@@ -2626,6 +2630,7 @@
 		1245EFA0E702A87815AC3B47 /* d_speedspn.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_speedspn.cpp; sourceTree = "<group>"; };
 		1285F1A062F3D80E7E79AF21 /* MemoryStatus_mupenplus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MemoryStatus_mupenplus.cpp; sourceTree = "<group>"; };
 		12900CB457CDFD73218FFF4C /* lowpass2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lowpass2.cpp; sourceTree = "<group>"; };
+		129C3C87260FA4FCE26DC46D /* DemoGames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoGames.swift; sourceTree = "<group>"; };
 		12B1BF259AD9D0ED3F4D2967 /* arm_intf.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = arm_intf.cpp; sourceTree = "<group>"; };
 		12C5F39FD985682D4ACF2462 /* d_tetrisp2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_tetrisp2.cpp; sourceTree = "<group>"; };
 		12E8D5CEC09EBEDEE7CB5CFF /* vrc6.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vrc6.c; sourceTree = "<group>"; };
@@ -3072,6 +3077,7 @@
 		3F14DDD05CFB25A245E40CDA /* d_decocass.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_decocass.cpp; sourceTree = "<group>"; };
 		3F15BA6BD50CBA4BDE09616B /* 7zDec.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 7zDec.c; sourceTree = "<group>"; };
 		3F3800286D9E5953B7DFC387 /* d_qix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_qix.cpp; sourceTree = "<group>"; };
+		3F429C204910A580093AC802 /* ds-showcase.nds */ = {isa = PBXFileReference; path = "ds-showcase.nds"; sourceTree = "<group>"; };
 		3F5E588203104A331C74AEF0 /* f8.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = f8.cpp; sourceTree = "<group>"; };
 		3FC70CCD8AECFA7ED7D4F50A /* asm_defines.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = asm_defines.c; sourceTree = "<group>"; };
 		3FED0B71DCD5DA288BB31DDA /* libretro.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = libretro.c; sourceTree = "<group>"; };
@@ -3228,6 +3234,7 @@
 		50DC123643F9EC88A0769CF7 /* d_suprnova.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_suprnova.cpp; sourceTree = "<group>"; };
 		50F988434E91BEA4CB5920DD /* 585.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 585.c; sourceTree = "<group>"; };
 		512338D8940A783BCAE2EB34 /* compat_strl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = compat_strl.c; sourceTree = "<group>"; };
+		513389EFE1EE15058E339B76 /* genesis-showcase.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "genesis-showcase.md"; sourceTree = "<group>"; };
 		513DD244AFFD37F25F215671 /* 441.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 441.c; sourceTree = "<group>"; };
 		515530D5506ECADB05EACE1D /* d_bestleag.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_bestleag.cpp; sourceTree = "<group>"; };
 		517D6775544F7B232377333A /* d_bombjack.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_bombjack.cpp; sourceTree = "<group>"; };
@@ -3708,6 +3715,7 @@
 		86686B7DAEEE9612F60FD553 /* load.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = load.cpp; sourceTree = "<group>"; };
 		868F149672C0E525E4DC17F5 /* compat_snprintf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = compat_snprintf.c; sourceTree = "<group>"; };
 		869CEF43A18CBE832AB61ABC /* GPU.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GPU.cpp; sourceTree = "<group>"; };
+		86B601ECF12A22EF854EDA76 /* snes-showcase.sfc */ = {isa = PBXFileReference; path = "snes-showcase.sfc"; sourceTree = "<group>"; };
 		86BE89BB137069C4811B78E6 /* c4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = c4.cpp; sourceTree = "<group>"; };
 		86DA8A24482534B0DFDEBD35 /* d_iqblock.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_iqblock.cpp; sourceTree = "<group>"; };
 		86DE8ED1800D1C882E3AC52C /* float_to_s16_neon.S */ = {isa = PBXFileReference; path = float_to_s16_neon.S; sourceTree = "<group>"; };
@@ -5817,6 +5825,7 @@
 				1E8EC37248CBFB1F284FC2F0 /* App */,
 				EE1F26672D7250A8BE1FC9D5 /* Core */,
 				1988197F0E55FD4894B8793A /* Tests */,
+				9C4754C544A6205C2B72A626 /* tools */,
 				4B2E3CCF437CB7B6FAA593FF /* Vendor */,
 				65699C127FD7A4E896B7F141 /* Frameworks */,
 				5AD3294168C27ECE95DE16AB /* Products */,
@@ -7168,6 +7177,7 @@
 				BA53899523CF0E90B5522CFF /* BIOS.swift */,
 				D85D1FCFFD374709DE9ABA95 /* BIOSView.swift */,
 				3DA533D91F49982B8A14B5AB /* ControllerMappingView.swift */,
+				129C3C87260FA4FCE26DC46D /* DemoGames.swift */,
 				0272EAF2546285AFC7F7A893 /* DuomulatorApp.swift */,
 				E89D80E1363355B83E5DA162 /* GameLauncher.swift */,
 				A83C4A511F3C369C591CE272 /* LibraryView.swift */,
@@ -7389,6 +7399,16 @@
 				3C4FBB9D50939F6CD02EFDDA /* upd7725.cpp */,
 			);
 			path = upd7725;
+			sourceTree = "<group>";
+		};
+		8195054BC42103B618E35EED /* showcase */ = {
+			isa = PBXGroup;
+			children = (
+				3F429C204910A580093AC802 /* ds-showcase.nds */,
+				513389EFE1EE15058E339B76 /* genesis-showcase.md */,
+				86B601ECF12A22EF854EDA76 /* snes-showcase.sfc */,
+			);
+			path = showcase;
 			sourceTree = "<group>";
 		};
 		819B5F68C8AFC6501F71904B /* m377 */ = {
@@ -7818,6 +7838,14 @@
 				8D1D5BEF1660F5AC57E093A4 /* cd_chd.cpp */,
 			);
 			path = cd;
+			sourceTree = "<group>";
+		};
+		9C4754C544A6205C2B72A626 /* tools */ = {
+			isa = PBXGroup;
+			children = (
+				8195054BC42103B618E35EED /* showcase */,
+			);
+			path = tools;
 			sourceTree = "<group>";
 		};
 		9C5F2E245C7195F864D535C3 /* libretro-common */ = {
@@ -9898,9 +9926,12 @@
 				A8E8BBC2610E28C1FE94A0E7 /* RSP (cxd4).txt in Resources */,
 				C578161E9327A21687B57DB5 /* RSP HLE.txt in Resources */,
 				C0E7B52FD953CAB1FD84E4CD /* dr_libs.txt in Resources */,
+				439884D665F0D5A42A9EBB58 /* ds-showcase.nds in Resources */,
+				AE2C5DF6F9EEC85EF771C090 /* genesis-showcase.md in Resources */,
 				ECD97287F717858B98AE96DF /* libchdr.txt in Resources */,
 				1B911DB26C5CB7D71F071672 /* libpng.txt in Resources */,
 				99FA87E9C5D8F61C409BBC2C /* melonDS.txt in Resources */,
+				5E03DC44B60203975367B850 /* snes-showcase.sfc in Resources */,
 				4BC549773D2F0BE3EBD5D1D2 /* snes9x.txt in Resources */,
 				FDF028CF343CDD11B2733CD0 /* teakra.txt in Resources */,
 				75E553DEE25F9E6488E31106 /* tiny-AES-c.txt in Resources */,
@@ -10304,6 +10335,7 @@
 				0CCDA7D14E768D8A06C8EE73 /* CoreShim.c in Sources */,
 				C2915338B542BCAA19F6F049 /* CxxRuntime.cpp in Sources */,
 				ED27D2CAEA1EC9B58D788D55 /* DSTouchScreenView.swift in Sources */,
+				608380A6653BAEE967A9972F /* DemoGames.swift in Sources */,
 				D0A098E327207FE8347D9A2C /* DuomulatorApp.swift in Sources */,
 				672D517C048373089EA88ED7 /* EmulatorCore.swift in Sources */,
 				DAF697A8649CFE85572AD013 /* GameControllerManager.swift in Sources */,
@@ -12391,6 +12423,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/Vendor/snes9x/libretro";
 				INFOPLIST_KEY_CFBundleDisplayName = Duomulator;
@@ -12405,6 +12438,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -12801,6 +12835,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/Vendor/snes9x/libretro";
 				INFOPLIST_KEY_CFBundleDisplayName = Duomulator;
@@ -12815,6 +12850,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

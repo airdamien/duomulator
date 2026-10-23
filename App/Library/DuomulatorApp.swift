@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// App entry point: prepares the on-disk layout and settings defaults, then shows the library.
-/// Fully offline — nothing in the app touches the network.
+/// Offline apart from the optional box art downloads.
 @main
 struct DuomulatorApp: App {
     @StateObject private var library: ROMLibrary
@@ -9,6 +9,7 @@ struct DuomulatorApp: App {
     init() {
         GamePaths.ensureDirectories()
         AppSettings.registerDefaults()
+        DemoGames.installOnFirstLaunch()
         _library = StateObject(wrappedValue: ROMLibrary())
     }
 

@@ -12,6 +12,8 @@ struct SettingsView: View {
     @AppStorage(ArtworkSettings.sourceURLKey) private var artSource = ArtworkSettings.defaultSourceURL
     @AppStorage(ArtworkSettings.wifiOnlyKey) private var artWiFiOnly = true
     @State private var confirmClearArt = false
+    @State private var demoMessage: String?
+    @EnvironmentObject private var library: ROMLibrary
 
     var body: some View {
         NavigationStack {
@@ -86,6 +88,17 @@ struct SettingsView: View {
                     Text("Game Controller")
                 } footer: {
                     Text("By default buttons map by position, not label: the right face button is A and the bottom is B, as on a SNES pad. Change it per system in Controller Mapping. With a controller connected, on-screen controls hide until you touch the screen; below the fold they always show. On DS games, tap the lower screen to use the touch screen.")
+                }
+
+                Section {
+                    Button("Add Demo Games") {
+                        demoMessage = DemoGames.install() == 0 ? "The demo games are already in your library." : "Added to your library."
+                        library.refresh()
+                    }
+                } header: {
+                    Text("Demo Games")
+                } footer: {
+                    Text(demoMessage ?? "Three small public-domain games made for Duomulator (SNES, Genesis and DS), to try the controls before adding your own.")
                 }
 
                 Section {
