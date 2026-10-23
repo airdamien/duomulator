@@ -115,6 +115,8 @@ final class GameViewController: UIViewController {
             self.setFastForward(!self.core.fastForward)
         }
         quickBar.onMenu = { [weak self] in self?.openMenu() }
+        quickBar.showsSwap = system.isDualScreen
+        quickBar.onSwapScreens = { [weak self] in self?.swapScreens() }
         view.addSubview(quickBar)
 
         view.addSubview(toast)
@@ -544,6 +546,19 @@ final class GameViewController: UIViewController {
 
     // MARK: Layout
 
+    /// DS: whether the top and touch screens trade places (UserDefaults "dsScreensSwapped").
+    private static var screensSwapped: Bool {
+        get { UserDefaults.standard.bool(forKey: "dsScreensSwapped") }
+        set { UserDefaults.standard.set(newValue, forKey: "dsScreensSwapped") }
+    }
+
+    private func swapScreens() {
+        Self.screensSwapped.toggle()
+        UIView.animate(withDuration: 0.25, delay: 0, options: [.beginFromCurrentState, .curveEaseInOut]) {
+            self.applyLayout()
+        }
+    }
+
     /// Testing hook (launch argument `-layoutIgnoresGamepads YES`): the Simulator forwards
     /// the Mac's paired gamepads, which would otherwise hide the overlay controls.
     private var gamepadHidesOverlay: Bool {
@@ -604,10 +619,20 @@ final class GameViewController: UIViewController {
         lastLayoutKind = posture.kind
         lastFrames = frames
 
-        renderView.frame = frames.game
         if let bottom = frames.secondScreen {
-            bottomScreenView?.frame = bottom
+            // Swapped: the touch screen takes the main screen's place and vice versa.
+            let swapped = Self.screensSwapped
+            renderView.frame = swapped ? bottom : frames.game
+            bottomScreenView?.frame = swapped ? frames.game : bottom
+            // The control panel is opaque: whichever screen sits among the controls goes above it.
+            if swapped {
+                view.insertSubview(renderView, aboveSubview: touchView)
+            } else {
+                view.insertSubview(renderView, belowSubview: touchView)
+            }
             touchScreen?.frame = bottomScreenView?.bounds ?? .zero
+        } else {
+            renderView.frame = frames.game
         }
         if let controls = frames.controls {
             if touchView.style != frames.controlStyle { touchView.style = frames.controlStyle }
@@ -695,7 +720,7 @@ enum GameLayout {
     /// such a strip it takes one from the play area. The menu card sits beside it.
     private static func closed(bounds: CGRect, safe: CGRect, occlusions: [CGRect]) -> Frames {
         let barWidth = QuickActionBar.verticalWidth
-        let height = max(0, min(QuickActionBar.verticalHeight, safe.height - 16))
+        let height = max(0, min(QuickActionBar.verticalHeight(), safe.height - 16))
         let inset = bounds.maxX - safe.maxX
         let portrait = bounds.height > bounds.width
         var frames: Frames
@@ -819,7 +844,7 @@ enum GameLayout {
         var panel = lower
         if sideBar {
             reach.size.width = bounds.maxX - reach.minX
-            let height = max(0, min(QuickActionBar.verticalHeight, upper.maxY - safe.minY - islandClearance))
+            let height = max(0, min(QuickActionBar.verticalHeight(buttons: 5), upper.maxY - safe.minY - islandClearance))
             bar = CGRect(x: safe.maxX + (strip - QuickActionBar.verticalWidth) / 2, y: safe.minY + islandClearance,
                          width: QuickActionBar.verticalWidth, height: height).integral
         } else {
@@ -861,7 +886,7 @@ enum GameLayout {
         let columnX = area.midX - (width + barGap + barWidth) / 2
         let top = CGRect(x: columnX, y: area.midY - gap / 2 - height, width: width, height: height).integral
         let bottom = CGRect(x: columnX, y: area.midY + gap / 2, width: width, height: height).integral
-        let barHeight = min(QuickActionBar.verticalHeight, area.height - 16)
+        let barHeight = min(QuickActionBar.verticalHeight(buttons: 5), area.height - 16)
         let bar = CGRect(x: columnX + width + barGap, y: area.midY - barHeight / 2,
                          width: barWidth, height: barHeight).integral
         var frames = Frames(game: top, controls: bounds, controlStyle: .overlay,

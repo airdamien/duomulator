@@ -39,6 +39,12 @@ asm (
       "  stp x28, x29, [x1, #144]\n"
       "  mov x16, sp\n"
       "  stp x16, x30, [x1, #160]\n"
+      /* Duomulator: d8-d15 are callee-saved too (AAPCS64); without them the caller's
+         floating-point locals are clobbered across every switch. */
+      "  stp d8,  d9,  [x1, #176]\n"
+      "  stp d10, d11, [x1, #192]\n"
+      "  stp d12, d13, [x1, #208]\n"
+      "  stp d14, d15, [x1, #224]\n"
 
       "  ldp x8,  x9,  [x0]\n"
       "  ldp x10, x11, [x0, #16]\n"
@@ -50,6 +56,10 @@ asm (
       "  ldp x24, x25, [x0, #112]\n"
       "  ldp x26, x27, [x0, #128]\n"
       "  ldp x28, x29, [x0, #144]\n"
+      "  ldp d8,  d9,  [x0, #176]\n"
+      "  ldp d10, d11, [x0, #192]\n"
+      "  ldp d12, d13, [x0, #208]\n"
+      "  ldp d14, d15, [x0, #224]\n"
       "  ldp x16, x17, [x0, #160]\n"
       "  mov sp, x16\n"
       "  br x17\n"
@@ -103,6 +113,7 @@ cothread_t co_create(unsigned int size, void (*entrypoint)(void))
    ptr[20] = (uintptr_t)ptr + size + 512 - 16; /* x30, stack pointer */
    ptr[19] = ptr[20]; /* x29, frame pointer */
    ptr[21] = (uintptr_t)entrypoint; /* PC (link register x31 gets saved here). */
+   memset(&ptr[22], 0, 8 * sizeof(uint64_t)); /* d8-d15 */
    return handle;
 }
 

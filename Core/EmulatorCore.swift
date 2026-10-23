@@ -774,6 +774,7 @@ final class EmulatorCore: @unchecked Sendable {
         // Speed report every 10 s (log category "core"): how close the core keeps to full speed.
         var speedWindowStart = deadline
         var speedWindowFrames = 0
+        var speedWindowAudio = audioFramesWritten
 
         while true {
             runCondition.lock()
@@ -803,9 +804,13 @@ final class EmulatorCore: @unchecked Sendable {
                 let window = Double(now &- speedWindowStart) / ticksPerSecond
                 if window >= 10 {
                     let fps = Double(speedWindowFrames) / window
-                    log.notice("speed: \(fps, format: .fixed(precision: 1)) fps of \(self.frameRate, format: .fixed(precision: 1)) (\(Int(fps / self.frameRate * 100))%)\(turbo ? " fast-forward" : "", privacy: .public)")
+                    // Audio per frame vs. sampleRate / frameRate shows whether one retro_run
+                    // is one frame of game time (a ratio of 2 means the game runs double speed).
+                    let audioPerFrame = Double(audioFramesWritten &- speedWindowAudio) / Double(max(1, speedWindowFrames))
+                    log.notice("speed: \(fps, format: .fixed(precision: 1)) fps of \(self.frameRate, format: .fixed(precision: 1)) (\(Int(fps / self.frameRate * 100))%), audio \(Int(audioPerFrame))/frame of \(Int(self.sampleRate / self.frameRate))\(turbo ? " fast-forward" : "", privacy: .public)")
                     speedWindowStart = now
                     speedWindowFrames = 0
+                    speedWindowAudio = audioFramesWritten
                 }
                 if now &- lastSRAMCheck >= sramInterval {
                     lastSRAMCheck = now

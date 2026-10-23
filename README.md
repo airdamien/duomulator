@@ -64,7 +64,8 @@ the libretro API.
 - **Save states:** quick save and load from the bar under the game, three slots in the
   menu, and an automatic resume point when you leave a game. Battery saves are kept per
   system.
-- **Fast forward,** toggled from the quick bar.
+- **Fast forward,** toggled from the quick bar, which also has **Swap** for DS games to
+  put the touch screen on top.
 - **Controllers:** MFi, Xbox and PlayStation pads, plus a hardware keyboard. Buttons map
   by position, and you can remap them per system under Settings > Controller Mapping.
 - **Touch controls** drawn for each system: SNES colors, the NES's two red buttons, the
