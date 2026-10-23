@@ -15,6 +15,7 @@ struct LibraryView: View {
     @State private var alertMessage: AlertMessage?
     @State private var path: [Route] = []
     @State private var showingTransfers = false
+    @State private var confirmCancelImports = false
 
     struct AlertMessage: Identifiable {
         let id = UUID()
@@ -43,8 +44,9 @@ struct LibraryView: View {
             }
             .safeAreaInset(edge: .top, spacing: 0) {
                 if let progress = library.importProgress {
-                    Button { showingTransfers = true } label: { ImportBanner(progress: progress) }
-                        .buttonStyle(.plain)
+                    ImportBanner(progress: progress,
+                                 onOpen: { showingTransfers = true },
+                                 onCancel: { confirmCancelImports = true })
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
@@ -74,6 +76,12 @@ struct LibraryView: View {
             }
         }
         .sheet(isPresented: $showingSettings) { SettingsView() }
+        .confirmationDialog("Stop all transfers?", isPresented: $confirmCancelImports, titleVisibility: .visible) {
+            Button("Stop Transfers", role: .destructive) { library.imports.cancelAll() }
+            Button("Keep Going", role: .cancel) {}
+        } message: {
+            Text("Files already copied stay in your library; the rest are skipped. You can add them again later.")
+        }
         .sheet(isPresented: $showingTransfers) {
             NavigationStack {
                 TransfersView()
@@ -519,8 +527,37 @@ private struct BIOSRow: View {
 /// Status while ROMs copy into the library: which file, how far, how fast, how long.
 private struct ImportBanner: View {
     let progress: ROMLibrary.ImportProgress
+    /// Tap on the banner: the Transfers screen.
+    var onOpen: () -> Void = {}
+    /// The ✕: stop every transfer (the caller confirms).
+    var onCancel: () -> Void = {}
 
     var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Button(action: onOpen) { details }
+                .buttonStyle(.plain)
+            Button(action: onCancel) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title2)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Stop transfers")
+        }
+        .padding(.leading, 12)
+        .padding(.vertical, 12)
+        .padding(.trailing, 4)
+        .frame(maxWidth: 520, alignment: .leading)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal)
+        .padding(.top, 4)
+        .padding(.bottom, 12)   // clear of the BIOS Files row below
+    }
+
+    private var details: some View {
         HStack(alignment: .top, spacing: 12) {
             ProgressView()
                 .padding(.top, 2)
@@ -544,12 +581,8 @@ private struct ImportBanner: View {
                 }
             }
         }
-        .padding(12)
-        .frame(maxWidth: 520, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .padding(.horizontal)
-        .padding(.top, 4)
-        .padding(.bottom, 12)   // clear of the BIOS Files row below
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
 
