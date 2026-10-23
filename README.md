@@ -135,6 +135,7 @@ Debug builds accept a few launch arguments for testing and screenshots:
 | `-postureOverride forceTent \| forceFlat` | Force a layout |
 | `-debugPosture closed` | Lay out as on the outer display |
 | `-debugOrientation landscape` | Turn the game screen to landscape |
+| `-debugImport <path>` | Import a file at launch (to see the progress banner) |
 | `-layoutIgnoresGamepads YES` | Keep touch controls visible (the Simulator forwards the Mac's gamepads) |
 
 ## Project layout

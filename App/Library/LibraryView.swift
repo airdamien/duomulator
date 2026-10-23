@@ -40,6 +40,13 @@ struct LibraryView: View {
                     folderList
                 }
             }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if let progress = library.importProgress {
+                    ImportBanner(progress: progress)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .animation(.easeInOut(duration: 0.25), value: library.importProgress == nil)
             .navigationTitle("Duomulator")
             .navigationDestination(for: Route.self) { route in destination(route) }
             .task { openFolderIfRequested() }
@@ -59,13 +66,14 @@ struct LibraryView: View {
         .fileImporter(isPresented: $showingImporter, allowedContentTypes: Self.importTypes,
                       allowsMultipleSelection: true) { result in
             switch result {
-            case .success(let urls): report(library.importFiles(urls))
+            case .success(let urls): Task { report(await library.importFiles(urls)) }
             case .failure(let error):
                 alertMessage = AlertMessage(title: "Import Failed", message: error.localizedDescription)
             }
         }
         .sheet(isPresented: $showingSettings) { SettingsView() }
-        .onOpenURL { url in report(library.handleOpenURL(url)) }
+        .onOpenURL { url in Task { report(await library.handleOpenURL(url)) } }
+
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { library.refresh() }
         }
@@ -239,6 +247,10 @@ struct LibraryView: View {
 
     private func openFolderIfRequested() {
         #if DEBUG
+        // Testing hook: `-debugImport <path>` imports that file, to see the progress banner.
+        if !Self.didOpenRequestedFolder, let path = UserDefaults.standard.string(forKey: "debugImport") {
+            Task { report(await library.importFiles([URL(filePath: path)])) }
+        }
         guard !Self.didOpenRequestedFolder else { return }
         Self.didOpenRequestedFolder = true
         guard path.isEmpty, let raw = UserDefaults.standard.string(forKey: "openLibraryFolder") else { return }
@@ -487,5 +499,58 @@ private struct BIOSRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+/// Status while ROMs copy into the library: which file, how far, how fast, how long.
+private struct ImportBanner: View {
+    let progress: ROMLibrary.ImportProgress
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            ProgressView()
+                .padding(.top, 2)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(progress.count > 1 ? "Importing \(progress.index) of \(progress.count)" : "Importing")
+                    .font(.subheadline.weight(.semibold))
+                Text(progress.fileName)
+                    .font(.caption)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .foregroundStyle(.secondary)
+                if let total = progress.bytesTotal, total > 0 {
+                    ProgressView(value: Double(min(progress.bytesDone, total)), total: Double(total))
+                    Text(detail(total: total))
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("Waiting for the file (it may be downloading from iCloud)…")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: 520, alignment: .leading)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal)
+        .padding(.top, 4)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func detail(total: Int64) -> String {
+        var parts = ["\(Self.bytes(progress.bytesDone)) of \(Self.bytes(total))"]
+        if progress.bytesPerSecond > 0 { parts.append("\(Self.bytes(Int64(progress.bytesPerSecond)))/s") }
+        if let left = progress.secondsLeft { parts.append(Self.duration(left) + " left") }
+        return parts.joined(separator: " · ")
+    }
+
+    private static func bytes(_ count: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: count, countStyle: .file)
+    }
+
+    private static func duration(_ seconds: Double) -> String {
+        let s = Int(seconds.rounded())
+        return s < 60 ? "\(s) s" : String(format: "%d:%02d", s / 60, s % 60)
     }
 }
