@@ -91,6 +91,7 @@ struct SettingsView: View {
                 Section {
                     LabeledContent("Version", value: Self.versionString)
                     NavigationLink("Acknowledgements") { AcknowledgementsView() }
+                    Link("Privacy Policy", destination: Self.privacyPolicyURL)
                 } header: {
                     Text("About")
                 } footer: {
@@ -110,6 +111,8 @@ struct SettingsView: View {
             }
         }
     }
+
+    static let privacyPolicyURL = URL(string: "https://airdamien.github.io/duomulator/privacy.html")!
 
     private static var versionString: String {
         let info = Bundle.main.infoDictionary

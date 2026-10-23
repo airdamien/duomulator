@@ -165,6 +165,12 @@ Every screenshot shows homebrew, never a commercial game:
 Store-ready images live in `docs/app-store`: `iphone-6.9` holds the required 6.9" iPhone set
 (1320×2868), and `iphone-duo` holds the half-fold and outer-display shots.
 
+## Privacy
+
+Duomulator collects no data: no accounts, analytics or tracking. Games and saves stay on the
+device, and the optional box art download is its only network use. See the
+[privacy policy](https://airdamien.github.io/duomulator/privacy.html).
+
 ## License and credits
 
 The emulation cores keep their own licenses:
