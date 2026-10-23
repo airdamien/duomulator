@@ -75,6 +75,10 @@ the libretro API.
 - **BIOS Files** sits at the top of the library. Import BIOS files there, or pick the file
   for a specific slot. Known dumps are recognized by checksum and filed under the name the
   core expects.
+- **Reliable imports:** games copy in the background with a progress banner (file, size,
+  speed, time left). Each file retries three times before it's set aside so the rest keep
+  going, partial copies resume, and unfinished imports continue on the next launch.
+  Settings › Transfers shows every file with Retry, Skip and Cancel.
 - **Demo games:** three small public-domain games (SNES, Genesis and DS) are added on first
   launch so there's something to play right away. Settings › Add Demo Games restores them.
 - **Multi-disc games:** an `.m3u` playlist is written automatically, and you swap discs
@@ -131,11 +135,11 @@ Debug builds accept a few launch arguments for testing and screenshots:
 | Argument | Effect |
 |---|---|
 | `-autolaunchROM <file>` | Open a game from Documents/ROMs at launch |
-| `-openLibraryFolder <system \| bios>` | Open a system's game list, or BIOS Files |
+| `-openLibraryFolder <system \| bios \| transfers>` | Open a system's game list, BIOS Files or Transfers |
 | `-postureOverride forceTent \| forceFlat` | Force a layout |
 | `-debugPosture closed` | Lay out as on the outer display |
 | `-debugOrientation landscape` | Turn the game screen to landscape |
-| `-debugImport <path>` | Import a file at launch (to see the progress banner) |
+| `-debugImport <path\|path…>` | Import files at launch (to see the progress banner) |
 | `-layoutIgnoresGamepads YES` | Keep touch controls visible (the Simulator forwards the Mac's gamepads) |
 
 ## Project layout

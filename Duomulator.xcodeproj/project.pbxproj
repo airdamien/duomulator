@@ -985,6 +985,7 @@
 		664CC389D274E7B6A7364834 /* burn_pal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4ED2E9E384B48AD98B54943 /* burn_pal.cpp */; };
 		667186EF71778D6A36761008 /* 398.c in Sources */ = {isa = PBXBuildFile; fileRef = FDBF77F7A50B3D30DF59F07B /* 398.c */; };
 		668633B0D6116D93C10B1F5A /* jyasic.c in Sources */ = {isa = PBXBuildFile; fileRef = AEA1594428822DA8DBE3AE00 /* jyasic.c */; };
+		66A02753EF6927448973CEA5 /* TransfersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E99E68574A2723D6BEEF342 /* TransfersView.swift */; };
 		66E40347BA51D6207E9EEB2C /* d_deco156.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 076844E1CD961A540DA8B8A5 /* d_deco156.cpp */; };
 		66E68CF81C71FD055D2FB6F0 /* d_shuuz.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6922622B5ED4B1BEF3FA7AD /* d_shuuz.cpp */; };
 		66EDF6EFD4F8FC5C31E2AB55 /* t11.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97AA524F70A73F7A7035290 /* t11.cpp */; };
@@ -1185,6 +1186,7 @@
 		7BB937144DF7695DC494A6BD /* d_nes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 821F0F5C4BB1BD84DBD44C49 /* d_nes.cpp */; };
 		7BC29DA76DB1531D9FB5076D /* eeprom_93Cx6.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = CF21C56B8F2C54826DD346CB /* eeprom_93Cx6.h */; };
 		7BD8E60A87C4E4C8EF3D7B18 /* pgm_asic27a_type2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 630B5FBB386D2426BC1F44E0 /* pgm_asic27a_type2.cpp */; };
+		7BED89389A669E701576A949 /* ImportQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA89C632755F4B837213034 /* ImportQueue.swift */; };
 		7C1F79AAD71E21BB614424A0 /* d_minivdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 881D502DFFEE69EEDF9798DA /* d_minivdr.cpp */; };
 		7C5CF4408FB2B4986DF9DFDC /* d_thunderx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F565B7DEE9FDECA2CBF418F /* d_thunderx.cpp */; };
 		7C6976DD4F576253B463ACC2 /* s14001a.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 529DA0933D5741D96CDD3E65 /* s14001a.cpp */; };
@@ -3211,6 +3213,7 @@
 		4E54C93D56D91D2F3BB3A613 /* d_gba.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_gba.cpp; sourceTree = "<group>"; };
 		4E7DC10EBED51B168A037393 /* z80if.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = z80if.c; sourceTree = "<group>"; };
 		4E8A0A3EA98C3D5729D33EB0 /* astrocde_snd.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = astrocde_snd.cpp; sourceTree = "<group>"; };
+		4E99E68574A2723D6BEEF342 /* TransfersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransfersView.swift; sourceTree = "<group>"; };
 		4E9EB4149772054F60DEFA53 /* 509.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 509.c; sourceTree = "<group>"; };
 		4EB090E463EAB0B1B2A931C4 /* CommonPluginAPI.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CommonPluginAPI.cpp; sourceTree = "<group>"; };
 		4ECDAA85F303D9D8F3FB0CD6 /* d_olibochu.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_olibochu.cpp; sourceTree = "<group>"; };
@@ -4503,6 +4506,7 @@
 		DD5AFC009D8B8E765006F55F /* libchdr_codec_cdfl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = libchdr_codec_cdfl.c; sourceTree = "<group>"; };
 		DD60020E63B985D97BE96EF0 /* flashrom.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = flashrom.h; sourceTree = "<group>"; };
 		DD910D47D1781BF7A146AFB8 /* DebugDump.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DebugDump.cpp; sourceTree = "<group>"; };
+		DDA89C632755F4B837213034 /* ImportQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportQueue.swift; sourceTree = "<group>"; };
 		DDAD1DA69A04D0546A49B704 /* d_scotrsht.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_scotrsht.cpp; sourceTree = "<group>"; };
 		DDB9524C3744819C023B6F38 /* ym2612.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ym2612.c; sourceTree = "<group>"; };
 		DDD2F3E1D7055234E48E53CA /* d_blockout.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = d_blockout.cpp; sourceTree = "<group>"; };
@@ -7183,9 +7187,11 @@
 				129C3C87260FA4FCE26DC46D /* DemoGames.swift */,
 				0272EAF2546285AFC7F7A893 /* DuomulatorApp.swift */,
 				E89D80E1363355B83E5DA162 /* GameLauncher.swift */,
+				DDA89C632755F4B837213034 /* ImportQueue.swift */,
 				A83C4A511F3C369C591CE272 /* LibraryView.swift */,
 				1D00BF5BC91FB83236EDE9C5 /* ROMLibrary.swift */,
 				2ACF21C73C8BD1B48D269CB8 /* SettingsView.swift */,
+				4E99E68574A2723D6BEEF342 /* TransfersView.swift */,
 				C0168F9BDD1C2C9058204950 /* Licenses */,
 			);
 			path = Library;
@@ -10351,6 +10357,7 @@
 				C54CDD2860E853849CCA2F63 /* GameViewController.swift in Sources */,
 				B070AB661034499D86A4EFDD /* GenesisPad.swift in Sources */,
 				B1B6B17783099E136D56408A /* HWRender.m in Sources */,
+				7BED89389A669E701576A949 /* ImportQueue.swift in Sources */,
 				C65DC708935FAFAE2A47D630 /* LibraryView.swift in Sources */,
 				7068C60E3CB0DBC81DEBBE20 /* PostureMonitor.swift in Sources */,
 				3A8A9DD2F9C8445236115017 /* QuickActionBar.swift in Sources */,
@@ -10359,6 +10366,7 @@
 				6F370D6DD68C61485CDDF20F /* SharedTypes.swift in Sources */,
 				28145FDD70D8BA9CBA20526F /* TouchControllerView.swift in Sources */,
 				E491F34B61E05E5EB60E7F76 /* TouchWatcher.swift in Sources */,
+				66A02753EF6927448973CEA5 /* TransfersView.swift in Sources */,
 				1D6CEAC6ABB8D6DD2A290DB4 /* ZipArchive.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -12427,7 +12435,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/Vendor/snes9x/libretro";
 				INFOPLIST_KEY_CFBundleDisplayName = Duomulator;
@@ -12839,7 +12847,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/Vendor/snes9x/libretro";
 				INFOPLIST_KEY_CFBundleDisplayName = Duomulator;

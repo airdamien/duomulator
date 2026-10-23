@@ -134,10 +134,18 @@ final class ROMLibrary: ObservableObject {
     private var watcher: DispatchSourceFileSystemObject?
     private var pendingRefresh: DispatchWorkItem?
 
-    init() {
+    @MainActor
+    init(imports: ImportQueue = .shared) {
+        self.imports = imports
         GamePaths.ensureDirectories()
         refresh()
         startWatching()
+        imports.$progress.receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.importProgress = $0 }
+            .store(in: &importObservers)
+        imports.onItemFinished = { [weak self] in self?.refresh() }
+        // Pick up anything a previous run didn't finish.
+        imports.start()
     }
 
     deinit { watcher?.cancel() }
@@ -256,35 +264,18 @@ final class ROMLibrary: ObservableObject {
         var secondsLeft: Double?
     }
 
+    /// Mirrors `ImportQueue.progress` for the library banner.
     @Published private(set) var importProgress: ImportProgress?
-    /// Bumped when an import starts and ends, so progress updates still queued on the main
-    /// queue after it finishes are dropped instead of bringing the banner back.
-    private var importGeneration = 0
+    let imports: ImportQueue
+    private var importObservers: Set<AnyCancellable> = []
 
-    /// Copies picked / shared files into the ROMs folder. Handles security-scoped URLs,
+    /// Copies picked / shared files into the ROMs folder through the import queue
+    /// (background, resumable, retried), and waits for them. Handles security-scoped URLs,
     /// coordinated reads (iCloud Drive / providers), duplicates and name collisions.
-    /// Runs on a background task (big DS and disc images take a while, iCloud files may
-    /// download first), publishing `importProgress` as it goes.
     @MainActor @discardableResult
     func importFiles(_ urls: [URL]) async -> ImportReport {
         GamePaths.ensureDirectories()
-        importGeneration += 1
-        let generation = importGeneration
-        let started = Date()
-        importProgress = ImportProgress(index: 1, count: urls.count, fileName: urls.first?.lastPathComponent ?? "",
-                                        bytesDone: 0, bytesTotal: nil, bytesPerSecond: 0, secondsLeft: nil)
-        var report = await Task.detached(priority: .userInitiated) { [weak self] in
-            ROMLibrary.copyFiles(urls) { progress in
-                Task { @MainActor in
-                    guard let self, self.importGeneration == generation else { return }
-                    self.importProgress = progress
-                }
-            }
-        }.value
-        importGeneration += 1
-        importProgress = nil
-        Logger(subsystem: "io.kurast.duomulator", category: "library").notice(
-            "imported \(report.imported.count) of \(urls.count) in \(Date().timeIntervalSince(started), format: .fixed(precision: 1)) s")
+        var report = await imports.importFiles(urls)
         for cue in report.imported where cue.pathExtension.lowercased() == "cue" {
             let missing = CueSheet.trackFiles(of: cue).filter {
                 !FileManager.default.fileExists(atPath: cue.deletingLastPathComponent().appending(path: $0).path)
@@ -294,66 +285,6 @@ final class ROMLibrary: ObservableObject {
             }
         }
         refresh()
-        return report
-    }
-
-    /// The copying itself, off the main thread. `progress` is called at most ~8 times a second.
-    nonisolated private static func copyFiles(_ urls: [URL], progress: @escaping (ImportProgress) -> Void) -> ImportReport {
-        var report = ImportReport()
-        let start = Date()
-        var copiedBefore: Int64 = 0       // bytes of files already finished
-        var lastReport = Date.distantPast
-        let sizes: [Int64?] = urls.map { url in
-            (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize).map(Int64.init)
-        }
-        for (index, source) in urls.enumerated() {
-            let name = source.lastPathComponent
-            guard ROMLibrary.isROM(source) else {
-                report.unsupported.append(name)
-                continue
-            }
-            func send(done: Int64, total: Int64?, force: Bool = false) {
-                let now = Date()
-                guard force || now.timeIntervalSince(lastReport) >= 0.125 else { return }
-                lastReport = now
-                let elapsed = max(0.001, now.timeIntervalSince(start))
-                let rate = Double(copiedBefore + done) / elapsed
-                // ETA across this file and the ones after it, when their sizes are known.
-                var remaining = total.map { $0 - done }
-                for size in sizes.dropFirst(index + 1) {
-                    remaining = remaining.flatMap { r in size.map { r + $0 } }
-                }
-                progress(ImportProgress(index: index + 1, count: urls.count, fileName: name,
-                                        bytesDone: done, bytesTotal: total, bytesPerSecond: rate,
-                                        secondsLeft: rate > 0 ? remaining.map { Double($0) / rate } : nil))
-            }
-            send(done: 0, total: nil, force: true)
-
-            let scoped = source.startAccessingSecurityScopedResource()
-            defer { if scoped { source.stopAccessingSecurityScopedResource() } }
-            var coordinationError: NSError?
-            var result: Result<URL?, Error> = .success(nil)
-            // Blocks while iCloud downloads the file, if it has to.
-            NSFileCoordinator().coordinate(readingItemAt: source, options: [.withoutChanges],
-                                           error: &coordinationError) { readable in
-                let total = (try? readable.resourceValues(forKeys: [.fileSizeKey]).fileSize).map(Int64.init)
-                result = Result {
-                    try ROMLibrary.copyIntoLibrary(readable, preferredName: name) { done in
-                        send(done: done, total: total)
-                    }
-                }
-                if let total { copiedBefore += total }
-            }
-            if coordinationError != nil {
-                report.failed.append(name)
-                continue
-            }
-            switch result {
-            case .success(let dest?): report.imported.append(dest)
-            case .success(nil): report.duplicates.append(name)
-            case .failure: report.failed.append(name)
-            }
-        }
         return report
     }
 
@@ -380,44 +311,6 @@ final class ROMLibrary: ObservableObject {
             }
         }
         return report
-    }
-
-    /// Returns the destination, or nil if an identical file is already in the library.
-    nonisolated private static func copyIntoLibrary(_ source: URL, preferredName: String,
-                                                    progress: (Int64) -> Void) throws -> URL? {
-        let fm = FileManager.default
-        let base = (preferredName as NSString).deletingPathExtension
-        let ext = (preferredName as NSString).pathExtension
-        var candidate = GamePaths.roms.appending(path: preferredName)
-        var counter = 2
-        while fm.fileExists(atPath: candidate.path) {
-            if fm.contentsEqual(atPath: candidate.path, andPath: source.path) { return nil }
-            candidate = GamePaths.roms.appending(path: "\(base) (\(counter)).\(ext)")
-            counter += 1
-        }
-        // Copy in chunks to a hidden temp file (the folder watcher skips it), then move it in.
-        let temp = GamePaths.roms.appending(path: ".importing-\(UUID().uuidString)")
-        defer { try? fm.removeItem(at: temp) }
-        guard fm.createFile(atPath: temp.path, contents: nil) else {
-            throw CocoaError(.fileWriteUnknown)
-        }
-        let input = try FileHandle(forReadingFrom: source)
-        defer { try? input.close() }
-        let output = try FileHandle(forWritingTo: temp)
-        var done: Int64 = 0
-        do {
-            while let chunk = try input.read(upToCount: 4 << 20), !chunk.isEmpty {
-                try output.write(contentsOf: chunk)
-                done += Int64(chunk.count)
-                progress(done)
-            }
-            try output.close()
-        } catch {
-            try? output.close()
-            throw error
-        }
-        try fm.moveItem(at: temp, to: candidate)
-        return candidate
     }
 
     // MARK: Delete / rename

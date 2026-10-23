@@ -14,6 +14,7 @@ struct LibraryView: View {
     @State private var renameText = ""
     @State private var alertMessage: AlertMessage?
     @State private var path: [Route] = []
+    @State private var showingTransfers = false
 
     struct AlertMessage: Identifiable {
         let id = UUID()
@@ -42,7 +43,8 @@ struct LibraryView: View {
             }
             .safeAreaInset(edge: .top, spacing: 0) {
                 if let progress = library.importProgress {
-                    ImportBanner(progress: progress)
+                    Button { showingTransfers = true } label: { ImportBanner(progress: progress) }
+                        .buttonStyle(.plain)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
@@ -72,6 +74,16 @@ struct LibraryView: View {
             }
         }
         .sheet(isPresented: $showingSettings) { SettingsView() }
+        .sheet(isPresented: $showingTransfers) {
+            NavigationStack {
+                TransfersView()
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { showingTransfers = false }
+                        }
+                    }
+            }
+        }
         .onOpenURL { url in Task { report(await library.handleOpenURL(url)) } }
 
         .onChange(of: scenePhase) { _, phase in
@@ -249,12 +261,14 @@ struct LibraryView: View {
         #if DEBUG
         // Testing hook: `-debugImport <path>` imports that file, to see the progress banner.
         if !Self.didOpenRequestedFolder, let path = UserDefaults.standard.string(forKey: "debugImport") {
-            Task { report(await library.importFiles([URL(filePath: path)])) }
+            let files = path.split(separator: "|").map { URL(filePath: String($0)) }
+            Task { report(await library.importFiles(files)) }
         }
         guard !Self.didOpenRequestedFolder else { return }
         Self.didOpenRequestedFolder = true
         guard path.isEmpty, let raw = UserDefaults.standard.string(forKey: "openLibraryFolder") else { return }
         if raw == "bios" { path = [.bios]; return }
+        if raw == "transfers" { showingTransfers = true; return }
         guard let system = GameSystem(rawValue: raw) else { return }
         path = [.maker(system.manufacturer), .system(system)]
         #endif

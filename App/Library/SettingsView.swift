@@ -93,6 +93,14 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    NavigationLink {
+                        TransfersView()
+                    } label: {
+                        LabeledContent("Transfers", value: transferSummary)
+                    }
+                }
+
+                Section {
                     Button("Add Demo Games") {
                         demoMessage = DemoGames.install() == 0 ? "The demo games are already in your library." : "Added to your library."
                         library.refresh()
@@ -128,6 +136,15 @@ struct SettingsView: View {
     }
 
     static let privacyPolicyURL = URL(string: "https://airdamien.github.io/duomulator/privacy.html")!
+
+    private var transferSummary: String {
+        let items = ImportQueue.shared.items
+        let open = items.filter { !$0.state.isFinished }.count
+        let failed = items.filter { $0.state == .failed }.count
+        if open > 0 { return "\(open) in progress" }
+        if failed > 0 { return "\(failed) failed" }
+        return ""
+    }
 
     private static var versionString: String {
         let info = Bundle.main.infoDictionary
