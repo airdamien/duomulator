@@ -60,6 +60,14 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: url).count, 256 * 1024)
     }
 
+    func testSmallROMLoadsWithoutReadingPastTheEnd() throws {
+        // 32 KB homebrew: snes9x used to read a BS-X header at 0xFFC0, past the end.
+        let rom = try makeROM { $0 = $0.prefix(0x8000) }
+        try core.load(rom: rom)
+        core.runFrames(10)
+        XCTAssertEqual(core.loadedROM, rom)
+    }
+
     func testLoadRunsVideoAndAudio() throws {
         let rom = try makeROM()
         try core.load(rom: rom)

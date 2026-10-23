@@ -1,4 +1,5 @@
 snes9x vendored from https://github.com/snes9xgit/snes9x @ 1bcc369e89f08243e0a462882fb1f3e42e51de3a (2026-09-24). License: Vendor/snes9x/LICENSE (non-commercial).
+  Local change: libretro/libretro.cpp checks the ROM is big enough before reading BS-X headers at 0x7fc0/0xffc0 (32 KB ROMs crashed).
 fceumm vendored from https://github.com/libretro/libretro-fceumm @ ac0d00a7fc01166f84c7bac01d1084ebfd2b865e (2026-10-11). License: GPL-2.0 (Vendor/fceumm/Copying).
 melonds vendored from https://github.com/libretro/melonDS @ 66b5d2634cd0a79030562811e6e05f5532f800ba (2026-07-19), melonDS 0.9.3. License: GPL-3.0 (Vendor/melonds/LICENSE). Built as an interpreter (no JIT) with the software renderer.
 picodrive vendored from https://github.com/libretro/picodrive @ 1890c2932234c9d30f4cd3851d02228baae8f09e (2026-09-26) with submodules. License: Vendor/picodrive/COPYING (non-commercial). Built with the C 68000/Z80 cores; no dynarec.

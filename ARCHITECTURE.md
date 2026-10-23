@@ -1,6 +1,6 @@
 # Duomulator architecture
 
-SNES emulator for iPhone Duo (foldable, iOS 27.1 SDK; deployment target iOS 26.0 so it also
+Multi-system emulator for iPhone Duo (foldable, iOS 27.1 SDK; deployment target iOS 26.0 so it also
 runs on regular iPhones). Build: `xcodegen generate && xcodebuild -project Duomulator.xcodeproj
 -scheme Duomulator -destination 'id=<sim udid>' -derivedDataPath build build`.
 Swift 5 language mode. Gate every Duo API with `if #available(iOS 27.1, *)`.
@@ -8,7 +8,7 @@ Swift 5 language mode. Gate every Duo API with `if #available(iOS 27.1, *)`.
 ## Layers
 | Module  | Files | Owns |
 |---------|-------|------|
-| Core    | `Vendor/snes9x` (static lib `SNESCore`, built via libretro API), `Core/` | libretro host |
+| Core    | `Vendor/*` (one static lib per libretro core: snes9x, FCEUmm, melonDS, PicoDrive, FinalBurn Neo, PCSX ReARMed, Mupen64Plus-Next; symbols renamed per core via `CoreBuild/`), `Core/` | libretro host (`EmulatorCore`, `CoreAPI` function tables, `HWRender` OpenGL ES for N64) |
 | Shared  | `App/Shared/SharedTypes.swift` | `SNESButtons`, `InputHub`, `FrameBuffer`, `AudioRingBuffer`, `Posture`, `GamePaths`. FROZEN — do not change semantics; additive changes only if unavoidable. |
 | Video   | `App/Video/` | `GameRenderView` (Metal) |
 | Audio   | `App/Audio/` | `AudioOutput` (AVAudioEngine) |
@@ -21,7 +21,7 @@ members. Data flow:
 
 ```
 GameControllerManager ─┐
-TouchControllerView ───┼─> InputHub ──(poll)──> EmulatorCore (emu thread, snes9x via libretro)
+TouchControllerView ───┼─> InputHub ──(poll)──> EmulatorCore (emu thread, the game's core via libretro)
                        │                          ├─ video_refresh ─> FrameBuffer ─> GameRenderView (CADisplayLink + Metal)
                        │                          └─ audio_batch  ─> AudioRingBuffer ─> AudioOutput (AVAudioSourceNode)
 PostureMonitor (UIHingeInteraction + reservedRegions(kind: .division)) ─> GameViewController layout
@@ -39,11 +39,17 @@ PostureMonitor (UIHingeInteraction + reservedRegions(kind: .division)) ─> Game
 
 ## Postures → layout
 - `.tent` (partially open, DS style): game above the division, `TouchControllerView(.panel)`
-  plus quick actions below it.
-- `.flat` (fully open / any non-foldable): game aspect-fit; `TouchControllerView(.overlay)`.
-  Landscape: game centered, controls in the side gutters.
-- `.closed` (outer display): regular phone layout, same as flat on a normal iPhone.
-- Physical controller connected ⇒ hide touch controls, game uses the whole area.
+  plus quick actions below it. Only a fold running across the screen counts; half open
+  sideways the game screen asks to be turned. DS: top screen above, touch screen below
+  flanked by the controls.
+- `.flat` (fully open / any non-foldable): game aspect-fit; `TouchControllerView(.overlay)`,
+  drawn as outlines. Landscape: game centered, controls over it.
+- `.closed` (outer display): like flat, but the quick bar stands vertically in the system's
+  side strip at the right edge (Apple's outer-display bar placement), and the controls below
+  the game reach across that strip.
+- Physical controller connected ⇒ overlay controls hide until the screen is touched; the
+  panel below the fold always shows.
+- Controls keep clear of the rounded screen corners (`ControllerLayout.keepClear`).
 
 ## Persistence
 `GamePaths` (Documents/ROMs, Saves/*.srm, States/*.sN). SRAM is flushed on pause, background,

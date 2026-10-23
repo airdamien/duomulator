@@ -40,6 +40,11 @@ final class TouchControllerView: UIView {
             setNeedsLayout()
         }
     }
+    /// Lets the controls use the right safe-area inset (the Duo outer display's system strip,
+    /// empty below the Dynamic Island while playing).
+    var usesRightInset = false {
+        didSet { if usesRightInset != oldValue { setNeedsLayout() } }
+    }
     /// Called when the on-screen menu button is tapped.
     var onMenu: (() -> Void)?
 
@@ -100,7 +105,9 @@ final class TouchControllerView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         cornerProbe.frame = bounds
-        var newLayout = ControllerLayout(bounds: bounds, safeArea: safeAreaInsets,
+        var insets = safeAreaInsets
+        if usesRightInset { insets.right = 0 }
+        var newLayout = ControllerLayout(bounds: bounds, safeArea: insets,
                                          style: style.layoutStyle, system: system,
                                          pad: pad, reserved: reservedRect)
         newLayout.keepClear(of: .init(topLeft: cornerProbe.effectiveRadius(corner: .topLeft),

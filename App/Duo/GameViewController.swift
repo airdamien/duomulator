@@ -604,6 +604,7 @@ final class GameViewController: UIViewController {
         if let controls = frames.controls {
             if touchView.style != frames.controlStyle { touchView.style = frames.controlStyle }
             touchView.frame = controls
+            touchView.usesRightInset = frames.controlsUseRightInset
             touchView.reservedRect = frames.secondScreen.map { view.convert($0, to: touchView) }
             touchView.alpha = 1
             touchView.isUserInteractionEnabled = true
@@ -637,6 +638,8 @@ enum GameLayout {
     static let gameAspect: CGFloat = 4.0 / 3.0
     static let barInset: CGFloat = 12
     static let barMaxWidth: CGFloat = 520
+    /// Room left at the top of the outer display's side strip for the Dynamic Island.
+    static let islandClearance: CGFloat = 96
 
     /// Frames for one layout pass, in the game view controller's view coordinates.
     struct Frames: Equatable {
@@ -652,6 +655,8 @@ enum GameLayout {
         var secondScreen: CGRect? = nil
         /// Duo outer display: the quick bar stands at the right edge.
         var quickBarVertical = false
+        /// Duo outer display in portrait: the controls also use the system strip at the right.
+        var controlsUseRightInset = false
     }
 
     /// Controls are always laid out; with a gamepad connected the game screen hides the
@@ -673,18 +678,26 @@ enum GameLayout {
     }
 
     /// Duo outer display: like flat, but the quick bar stands at the right edge, in the strip
-    /// the system reserves there for its own bars (the right safe-area inset), vertically
-    /// centered to keep clear of the Dynamic Island. Without such a strip it takes one from
-    /// the play area. The menu card sits beside it.
+    /// the system reserves there for its own bars (the right safe-area inset). In portrait it
+    /// sits beside the game, below the Dynamic Island at the top of the strip, and the controls
+    /// underneath reach across the strip too; in landscape it's vertically centered. Without
+    /// such a strip it takes one from the play area. The menu card sits beside it.
     private static func closed(bounds: CGRect, safe: CGRect, occlusions: [CGRect]) -> Frames {
         let barWidth = QuickActionBar.verticalWidth
         let height = max(0, min(QuickActionBar.verticalHeight, safe.height - 16))
         let inset = bounds.maxX - safe.maxX
+        let portrait = bounds.height > bounds.width
         var frames: Frames
-        let barX: CGFloat
+        var bar: CGRect
         if inset >= barWidth + 8 {
             frames = flat(bounds: bounds, safe: safe, occlusions: occlusions)
-            barX = safe.maxX + (inset - barWidth) / 2
+            let x = safe.maxX + (inset - barWidth) / 2
+            if portrait {
+                bar = CGRect(x: x, y: safe.minY + islandClearance, width: barWidth, height: height)
+                frames.controlsUseRightInset = (frames.controls?.minY ?? 0) >= bar.maxY - 24
+            } else {
+                bar = CGRect(x: x, y: safe.midY - height / 2, width: barWidth, height: height)
+            }
         } else {
             let stripMinX = safe.maxX - barWidth - 8
             var playBounds = bounds
@@ -692,9 +705,9 @@ enum GameLayout {
             var playSafe = safe
             playSafe.size.width = max(0, stripMinX - safe.minX)
             frames = flat(bounds: playBounds, safe: playSafe, occlusions: occlusions)
-            barX = safe.maxX - barWidth
+            bar = CGRect(x: safe.maxX - barWidth, y: safe.midY - height / 2, width: barWidth, height: height)
         }
-        frames.quickBar = CGRect(x: barX, y: safe.midY - height / 2, width: barWidth, height: height).integral
+        frames.quickBar = bar.integral
         frames.quickBarVertical = true
         let cardWidth = min(safe.width, 380)
         frames.menuArea = CGRect(x: safe.maxX - cardWidth, y: safe.minY, width: cardWidth, height: safe.height)
@@ -782,14 +795,28 @@ enum GameLayout {
         lower = lower.avoiding(occlusions)
         let top = aspectFit(in: upper.insetBy(dx: 4, dy: 4))   // a DS screen is 256x192 = 4:3
 
-        let row = lower.intersection(safe).isNull ? lower : lower.intersection(safe)
-        let barWidth = min(row.width - barInset * 2, barMaxWidth)
-        let bar = CGRect(x: row.midX - barWidth / 2, y: row.minY + 6,
-                         width: max(0, barWidth), height: QuickActionBar.preferredHeight).integral
+        // Duo outer display (portrait): the quick bar stands in the system strip at the right,
+        // beside the top screen, and the lower half reaches across that strip.
+        let strip = bounds.maxX - safe.maxX
+        let sideBar = posture == .closed && bounds.height > bounds.width
+            && strip >= QuickActionBar.verticalWidth + 8
+        var reach = safe
+        let bar: CGRect
         var panel = lower
-        panel.origin.y = bar.maxY + 4
-        panel.size.height = max(0, lower.maxY - panel.minY)
-        let screenArea = panel.intersection(safe).isNull ? panel : panel.intersection(safe)
+        if sideBar {
+            reach.size.width = bounds.maxX - reach.minX
+            let height = max(0, min(QuickActionBar.verticalHeight, upper.maxY - safe.minY - islandClearance))
+            bar = CGRect(x: safe.maxX + (strip - QuickActionBar.verticalWidth) / 2, y: safe.minY + islandClearance,
+                         width: QuickActionBar.verticalWidth, height: height).integral
+        } else {
+            let row = lower.intersection(safe).isNull ? lower : lower.intersection(safe)
+            let barWidth = min(row.width - barInset * 2, barMaxWidth)
+            bar = CGRect(x: row.midX - barWidth / 2, y: row.minY + 6,
+                         width: max(0, barWidth), height: QuickActionBar.preferredHeight).integral
+            panel.origin.y = bar.maxY + 4
+            panel.size.height = max(0, lower.maxY - panel.minY)
+        }
+        let screenArea = panel.intersection(reach).isNull ? panel : panel.intersection(reach)
 
         // Leave thumb-sized gutters for the d-pad and face buttons on either side.
         let gutter = min(max(screenArea.width * 0.21, 110), 170)
@@ -797,8 +824,11 @@ enum GameLayout {
                          width: max(0, screenArea.width - gutter * 2),
                          height: max(0, screenArea.height - 8))
         let bottom = aspectFit(in: fit)
-        return .init(game: top, controls: panel, controlStyle: .panel,
-                     quickBar: bar, menuArea: safe, secondScreen: bottom)
+        var frames = Frames(game: top, controls: panel, controlStyle: .panel,
+                            quickBar: bar, menuArea: safe, secondScreen: bottom)
+        frames.quickBarVertical = sideBar
+        frames.controlsUseRightInset = sideBar
+        return frames
     }
 
     /// Largest 4:3 rect centered in `rect`, snapped to whole points.

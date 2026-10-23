@@ -7,3 +7,4 @@ DerivedData/
 !Tests/Fixtures/*.smc
 .claude/worktrees/
 build-release/
+!tools/showcase/*.sfc
