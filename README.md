@@ -58,8 +58,9 @@ the libretro API.
 
 - **Library by manufacturer:** Nintendo, Sega, Sony and Arcade, then system, then game.
   Each list starts with the games you played most recently.
-- **Artwork:** title screens are captured on the device from your own games. Box art from
-  the community libretro-thumbnails collection is optional and off by default.
+- **Artwork:** title screens are captured on the device from your own games. Builds made
+  from source can also download box art from the community libretro-thumbnails collection
+  (optional, off by default). The App Store build leaves this out.
 - **Save states:** quick save and load from the bar under the game, three slots in the
   menu, and an automatic resume point when you leave a game. Battery saves are kept per
   system.
@@ -170,7 +171,8 @@ Store-ready images live in `docs/app-store`: `iphone-6.9` holds the required 6.9
 ## Privacy
 
 Duomulator collects no data: no accounts, analytics or tracking. Games and saves stay on the
-device, and the optional box art download is its only network use. See the
+device. The App Store build makes no network requests; builds made from source can
+optionally download box art. See the
 [privacy policy](https://airdamien.github.io/duomulator/privacy.html).
 
 ## License and credits

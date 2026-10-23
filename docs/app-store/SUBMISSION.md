@@ -91,7 +91,7 @@ FEATURES
 • MFi, Xbox and PlayStation controllers and keyboards, with per-system remapping
 • Touch controls designed for each console
 • A library organized by system, with your recently played games first
-• Title-screen thumbnails captured on device, and optional box art
+• Title-screen thumbnails captured on your device
 • BIOS manager that recognizes BIOS files automatically
 • Three demo games included, to try the controls right away
 
@@ -136,17 +136,16 @@ To test without your own files: three public-domain demo games made for this app
 
 iPhone Duo: half-fold the device to see the game above the fold and the controller below. Fully open and closed use overlay layouts, and the outer display moves the quick actions to the side bar. On other iPhones the standard layout is used.
 
-The only network access is optional box art (Settings > Artwork > Download Box Art, off by default), fetched from the community libretro-thumbnails server. No accounts, analytics, or tracking.
+The app makes no network requests: no accounts, analytics, tracking, or downloads.
 ```
 
 **Contact:** your name, phone and email (shown only to App Review).
 
 ## Things that could come up in review
 
-- **Content rights.** App Store Connect asks whether the app shows third-party content.
-  The optional box art download fetches cover art you don't hold rights to. The cleanest
-  answer is to leave box art out of the App Store build. If you keep it, answer "Yes" and
-  expect questions.
+- **Content rights.** The App Store build (Release configuration) leaves out the box art
+  download, so it shows no third-party content. Answer "No" to the third-party content
+  question.
 - **The name.** "Duo" echoes Apple's product name. If review objects, use a variant such
   as "Duomulator Retro" or a new name.
 - **Licenses.** The non-commercial and GPL cores are discussed in the repo history. Keep

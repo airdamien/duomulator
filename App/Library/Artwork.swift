@@ -272,7 +272,17 @@ enum ArtworkSettings {
     static let wifiOnlyKey = "artworkWiFiOnly"
     static let defaultSourceURL = "https://thumbnails.libretro.com"
 
-    static var downloadsEnabled: Bool { UserDefaults.standard.bool(forKey: downloadsEnabledKey) }
+    /// App Store builds leave box art out (it's artwork the app has no rights to); builds
+    /// made from source offer it as an opt-in.
+    #if APP_STORE
+    static let boxArtAvailable = false
+    #else
+    static let boxArtAvailable = true
+    #endif
+
+    static var downloadsEnabled: Bool {
+        boxArtAvailable && UserDefaults.standard.bool(forKey: downloadsEnabledKey)
+    }
     static var wifiOnly: Bool { UserDefaults.standard.object(forKey: wifiOnlyKey) as? Bool ?? true }
     static var sourceURL: URL? {
         let text = UserDefaults.standard.string(forKey: sourceURLKey) ?? defaultSourceURL

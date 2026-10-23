@@ -46,6 +46,7 @@ struct SettingsView: View {
                     Toggle("Haptics", isOn: $hapticsEnabled)
                 }
 
+                if ArtworkSettings.boxArtAvailable {
                 Section {
                     Toggle("Download Box Art", isOn: $artDownloads)
                     if artDownloads {
@@ -63,6 +64,7 @@ struct SettingsView: View {
                     Text(artDownloads
                          ? "Box art is fetched from the source above (libretro-thumbnails, a community collection) only for games in your library, and kept on this iPhone. The images belong to their respective owners; Duomulator doesn't host or include any."
                          : "Games show a title screen captured on this iPhone from your own ROMs, and where you left off. Turn on Download Box Art to fetch covers from a community source.")
+                }
                 }
 
                 Section {

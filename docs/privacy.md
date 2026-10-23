@@ -16,9 +16,12 @@ stored only in Duomulator's folder on your iPhone. They're never sent to us; we 
 any servers. iOS may include this folder in your iCloud or computer backups, under your
 backup settings and Apple's privacy policy.
 
-## Optional box art downloads
+## Network use
 
-If you turn on **Download Box Art** in Settings (it's off by default), Duomulator requests
+The App Store version of Duomulator makes no network requests at all.
+
+Builds you compile yourself from the source code add an optional **Download Box Art**
+setting (off by default). If you turn it on, Duomulator requests
 cover images for the games in your library from a community image server (by default
 `thumbnails.libretro.com`, run by the libretro project). Each request contains the
 console and game name in the address. Like any web server, that server can see your
