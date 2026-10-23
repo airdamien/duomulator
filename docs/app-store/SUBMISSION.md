@@ -4,7 +4,7 @@ Everything App Store Connect asks for, ready to paste, plus the steps in order.
 
 ## Ready in the repo
 
-- **Build:** version 1.0 (1), bundle ID `io.kurast.duomulator`, team `XGZ5TDQE45`, games
+- **Build:** version 1.0 (1), bundle ID `io.kurast.duomulator`, team `8NX8ZBT9WD`, games
   category, privacy manifest, export compliance set to "no non-exempt encryption".
 - **Screenshots:** `docs/app-store/iphone-6.9/`, six 1320×2868 PNGs, the required iPhone size.
 - **Demo games:** three public-domain games are added on first launch, so App Review has
@@ -15,7 +15,7 @@ Everything App Store Connect asks for, ready to paste, plus the steps in order.
 
 ## Steps
 
-1. **Developer Program.** Team XGZ5TDQE45 needs an active paid Apple Developer Program
+1. **Developer Program.** Team 8NX8ZBT9WD needs an active paid Apple Developer Program
    membership (developer.apple.com › Account).
 2. **GitHub Pages.** Turn it on, as above, and check that the privacy URL loads.
 3. **Create the app record.** In appstoreconnect.apple.com, go to Apps › **+** › New App:

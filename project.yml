@@ -6,7 +6,7 @@ options:
   createIntermediateGroups: true
 settings:
   base:
-    DEVELOPMENT_TEAM: XGZ5TDQE45
+    DEVELOPMENT_TEAM: 8NX8ZBT9WD
     CODE_SIGN_STYLE: Automatic
     SWIFT_VERSION: "5.0"
     IPHONEOS_DEPLOYMENT_TARGET: "26.0"

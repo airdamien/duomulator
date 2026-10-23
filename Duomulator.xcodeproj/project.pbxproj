@@ -9826,39 +9826,39 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					03F45B33CDE47F1F966C06F5 = {
-						DevelopmentTeam = XGZ5TDQE45;
+						DevelopmentTeam = 8NX8ZBT9WD;
 						ProvisioningStyle = Automatic;
 					};
 					5F6CC8FDD24A25DC9FD8F915 = {
-						DevelopmentTeam = XGZ5TDQE45;
+						DevelopmentTeam = 8NX8ZBT9WD;
 						ProvisioningStyle = Automatic;
 					};
 					6D59C79F1C6FDDFD8E643B8E = {
-						DevelopmentTeam = XGZ5TDQE45;
+						DevelopmentTeam = 8NX8ZBT9WD;
 						ProvisioningStyle = Automatic;
 					};
 					702314F407879A0674BC9D8C = {
-						DevelopmentTeam = XGZ5TDQE45;
+						DevelopmentTeam = 8NX8ZBT9WD;
 						ProvisioningStyle = Automatic;
 					};
 					AF56E14F3D247C34641776EA = {
-						DevelopmentTeam = XGZ5TDQE45;
+						DevelopmentTeam = 8NX8ZBT9WD;
 						ProvisioningStyle = Automatic;
 					};
 					C2442894FB2A54722C695698 = {
-						DevelopmentTeam = XGZ5TDQE45;
+						DevelopmentTeam = 8NX8ZBT9WD;
 						ProvisioningStyle = Automatic;
 					};
 					CE6614932C7450BD1E43D444 = {
-						DevelopmentTeam = XGZ5TDQE45;
+						DevelopmentTeam = 8NX8ZBT9WD;
 						ProvisioningStyle = Automatic;
 					};
 					E2D0614EC48288593C6ACD35 = {
-						DevelopmentTeam = XGZ5TDQE45;
+						DevelopmentTeam = 8NX8ZBT9WD;
 						ProvisioningStyle = Automatic;
 					};
 					EC8563658627D5D6D570C303 = {
-						DevelopmentTeam = XGZ5TDQE45;
+						DevelopmentTeam = 8NX8ZBT9WD;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -12634,7 +12634,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = XGZ5TDQE45;
+				DEVELOPMENT_TEAM = 8NX8ZBT9WD;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
@@ -12732,7 +12732,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = XGZ5TDQE45;
+				DEVELOPMENT_TEAM = 8NX8ZBT9WD;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
