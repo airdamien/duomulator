@@ -111,3 +111,29 @@ final class OuterDisplayLayoutTests: XCTestCase {
         XCTAssertFalse(frames.quickBarVertical)
     }
 }
+
+/// DS in landscape: screens over/under in a center column, controls present on both sides.
+final class DSLandscapeTests: XCTestCase {
+    func testLandscapeKeepsControls() {
+        for size in [CGSize(width: 956, height: 440), CGSize(width: 852, height: 393), CGSize(width: 951, height: 669)] {
+            let bounds = CGRect(origin: .zero, size: size)
+            let safe = UIEdgeInsets(top: 0, left: 62, bottom: 21, right: 62)
+            for posture in [Posture.flat, .closed] {
+                let f = GameLayout.frames(system: .nds, posture: posture, bounds: bounds, safeArea: safe, occlusions: [])
+                let bottom = try! XCTUnwrap(f.secondScreen)
+                XCTAssertEqual(f.game.minX, bottom.minX, "\(size): screens over/under")
+                XCTAssertLessThanOrEqual(f.game.maxY, bottom.minY)
+                XCTAssertTrue(f.quickBarVertical)
+                XCTAssertEqual(f.controlStyle, .overlay)
+                let reserved = try! XCTUnwrap(f.controlsReserved)
+                let layout = ControllerLayout(bounds: try! XCTUnwrap(f.controls), safeArea: safe,
+                                              style: .overlay, system: .nds, reserved: reserved)
+                XCTAssertGreaterThan(layout.dpadRadius, 30, "\(size): d-pad drawn")
+                XCTAssertGreaterThan(layout.faceRadius, 10, "\(size): face buttons drawn")
+                XCTAssertLessThan(layout.dpadCenter.x + layout.dpadRadius, reserved.minX)
+                XCTAssertGreaterThan(layout.faceCenter.x - layout.faceSpacing, reserved.maxX)
+                XCTAssertTrue(reserved.contains(try! XCTUnwrap(f.quickBar)))
+            }
+        }
+    }
+}

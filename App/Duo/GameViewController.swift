@@ -144,6 +144,14 @@ final class GameViewController: UIViewController {
         super.viewDidAppear(animated)
         setNeedsUpdateOfHomeIndicatorAutoHidden()
         setNeedsUpdateOfScreenEdgesDeferringSystemGestures()
+        #if DEBUG
+        // Testing hook: `-debugOrientation landscape` turns the game screen for screenshots.
+        if UserDefaults.standard.string(forKey: "debugOrientation") == "landscape" {
+            orientationLock = .landscapeRight
+            setNeedsUpdateOfSupportedInterfaceOrientations()
+            view.window?.windowScene?.requestGeometryUpdate(.iOS(interfaceOrientations: .landscapeRight))
+        }
+        #endif
         if !didAttemptLoad && !hasExited {
             didAttemptLoad = true
             loadGame()
@@ -605,7 +613,8 @@ final class GameViewController: UIViewController {
             if touchView.style != frames.controlStyle { touchView.style = frames.controlStyle }
             touchView.frame = controls
             touchView.usesRightInset = frames.controlsUseRightInset
-            touchView.reservedRect = frames.secondScreen.map { view.convert($0, to: touchView) }
+            touchView.reservedRect = (frames.controlsReserved ?? frames.secondScreen)
+                .map { view.convert($0, to: touchView) }
             touchView.alpha = 1
             touchView.isUserInteractionEnabled = true
             updateOverlayVisibility(animated: true)
@@ -657,6 +666,8 @@ enum GameLayout {
         var quickBarVertical = false
         /// Duo outer display in portrait: the controls also use the system strip at the right.
         var controlsUseRightInset = false
+        /// Area the controls flank (defaults to `secondScreen`): both DS screens in landscape.
+        var controlsReserved: CGRect? = nil
     }
 
     /// Controls are always laid out; with a gamepad connected the game screen hides the
@@ -777,6 +788,9 @@ enum GameLayout {
     /// controls stay with a gamepad connected (both work), like the half-fold layout.
     private static func dualScreen(posture: Posture, bounds: CGRect, safe: CGRect,
                                    occlusions: [CGRect]) -> Frames {
+        if posture.kind != .tent && bounds.width > bounds.height {
+            return dualScreenStacked(bounds: bounds, safe: safe, occlusions: occlusions)
+        }
         var upper: CGRect
         var lower: CGRect
         if case .tent(let division) = posture, division.width >= division.height {
@@ -828,6 +842,32 @@ enum GameLayout {
                             quickBar: bar, menuArea: safe, secondScreen: bottom)
         frames.quickBarVertical = sideBar
         frames.controlsUseRightInset = sideBar
+        return frames
+    }
+
+    /// DS in landscape (flat or closed): the two screens stacked in a center column, the d-pad
+    /// and buttons in the side columns (outline overlay, hidden while a gamepad is connected),
+    /// and the quick bar standing beside the screens, icons only.
+    private static func dualScreenStacked(bounds: CGRect, safe: CGRect, occlusions: [CGRect]) -> Frames {
+        let area = safe.avoiding(occlusions)
+        let gap: CGFloat = 6, barWidth = QuickActionBar.verticalWidth, barGap: CGFloat = 12
+        var height = max(0, (area.height - 8 - gap) / 2)
+        var width = height / 0.75
+        let maxWidth = area.width * 0.45
+        if width > maxWidth {
+            width = maxWidth
+            height = width * 0.75
+        }
+        let columnX = area.midX - (width + barGap + barWidth) / 2
+        let top = CGRect(x: columnX, y: area.midY - gap / 2 - height, width: width, height: height).integral
+        let bottom = CGRect(x: columnX, y: area.midY + gap / 2, width: width, height: height).integral
+        let barHeight = min(QuickActionBar.verticalHeight, area.height - 16)
+        let bar = CGRect(x: columnX + width + barGap, y: area.midY - barHeight / 2,
+                         width: barWidth, height: barHeight).integral
+        var frames = Frames(game: top, controls: bounds, controlStyle: .overlay,
+                            quickBar: bar, menuArea: safe, secondScreen: bottom)
+        frames.quickBarVertical = true
+        frames.controlsReserved = top.union(bottom).union(bar)
         return frames
     }
 

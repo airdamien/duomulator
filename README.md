@@ -133,6 +133,7 @@ Debug builds accept a few launch arguments for testing and screenshots:
 | `-openLibraryFolder <system \| bios>` | Open a system's game list, or BIOS Files |
 | `-postureOverride forceTent \| forceFlat` | Force a layout |
 | `-debugPosture closed` | Lay out as on the outer display |
+| `-debugOrientation landscape` | Turn the game screen to landscape |
 | `-layoutIgnoresGamepads YES` | Keep touch controls visible (the Simulator forwards the Mac's gamepads) |
 
 ## Project layout
